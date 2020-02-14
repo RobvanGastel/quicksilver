@@ -18,7 +18,6 @@ struct cardStat {
 class Estimator {
 
 public:
-
     virtual void prepare() = 0;
     virtual cardStat estimate(PathQuery *q) = 0;
 
