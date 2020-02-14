@@ -7,6 +7,7 @@
 class SimpleEstimator : public Estimator {
 
     std::shared_ptr<SimpleGraph> graph;
+    std::vector<int> sampleVertices;
 
 public:
     explicit SimpleEstimator(std::shared_ptr<SimpleGraph> &g);
@@ -14,7 +15,6 @@ public:
 
     void prepare() override ;
     cardStat estimate(PathQuery *q) override ;
-
 };
 
 
