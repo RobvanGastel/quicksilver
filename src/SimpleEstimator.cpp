@@ -4,56 +4,16 @@
 #include <set>
 #include <cmath>
 
-class Histogram {
-public:
-    std::vector<std::pair<uint32_t,uint32_t>> buckets;
-    std::vector<uint32_t> freq; // vertex adjacency list
-
-    void createVoptimal(SimpleGraph &g);
-};
-
 SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
     // works only with SimpleGraph
     graph = g;
-
-    // Test histogram with V-Optimal
-    auto histo = Histogram();
-    histo.createVoptimal(*g);
 }
-
-
-void Histogram::createVoptimal(SimpleGraph &g) {
-    int n = g.adj.size();
-    std::vector<int> locFreq;
-    std::vector<std::pair<int, int>> locBuc;
-
-    for(int i = 0; i < n; i++) {
-        locFreq[i] = 10; // TODO: Define freq function 
-        locBuc[i].first = i;
-        locBuc[i].second = i;
-    }
-
-    int err = 0;
-    int beta = 200;
-
-    while (locBuc.size() > beta) {
-        double min = std::numeric_limits<double>::max();
-        int j_prime = 0;
-        
-        for(int j = 0; i < locBuc.size() -2; j++) {
-            // TODO: Create b prime
-        }
-    }
-};
-
-
-
-
 
 void SimpleEstimator::prepare() {
 
     // Preparation
+    // TODO: Remove for evaluation
     std::cout << "No Edges: " << graph->getNoEdges() << std::endl;
     std::cout << "No Labels: "  << graph->getNoLabels() << std::endl;
     std::cout << "No Vertices: "  << graph->getNoVertices() << std::endl;
@@ -89,7 +49,7 @@ void SimpleEstimator::prepare() {
         << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1] 
         + sampleCount[2] + sampleCount[3]) << std::endl;
 
-
+    // Creation histograms
     std::string histogram_type = "equiwidth";
     uint32_t u_depth = noEdges / 200;
     uint32_t u_width_size = 250;
@@ -99,17 +59,17 @@ void SimpleEstimator::prepare() {
     std::cout << histogram.get_query_results(985, "source", 0) << std::endl;
 }
 
-// TODO: Needs some kind of Histogram to work properly
-// V(R, A)
+
+// TODO: Needs some kind of Histogram to work properly, V(R, A)
 int DistinctValuesFor(int relation, std::string attribute) {
-    // hardcoded default is 10
+    // Default is 10
     return 10;
 }
 
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
 
-    // perform your estimation here
+    // TODO: Change exact indications to approximations
     std::set<int> sources = {};
     std::set<int> targets = {};
     std::vector<std::pair<uint32_t,uint32_t>> results = {};

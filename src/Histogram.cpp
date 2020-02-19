@@ -1,7 +1,8 @@
 #include <Histogram.h>
 
 
-Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels, uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
+Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels, 
+        uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
     labels = noLabels;
     vertices = noVertices;
     depth = u_depth;
@@ -20,8 +21,8 @@ void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, ui
         create_equidepth_histograms();
     else if (histogram_type == "equiwidth")
         create_equiwidth_histograms();
-//    else if (histogram_type == "voptimal")
-//        create_voptimal_histogram();
+   else if (histogram_type == "voptimal")
+        create_voptimal_histograms();
 }
 
 void Histogram::create_equidepth_histograms() {
@@ -138,6 +139,31 @@ void Histogram::create_equiwidth_histograms() {
             }
         }
     }
+}
+
+void Histogram::create_voptimal_histograms() {
+    // TODO 
+    // int n = g.adj.size();
+    // std::vector<int> locFreq;
+    // std::vector<std::pair<int, int>> locBuc;
+
+    // for(int i = 0; i < n; i++) {
+    //     locFreq[i] = 10; // TODO: Define freq function 
+    //     locBuc[i].first = i;
+    //     locBuc[i].second = i;
+    // }
+
+    // int err = 0;
+    // int beta = 200;
+
+    // while (locBuc.size() > beta) {
+    //     double min = std::numeric_limits<double>::max();
+    //     int j_prime = 0;
+        
+    //     for(int j = 0; i < locBuc.size() -2; j++) {
+    //         // TODO: Create b prime
+    //     }
+    // }
 }
 
 void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {

@@ -13,3 +13,9 @@ _deps
 
 # Binaries
 quicksilver
+
+# MacOS
+.DS_Store
+
+# vscode
+.vscode/
