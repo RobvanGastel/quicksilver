@@ -1,6 +1,8 @@
 #include "SimpleGraph.h"
 #include "SimpleEstimator.h"
+#include <Histogram.h>
 #include <set>
+#include <cmath>
 
 class Histogram {
 public:
@@ -51,7 +53,7 @@ void Histogram::createVoptimal(SimpleGraph &g) {
 
 void SimpleEstimator::prepare() {
 
-    // Preperation
+    // Preparation
     std::cout << "No Edges: " << graph->getNoEdges() << std::endl;
     std::cout << "No Labels: "  << graph->getNoLabels() << std::endl;
     std::cout << "No Vertices: "  << graph->getNoVertices() << std::endl;
@@ -59,6 +61,7 @@ void SimpleEstimator::prepare() {
 
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
+    int noEdges = graph->getNoEdges();
 
     // Sample tuple sizes
     // TODO: Find good ratio, sample 5% of the vertices
@@ -85,6 +88,15 @@ void SimpleEstimator::prepare() {
         << "\ntuple 3: " << 20 * sampleCount[3] 
         << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1] 
         + sampleCount[2] + sampleCount[3]) << std::endl;
+
+
+    std::string histogram_type = "equiwidth";
+    uint32_t u_depth = noEdges / 200;
+    uint32_t u_width_size = 250;
+    Histogram histogram = Histogram(histogram_type, noLabels, noVertices, u_depth, u_width_size);
+    histogram.create_histograms(graph->adj);
+    histogram.print_histogram("source", 0);
+    std::cout << histogram.get_query_results(985, "source", 0) << std::endl;
 }
 
 // TODO: Needs some kind of Histogram to work properly
@@ -113,14 +125,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         sourceVertex = q->t;
         targetVertex = q->s;
     }
-
-//    Print adjacency list
-//    for (uint32_t i = 0; i < graph->adj.size(); i++){
-//        for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
-//            std::cout << i << " " << graph->adj.at(i).at(j).first << " " << graph->adj.at(i).at(j).second << " || ";
-//        }
-//        std::cout << std::endl;
-//    }
 
     if (sourceVertex != "*") {
         uint32_t int_source = std::stoul(sourceVertex,0);
