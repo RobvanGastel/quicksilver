@@ -73,14 +73,17 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     std::set<int> sources = {};
     std::set<int> targets = {};
     std::vector<std::pair<uint32_t,uint32_t>> results = {};
+
     std::string relation_direction = q->path->data.substr(q->path->data.size()-1,1);
     std::string relation_type = q->path->data.substr(0,q->path->data.size()-1);
     std::string sourceVertex;
     std::string targetVertex;
+
     if (relation_direction == ">") {
         sourceVertex = q->s;
         targetVertex = q->t;
     }
+
     else if (relation_direction == "<") {
         sourceVertex = q->t;
         targetVertex = q->s;
@@ -88,6 +91,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
     if (sourceVertex != "*") {
         uint32_t int_source = std::stoul(sourceVertex,0);
+
         if (targetVertex != "*") {
             uint32_t int_target = std::stoul(targetVertex,0);
             for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
@@ -98,6 +102,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }
         }
+
         else {
             for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
                 if (graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) {
@@ -109,6 +114,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         }
     }
     else {
+
         if (targetVertex != "*") {
             uint32_t int_target = std::stoul(targetVertex,0);
             for (uint32_t i = 0; i < graph->adj.size(); i++) {

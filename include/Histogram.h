@@ -28,7 +28,7 @@ public:
 
     void create_equiwidth_histograms();
 
-    void create_voptimal_histograms();
+    // void create_voptimal_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj);
 
     void create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
 
