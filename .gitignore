@@ -16,6 +16,7 @@ quicksilver
 
 # MacOS
 .DS_Store
+.idea/
 
 # vscode
 .vscode/
