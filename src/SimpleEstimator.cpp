@@ -1,6 +1,6 @@
 #include "SimpleGraph.h"
 #include "SimpleEstimator.h"
-#include <Histogram.h>
+// #include <Histogram.h>
 #include <set>
 #include <cmath>
 
@@ -147,11 +147,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     return cardStat {noSources, noPaths, noTargets};
 }
 
-
-
-
-
-#include <Histogram.h>
 
 
 Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels, 
