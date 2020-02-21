@@ -1,6 +1,5 @@
 #include "SimpleGraph.h"
 #include "SimpleEstimator.h"
-// #include <Histogram.h>
 #include <set>
 #include <cmath>
 
