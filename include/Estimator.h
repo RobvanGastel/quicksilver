@@ -4,6 +4,7 @@
 #include "PathTree.h"
 #include "PathQuery.h"
 #include <iostream>
+#include <vector>
 
 struct cardStat {
     uint32_t noOut;
@@ -24,10 +25,6 @@ public:
 };
 
 
-
-
-#include <iostream>
-#include <vector>
 
 class Histogram {
 
