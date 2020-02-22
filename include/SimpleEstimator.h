@@ -51,6 +51,8 @@ public:
 
     uint32_t get_query_results(uint32_t nodeID, std::string query_var, uint32_t relation);
 
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> get_relations();
+
 };
 
 #endif //QS_SIMPLEESTIMATOR_H

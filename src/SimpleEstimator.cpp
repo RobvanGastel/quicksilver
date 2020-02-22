@@ -220,6 +220,8 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, ui
         return -1;
 }
 
+std::vector<std::vector<std::pair<uint32_t, uint32_t>>> Histogram::get_relations() { return relations; }
+
 
 SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
@@ -274,6 +276,14 @@ void SimpleEstimator::prepare() {
     histogram.create_histograms(graph->adj);
     histogram.print_histogram("source", 0);
     std::cout << histogram.get_query_results(985, "source", 0) << std::endl;
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relations = histogram.get_relations();
+    for (int i = 0; i < relations.size(); i++) {
+        for (int j = 0; j < relations[i].size(); j++) {
+            for (std::pair<uint32_t, uint32_t> p : relations[i][j]) {
+                std::cout << p.first << p.second << std::endl;
+            }
+        }
+    }
 }
 
 

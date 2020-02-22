@@ -4,133 +4,131 @@
 	<Project>
 		<Option title="quicksilver"/>
 		<Option makefile_is_custom="1"/>
-		<Option compiler="gcc"/>
+		<Option compiler="msvc8"/>
 		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug"/>
+				<Option working_dir="C:/Users/s164518/GitHub/quicksilver/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 all"/>
+					<CompileFile command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug"/>
+				<Option working_dir="C:/Users/s164518/GitHub/quicksilver/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="quicksilver">
-				<Option output="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/quicksilver.exe" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug"/>
+				<Option output="C:/Users/s164518/GitHub/quicksilver/cmake-build-debug/quicksilver.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/s164518/GitHub/quicksilver/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="gcc"/>
+				<Option compiler="msvc8"/>
 				<Compiler>
-					<Add directory="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include/c++"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include/c++/mingw32"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include/c++/backward"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/../../../../include"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include-fixed"/>
+					<Add directory="C:/Users/s164518/GitHub/quicksilver/include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\ATLMFC\include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\winrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\cppwinrt"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 quicksilver"/>
-					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 quicksilver"/>
+					<CompileFile command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="quicksilver/fast">
-				<Option output="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/quicksilver.exe" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug"/>
+				<Option output="C:/Users/s164518/GitHub/quicksilver/cmake-build-debug/quicksilver.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/s164518/GitHub/quicksilver/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="gcc"/>
+				<Option compiler="msvc8"/>
 				<Compiler>
-					<Add directory="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include/c++"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include/c++/mingw32"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include/c++/backward"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/../../../../include"/>
-					<Add directory="c:\mingw\bin\../lib/gcc/mingw32/8.2.0/include-fixed"/>
+					<Add directory="C:/Users/s164518/GitHub/quicksilver/include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\ATLMFC\include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\winrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\cppwinrt"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 quicksilver/fast"/>
-					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 quicksilver/fast"/>
+					<CompileFile command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
-				<Option working_dir="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug"/>
+				<Option working_dir="C:/Users/s164518/GitHub/quicksilver/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 edit_cache"/>
+					<CompileFile command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\Users\s164518\GitHub\quicksilver\cmake-build-debug\Makefile VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/Estimator.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/Estimator.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/Evaluator.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/Evaluator.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/Graph.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/Graph.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/Histogram.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/PathQuery.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/PathQuery.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/PathTree.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/PathTree.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/SimpleEstimator.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/SimpleEstimator.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/SimpleEvaluator.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/SimpleEvaluator.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/include/SimpleGraph.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/SimpleGraph.h">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/src/PathQuery.cpp">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/Histogram.cpp">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/src/PathTree.cpp">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/PathQuery.cpp">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/src/SimpleEstimator.cpp">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/PathTree.cpp">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/src/SimpleEvaluator.cpp">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/SimpleEstimator.cpp">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/src/SimpleGraph.cpp">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/SimpleEvaluator.cpp">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/src/main.cpp">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/SimpleGraph.cpp">
-			<Option target="quicksilver"/>
-		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/main.cpp">
-			<Option target="quicksilver"/>
-		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/CMakeLists.txt">
+		<Unit filename="C:/Users/s164518/GitHub/quicksilver/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
 	</Project>
