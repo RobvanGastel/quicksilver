@@ -26,7 +26,10 @@ private:
     uint32_t vertices;
     uint32_t depth;
     uint32_t width_size;
-    std::string histogram_type;
+    uint32_t total_memory;
+    uint32_t bucket_memory;
+    uint32_t noBuckets;
+    uint32_t histogram_type;
     std::vector<uint32_t> distinct_source_relations;
     std::vector<uint32_t> distinct_target_relations;
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relations;
@@ -51,9 +54,9 @@ public:
 
     void create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
 
-    void print_histogram(std::string query_var, uint32_t relation);
+    void print_histogram(uint32_t query_var, uint32_t relation);
 
-    uint32_t get_query_results(uint32_t nodeID, std::string query_var, uint32_t relation);
+    uint32_t get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation);
 
 };
 
