@@ -1,4 +1,5 @@
 # CMake
+CMakeFiles/
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -13,6 +14,7 @@ _deps
 
 # Build
 build/
+cmake-build-debug/
 
 # Binaries
 quicksilver
