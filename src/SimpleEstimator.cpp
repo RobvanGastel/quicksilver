@@ -12,7 +12,6 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     vertices = noVertices;
     depth = u_depth;
 
-    width_size = u_width_size;
     total_memory = 1000000;
     bucket_memory = 3 * 32;
     noBuckets = total_memory / bucket_memory;
@@ -294,6 +293,7 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
     // works only with SimpleGraph
     graph = g;
+
 }
 
 void SimpleEstimator::prepare() {
@@ -328,20 +328,20 @@ void SimpleEstimator::prepare() {
     sampleVertices = sampleCount;
 
 
-    std::cout << "tuple 0: " << 20 * sampleCount[0]
-        << "\ntuple 1: " << 20 * sampleCount[1] 
-        << "\ntuple 2: " << 20 * sampleCount[2] 
-        << "\ntuple 3: " << 20 * sampleCount[3] 
-        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1] 
-        + sampleCount[2] + sampleCount[3]) << std::endl;
+//    std::cout << "tuple 0: " << 20 * sampleCount[0]
+//        << "\ntuple 1: " << 20 * sampleCount[1]
+//        << "\ntuple 2: " << 20 * sampleCount[2]
+//        << "\ntuple 3: " << 20 * sampleCount[3]
+//        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1]
+//        + sampleCount[2] + sampleCount[3]) << std::endl;
 
 
     // Creation histograms
     std::string histogram_type = "equidepth";
     uint32_t u_depth = noEdges / 200;
-    Histogram histogram = Histogram(histogram_type, noLabels, noVertices, u_depth);
+    histogram = Histogram(histogram_type, noLabels, noVertices, u_depth);
     histogram.create_histograms(graph->adj);
-    histogram.print_histogram(0, 0);
+//    histogram.print_histogram(0, 0);
     std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
@@ -391,103 +391,38 @@ int distinctValuesFor(int relation, std::string attribute) {
 //     }
 // }
 
-int estimateNaturalJoinSize(PathTree path){
-    if (path.isLeaf()) {
-        std::cout << "deze " << path.data << std::endl;
-    } else {
-        std::cout << estimateNaturalJoinSize(*path.left) << std::endl;
-        std::cout << estimateNaturalJoinSize(*path.right) << std::endl;
-    }
-    return -1;
-}
-
-
-//cardStat SimpleEstimator::estimate(PathQuery *q) {
-//
-//    // TODO: Change exact indications to approximations
-//    std::set<int> sources = {};
-//    std::set<int> targets = {};
-//    std::vector<std::pair<uint32_t,uint32_t>> results = {};
-//
-//    std::string relation_direction = q->path->data.substr(q->path->data.size()-1,1);
-//    std::string relation_type = q->path->data.substr(0,q->path->data.size()-1);
-//    std::string sourceVertex;
-//    std::string targetVertex;
-//
-//    std::cout << "ditt" << std::endl;
-//    estimateNaturalJoinSize(*q->path);
-
-
-//    if (relation_direction == ">") {
-//        sourceVertex = q->s;
-//        targetVertex = q->t;
-//    }
-//
-//    else if (relation_direction == "<") {
-//        sourceVertex = q->t;
-//        targetVertex = q->s;
-//    }
-//
-//    if (sourceVertex != "*") {
-//        uint32_t int_source = std::stoul(sourceVertex,0);
-//
-//        if (targetVertex != "*") {
-//            uint32_t int_target = std::stoul(targetVertex,0);
-//            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
-//                if ((graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(int_source).at(j).second == int_target)) {
-//                    results.push_back(std::make_pair(int_source, int_target));
-//                    sources.insert(int_source);
-//                    targets.insert(int_target);
-//                }
-//            }
-//        }
-//
-//        else {
-//            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
-//                if (graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) {
-//                    results.push_back(std::make_pair(int_source, graph->adj.at(int_source).at(j).second));
-//                    sources.insert(int_source);
-//                    targets.insert(graph->adj.at(int_source).at(j).second);
-//                }
-//            }
-//        }
-//    }
-//    else {
-//
-//        if (targetVertex != "*") {
-//            uint32_t int_target = std::stoul(targetVertex,0);
-//            for (uint32_t i = 0; i < graph->adj.size(); i++) {
-//                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
-//                    if ((graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(i).at(j).second == int_target)) {
-//                        results.push_back(std::make_pair(i, int_target));
-//                        sources.insert(i);
-//                        targets.insert(int_target);
-//                    }
-//                }
-//            }
-//        }
-//        else {
-//            for (uint32_t i = 0; i < graph->adj.size(); i++) {
-//                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
-//                    if (graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) {
-//                        results.push_back(std::make_pair(i, graph->adj.at(i).at(j).second));
-//                        sources.insert(i);
-//                        targets.insert(graph->adj.at(i).at(j).second);
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    uint32_t noSources = sources.size();
-//    uint32_t noPaths = results.size();
-//    uint32_t noTargets = targets.size();
-
-
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
 
     // TODO: Change exact indications to approximations
+    std::cout << "start" << std::endl;
+    int32_t T = -1;
+    auto path = parsePathTree(*q->path);
+    if (path.size() == 1) {  // either no joins (just one relation table needed) or transitive closure
+
+        // todo TC and single table query
+    } else {  // at least one join
+        int rel_cur = std::stoul(path->at(0).substr(0, path->at(0).size()-1), 0);  // relation
+        std::string dir_cur = path->at(0).substr(path->at(0).size()-1, 1);  // direction
+        int t_cur = histogram.total_relations.at(rel_cur);  // #tuples in relation table
+        if (dir_cur == ">") {
+            int v_cur = histogram.distinct_source_relations.at(rel_cur);  // V(R, A)
+        } else if (dir_cur == "<") {
+            int v_cur = histogram.distinct_target_relations.at(rel_cur);  // V(R, A)
+        } else {
+            std::cout << "problem with direction " << dir_cur << std::endl;
+            // exit?
+        }
+
+        for (int i = 1; i < path.size(); i++) {  // start at second entry
+            int rel_other = std::stoul(path->at(i).substr(0, path->at(i).size()-1), 0);  // other table
+            std::string dir_other = path->at(i).substr(path->at(i).size()-1, 1);
+            int t_cur = histogram.total_relations.at(rel_other);  // #tuples in relation table
+            int v_cur = histogram.distinct_target_relations.at(rel_other);  // V(R, A)
+
+
+        }
+    }
 
 
     uint32_t noSources = 0;
