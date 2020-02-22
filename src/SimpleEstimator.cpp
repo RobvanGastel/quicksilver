@@ -3,7 +3,9 @@
 #include <set>
 #include <cmath>
 
-
+/////
+///// Histogram class
+/////
 Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels, 
         uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
     labels = noLabels;
@@ -221,6 +223,9 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, ui
 }
 
 
+/////
+///// SimpleEstimator class
+/////
 SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
     // works only with SimpleGraph
@@ -258,7 +263,6 @@ void SimpleEstimator::prepare() {
     }
     sampleVertices = sampleCount;
 
-
     std::cout << "tuple 0: " << 20 * sampleCount[0]
         << "\ntuple 1: " << 20 * sampleCount[1] 
         << "\ntuple 2: " << 20 * sampleCount[2] 
@@ -277,89 +281,61 @@ void SimpleEstimator::prepare() {
 }
 
 
-// TODO: Needs some kind of Histogram to work properly, V(R, A)
-int DistinctValuesFor(int relation, std::string attribute) {
+// Calculate the V(R, A) values based on the histogram
+int distinctValuesFor(int relation, std::string attribute) {
     // Default is 10
     return 10;
 }
+
+/// Parse tree to 2D vector
+// void inorderParse(PathTree *node, 
+//         std::vector<std::pair<PathTree, PathTree>> *queries,
+//         std::vector<PathTree> *query) {
+//     if (node == nullptr) {
+//         return;
+//     }
+
+//     inorderParse(node->left, queries, query);
+//     query->push_back(&node);
+    
+//     // A query has 3 components
+//     if (query->size() == 3) {
+//         std::pair<std::string, std::string> p;
+//         std::cout << query << std::endl;
+//         p = std::make_pair(&query->at(0), &query->at(2));
+
+//         queries->push_back(p);
+//         // std::make_pair(
+//         //     &query[0].data,
+//         //     &query[2].data)
+        
+//         query->clear();
+//         query->push_back(node->data);
+//     }
+//     inorderParse(node->right, queries, query);
+// }
+
+// void parsePathTree(PathTree tree) {
+//     std::vector<std::pair<PathTree, PathTree>> queries;
+//     std::vector<PathTree> query;
+
+//     inorderParse(&tree, &queries, &query);
+
+//     for (int i = 0; i < queries.size(); i++) {
+//         std::cout << queries.at(i).first << " " << queries.at(i).second << std::endl;
+//     }
+// }
+
 
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
 
     // TODO: Change exact indications to approximations
-    std::set<int> sources = {};
-    std::set<int> targets = {};
-    std::vector<std::pair<uint32_t,uint32_t>> results = {};
 
-    std::string relation_direction = q->path->data.substr(q->path->data.size()-1,1);
-    std::string relation_type = q->path->data.substr(0,q->path->data.size()-1);
-    std::string sourceVertex;
-    std::string targetVertex;
 
-    if (relation_direction == ">") {
-        sourceVertex = q->s;
-        targetVertex = q->t;
-    }
-
-    else if (relation_direction == "<") {
-        sourceVertex = q->t;
-        targetVertex = q->s;
-    }
-
-    if (sourceVertex != "*") {
-        uint32_t int_source = std::stoul(sourceVertex,0);
-
-        if (targetVertex != "*") {
-            uint32_t int_target = std::stoul(targetVertex,0);
-            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
-                if ((graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(int_source).at(j).second == int_target)) {
-                    results.push_back(std::make_pair(int_source, int_target));
-                    sources.insert(int_source);
-                    targets.insert(int_target);
-                }
-            }
-        }
-
-        else {
-            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
-                if (graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) {
-                    results.push_back(std::make_pair(int_source, graph->adj.at(int_source).at(j).second));
-                    sources.insert(int_source);
-                    targets.insert(graph->adj.at(int_source).at(j).second);
-                }
-            }
-        }
-    }
-    else {
-
-        if (targetVertex != "*") {
-            uint32_t int_target = std::stoul(targetVertex,0);
-            for (uint32_t i = 0; i < graph->adj.size(); i++) {
-                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
-                    if ((graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(i).at(j).second == int_target)) {
-                        results.push_back(std::make_pair(i, int_target));
-                        sources.insert(i);
-                        targets.insert(int_target);
-                    }
-                }
-            }
-        }
-        else {
-            for (uint32_t i = 0; i < graph->adj.size(); i++) {
-                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
-                    if (graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) {
-                        results.push_back(std::make_pair(i, graph->adj.at(i).at(j).second));
-                        sources.insert(i);
-                        targets.insert(graph->adj.at(i).at(j).second);
-                    }
-                }
-            }
-        }
-    }
-
-    uint32_t noSources = sources.size();
-    uint32_t noPaths = results.size();
-    uint32_t noTargets = targets.size();
+    uint32_t noSources = 0;
+    uint32_t noPaths = 0;
+    uint32_t noTargets = 0;
 
     return cardStat {noSources, noPaths, noTargets};
 }

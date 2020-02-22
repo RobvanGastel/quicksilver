@@ -19,6 +19,7 @@ public:
     cardStat estimate(PathQuery *q) override ;
 };
 
+/// Histogram class
 class Histogram {
 
 private:
