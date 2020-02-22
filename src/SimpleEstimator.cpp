@@ -4,13 +4,17 @@
 #include <cmath>
 
 
-Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels, 
-        uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
+Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
+                     uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
     labels = noLabels;
     vertices = noVertices;
     depth = u_depth;
     width_size = u_width_size;
     histogram_type = type_of_histogram;
+    source_buckets.push_back({});
+    target_buckets.push_back({});
+    distinct_source_relations.push_back({});
+    distinct_target_relations.push_back({});
 }
 
 Histogram::~Histogram() {
@@ -24,15 +28,41 @@ void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, ui
         create_equidepth_histograms();
     else if (histogram_type == "equiwidth")
         create_equiwidth_histograms();
-//    else if (histogram_type == "voptimal")
-//         create_voptimal_histograms(adj);
+    else if (histogram_type == "voptimal")
+        create_voptimal_histograms();
+}
+
+void Histogram::create_voptimal_histograms() {
+    uint32_t beta = 300;
+    for (int i = 0; i < labels; i++) {
+        uint32_t n = 0;
+        source_buckets[i].push_back({});
+        for (int j = 0; j < source_relations_count[i].size(); j++) {
+            source_buckets[i][n].push_back(j);
+            source_buckets[i][n].push_back(j);
+            source_buckets[i][n].push_back(source_relations_count[i][j]);
+            n++;
+        }
+        uint32_t v_error = 0;
+        while (source_buckets[i].size() > beta) {
+            uint32_t min = 1000;
+            
+        }
+
+        n = 0;
+        target_buckets[i].push_back({});
+        for (int j = 0; j < target_relations_count[i].size(); j++) {
+            target_buckets[i][n].push_back(j);
+            target_buckets[i][n].push_back(j);
+            target_buckets[i][n].push_back(target_relations_count[i][j]);
+            n++;
+        }
+    }
 }
 
 void Histogram::create_equidepth_histograms() {
     for (int i = 0; i < labels; i++) {
-        std::cout << "Relation " << i << " has size " << source_relations_count[i].size() << std::endl;
         uint32_t n = 0;
-        source_buckets.push_back({});
         source_buckets[i].push_back({});
         for (int j = 0; j < source_relations_count[i].size(); j++) {
             uint32_t start = j;
@@ -59,7 +89,6 @@ void Histogram::create_equidepth_histograms() {
             }
         }
         n = 0;
-        target_buckets.push_back({});
         target_buckets[i].push_back({});
         for (int j = 0; j < target_relations_count[i].size(); j++) {
             uint32_t start = j;
@@ -90,9 +119,7 @@ void Histogram::create_equidepth_histograms() {
 
 void Histogram::create_equiwidth_histograms() {
     for (int i = 0; i < labels; i++) {
-        std::cout << "Relation " << i << " has size " << source_relations_count[i].size() << std::endl;
         uint32_t n = 0;
-        source_buckets.push_back({});
         source_buckets[i].push_back({});
         for (int j = 0; j < source_relations_count[i].size(); j++) {
             uint32_t count_it = 0;
@@ -117,7 +144,6 @@ void Histogram::create_equiwidth_histograms() {
             }
         }
         n = 0;
-        target_buckets.push_back({});
         target_buckets[i].push_back({});
         for (int j = 0; j < target_relations_count[i].size(); j++) {
             uint32_t count_it = 0;
@@ -164,6 +190,14 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
             relations[rel_type].push_back(std::make_pair(i, rel_target));
         }
     }
+    for (int rel = 0; rel < labels; rel++) {
+        for (int i = 0; i < vertices; i++) {
+             if (source_relations_count[rel][i] > 0)
+                 distinct_source_relations[rel] += 1;
+            if (target_relations_count[rel][i] > 0)
+                distinct_target_relations[rel] += 1;
+        }
+    }
 
 //    Print size of each relation
 //    for (int i = 0; i < labels; i++) {
@@ -191,7 +225,6 @@ void Histogram::print_histogram(std::string query_var, uint32_t relation) {
         }
     }
     std::cout << std::endl;
-
 }
 
 uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, uint32_t relation) {

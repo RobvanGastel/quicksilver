@@ -27,6 +27,8 @@ private:
     uint32_t depth;
     uint32_t width_size;
     std::string histogram_type;
+    std::vector<uint32_t> distinct_source_relations;
+    std::vector<uint32_t> distinct_target_relations;
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relations;
     std::vector<std::vector<uint32_t>> source_relations_count;
     std::vector<std::vector<uint32_t>> target_relations_count;
@@ -38,6 +40,8 @@ public:
     ~Histogram();
 
     void create_histograms(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
+
+    void create_voptimal_histograms();
 
     void create_equidepth_histograms();
 
