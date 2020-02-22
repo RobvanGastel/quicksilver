@@ -323,7 +323,7 @@ void SimpleEstimator::prepare() {
     std::string histogram_type = "equiwidth";
     uint32_t u_depth = noEdges / 200;
     uint32_t u_width_size = 250;
-    Histogram histogram = Histogram(histogram_type, noLabels, noVertices, u_depth, u_width_size);
+    histogram = Histogram(histogram_type, noLabels, noVertices, u_depth, u_width_size);
     histogram.create_histograms(graph->adj);
     histogram.print_histogram(0, 0);
     std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
@@ -337,44 +337,54 @@ int distinctValuesFor(int relation, std::string attribute) {
 }
 
 /// Parse tree to 2D vector
-void inorderParse(PathTree *node, 
-        std::vector<std::pair<std::string, std::string>> *queries,
+void inorderParse(PathTree *node,
         std::vector<std::string> *query) {
     if (node == nullptr) {
         return;
     }
 
-    inorderParse(node->left, queries, query);
-    query->push_back(node->data);
-    
-    // A query has 3 components
-    if (query->size() == 3) {
-        std::pair<std::string, std::string> p;
-        std::cout << query << std::endl;
-        p = std::make_pair(query->at(0), query->at(2));
+    inorderParse(node->left, query);
 
-        queries->push_back(p);
-
-        query->clear();
+    if(node->data != "/") {
         query->push_back(node->data);
     }
-    inorderParse(node->right, queries, query);
+
+    inorderParse(node->right, query);
 }
 
-std::vector<std::pair<std::string, std::string>> parsePathTree(PathTree *tree) {
-    std::vector<std::pair<std::string, std::string>> queries;
+std::vector<std::string> parsePathTree(PathTree *tree) {
     std::vector<std::string> query;
 
-    inorderParse(tree, &queries, &query);
-
+    if (!tree->isLeaf()) {
+        inorderParse(tree, &query);
+    } else {
+        query.push_back(tree->data);
+    }
+    
+    std::cout << std::endl;
+    std::cout << "Pairs: ";
+    for (int i = 0; i < query.size(); i++) {
+        std::cout << query.at(i);
+    }
+    std::cout << std::endl;
+    return query;
 }
-
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
 
     // TODO: Change exact indications to approximations
-    auto queries = parsePathTree(q->path);
-    
+    auto query = parsePathTree(q->path);
+
+    // std::string sourceVertex;
+    // std::string targetVertex;
+    // if (relation_direction == ">") {
+    //     sourceVertex = q->s;
+    //     targetVertex = q->t;
+    // }
+    // else if (relation_direction == "<") {
+    //     sourceVertex = q->t;
+    //     targetVertex = q->s;
+    // }
 
     uint32_t noSources = 0;
     uint32_t noPaths = 0;
