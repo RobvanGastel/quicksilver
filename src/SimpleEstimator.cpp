@@ -5,14 +5,26 @@
 
 
 Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
-                     uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
+                     uint32_t noVertices, uint32_t u_depth) {
     labels = noLabels;
     vertices = noVertices;
     depth = u_depth;
-    width_size = u_width_size;
-    histogram_type = type_of_histogram;
+    total_memory = 1000000;
+    bucket_memory = 3 * 32;
+//    noBuckets = total_memory / bucket_memory;
+    noBuckets = 40;
+    if (type_of_histogram == "equidepth")
+        histogram_type = 0;
+    else if (type_of_histogram == "equiwidth")
+        histogram_type = 1;
+    else if (type_of_histogram == "voptimal")
+        histogram_type = 2;
+    else {
+        std::cout << "Incorrect type of histogram specified" << std::endl;
+        exit (EXIT_FAILURE);
+    }
     source_buckets.push_back({});
-    target_buckets.push_back({});
+    total_relations.push_back({});
     distinct_source_relations.push_back({});
     distinct_target_relations.push_back({});
 }
@@ -23,46 +35,18 @@ Histogram::~Histogram() {
 
 void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     create_frequency_vectors(adj);
-    std::cout << "Type of histogram to be created: " << histogram_type << std::endl;
-    if (histogram_type == "equidepth")
+    if (histogram_type == 0)
         create_equidepth_histograms();
-    else if (histogram_type == "equiwidth")
+    else if (histogram_type == 1)
         create_equiwidth_histograms();
-    else if (histogram_type == "voptimal")
+    else if (histogram_type == 2)
         create_voptimal_histograms();
-}
-
-void Histogram::create_voptimal_histograms() {
-    uint32_t beta = 300;
-    for (int i = 0; i < labels; i++) {
-        uint32_t n = 0;
-        source_buckets[i].push_back({});
-        for (int j = 0; j < source_relations_count[i].size(); j++) {
-            source_buckets[i][n].push_back(j);
-            source_buckets[i][n].push_back(j);
-            source_buckets[i][n].push_back(source_relations_count[i][j]);
-            n++;
-        }
-        uint32_t v_error = 0;
-        while (source_buckets[i].size() > beta) {
-            uint32_t min = 1000;
-            
-        }
-
-        n = 0;
-        target_buckets[i].push_back({});
-        for (int j = 0; j < target_relations_count[i].size(); j++) {
-            target_buckets[i][n].push_back(j);
-            target_buckets[i][n].push_back(j);
-            target_buckets[i][n].push_back(target_relations_count[i][j]);
-            n++;
-        }
-    }
 }
 
 void Histogram::create_equidepth_histograms() {
     for (int i = 0; i < labels; i++) {
         uint32_t n = 0;
+        source_buckets.push_back({});
         source_buckets[i].push_back({});
         for (int j = 0; j < source_relations_count[i].size(); j++) {
             uint32_t start = j;
@@ -89,6 +73,7 @@ void Histogram::create_equidepth_histograms() {
             }
         }
         n = 0;
+        target_buckets.push_back({});
         target_buckets[i].push_back({});
         for (int j = 0; j < target_relations_count[i].size(); j++) {
             uint32_t start = j;
@@ -119,7 +104,9 @@ void Histogram::create_equidepth_histograms() {
 
 void Histogram::create_equiwidth_histograms() {
     for (int i = 0; i < labels; i++) {
+        width_size = source_relations_count[i].size()/ noBuckets;
         uint32_t n = 0;
+        source_buckets.push_back({});
         source_buckets[i].push_back({});
         for (int j = 0; j < source_relations_count[i].size(); j++) {
             uint32_t count_it = 0;
@@ -144,6 +131,7 @@ void Histogram::create_equiwidth_histograms() {
             }
         }
         n = 0;
+        target_buckets.push_back({});
         target_buckets[i].push_back({});
         for (int j = 0; j < target_relations_count[i].size(); j++) {
             uint32_t count_it = 0;
@@ -170,11 +158,44 @@ void Histogram::create_equiwidth_histograms() {
     }
 }
 
+void Histogram::create_voptimal_histograms() {
+    uint32_t beta = 300;
+    for (int i = 0; i < labels; i++) {
+        uint32_t n = 0;
+        source_buckets.push_back({});
+        source_buckets[i].push_back({});
+        for (int j = 0; j < source_relations_count[i].size(); j++) {
+            source_buckets[i][n].push_back(j);
+            source_buckets[i][n].push_back(j);
+            source_buckets[i][n].push_back(source_relations_count[i][j]);
+            n++;
+        }
+        uint32_t v_error = 0;
+        while (source_buckets[i].size() > beta) {
+            uint32_t min = 1000;
+
+        }
+
+        n = 0;
+        target_buckets.push_back({});
+        target_buckets[i].push_back({});
+        for (int j = 0; j < target_relations_count[i].size(); j++) {
+            target_buckets[i][n].push_back(j);
+            target_buckets[i][n].push_back(j);
+            target_buckets[i][n].push_back(target_relations_count[i][j]);
+            n++;
+        }
+    }
+}
+
 void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     for (int i = 0; i < labels; i++) {
-        relations.push_back({});
+        relation_pairs.push_back({});
+        total_relations.push_back({0});
         source_relations_count.push_back({});
         target_relations_count.push_back({});
+        distinct_source_relations.push_back({0});
+        distinct_target_relations.push_back({0});
         for (int k = 0; k < vertices; k++) {
             source_relations_count[i].push_back({0});
             target_relations_count[i].push_back({0});
@@ -187,17 +208,24 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
             uint32_t rel_target = adj[i][j].second;
             source_relations_count[rel_type][i]++;
             target_relations_count[rel_type][rel_target]++;
-            relations[rel_type].push_back(std::make_pair(i, rel_target));
+            total_relations[rel_type]++;
+            relation_pairs[rel_type].push_back(std::make_pair(i, rel_target));
         }
     }
     for (int rel = 0; rel < labels; rel++) {
         for (int i = 0; i < vertices; i++) {
-             if (source_relations_count[rel][i] > 0)
-                 distinct_source_relations[rel] += 1;
+            if (source_relations_count[rel][i] > 0) {
+                distinct_source_relations[rel] += 1;
+             }
             if (target_relations_count[rel][i] > 0)
                 distinct_target_relations[rel] += 1;
         }
     }
+
+//    uint32_t bla = 0;
+//    for (int i = 0; i < labels; i++)
+//        bla += total_relations[i];
+//    printf("Total relations: %d\n", bla);
 
 //    Print size of each relation
 //    for (int i = 0; i < labels; i++) {
@@ -210,15 +238,15 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
 //    }
 }
 
-void Histogram::print_histogram(std::string query_var, uint32_t relation) {
+void Histogram::print_histogram(uint32_t query_var, uint32_t relation) {
     std::cout << "Histogram " << histogram_type << " for " << query_var << " relation " << relation << std::endl;
-    if (query_var == "source") {
+    if (query_var == 0) {
         for (int i = 0; i < source_buckets[relation].size(); i++) {
             std::cout << source_buckets[relation][i][0] << "\t" << source_buckets[relation][i][1] << "\t"
                       << source_buckets[relation][i][2] << std::endl;
         }
     }
-    else if (query_var == "target") {
+    else if (query_var == 1) {
         for (int i = 0; i < target_buckets[relation].size(); i++) {
             std::cout << target_buckets[relation][i][0] << "\t" << target_buckets[relation][i][1] << "\t"
                       << target_buckets[relation][i][2] << std::endl;
@@ -227,11 +255,11 @@ void Histogram::print_histogram(std::string query_var, uint32_t relation) {
     std::cout << std::endl;
 }
 
-uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, uint32_t relation) {
+uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation) {
     if (nodeID > vertices)
         return -1;
     int i = 0;
-    if (query_var == "source") {
+    if (query_var == 0) {
         int noBuckets = source_buckets[relation].size();
         while (nodeID > source_buckets[relation][i][1]) {
             i++;
@@ -240,7 +268,7 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, ui
         }
         return source_buckets[relation][i][2];
     }
-    else if (query_var == "target") {
+    else if (query_var == 1) {
         int noBuckets = target_buckets[relation].size();
         while (nodeID > target_buckets[relation][i][1]) {
             i++;
@@ -253,8 +281,6 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, ui
         return -1;
 }
 
-std::vector<std::vector<std::pair<uint32_t, uint32_t>>> Histogram::get_relations() { return relations; }
-
 
 SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
@@ -266,10 +292,10 @@ void SimpleEstimator::prepare() {
 
     // Preparation
     // TODO: Remove for evaluation
-    std::cout << "No Edges: " << graph->getNoEdges() << std::endl;
-    std::cout << "No Labels: "  << graph->getNoLabels() << std::endl;
-    std::cout << "No Vertices: "  << graph->getNoVertices() << std::endl;
-    std::cout << "No Distinct Edges: "  << graph->getNoDistinctEdges() << std::endl;
+//    std::cout << "No Edges: " << graph->getNoEdges() << std::endl;
+//    std::cout << "No Labels: "  << graph->getNoLabels() << std::endl;
+//    std::cout << "No Vertices: "  << graph->getNoVertices() << std::endl;
+//    std::cout << "No Distinct Edges: "  << graph->getNoDistinctEdges() << std::endl;
 
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
@@ -294,29 +320,20 @@ void SimpleEstimator::prepare() {
     sampleVertices = sampleCount;
 
 
-    std::cout << "tuple 0: " << 20 * sampleCount[0]
-        << "\ntuple 1: " << 20 * sampleCount[1] 
-        << "\ntuple 2: " << 20 * sampleCount[2] 
-        << "\ntuple 3: " << 20 * sampleCount[3] 
-        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1] 
-        + sampleCount[2] + sampleCount[3]) << std::endl;
+//    std::cout << "tuple 0: " << 20 * sampleCount[0]
+//        << "\ntuple 1: " << 20 * sampleCount[1]
+//        << "\ntuple 2: " << 20 * sampleCount[2]
+//        << "\ntuple 3: " << 20 * sampleCount[3]
+//        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1]
+//        + sampleCount[2] + sampleCount[3]) << std::endl;
 
     // Creation histograms
-    std::string histogram_type = "equiwidth";
+    std::string histogram_type = "equidepth";
     uint32_t u_depth = noEdges / 200;
-    uint32_t u_width_size = 250;
-    Histogram histogram = Histogram(histogram_type, noLabels, noVertices, u_depth, u_width_size);
+    Histogram histogram = Histogram(histogram_type, noLabels, noVertices, u_depth);
     histogram.create_histograms(graph->adj);
-    histogram.print_histogram("source", 0);
-    std::cout << histogram.get_query_results(985, "source", 0) << std::endl;
-    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relations = histogram.get_relations();
-    for (int i = 0; i < relations.size(); i++) {
-        for (int j = 0; j < relations[i].size(); j++) {
-            for (std::pair<uint32_t, uint32_t> p : relations[i][j]) {
-                std::cout << p.first << p.second << std::endl;
-            }
-        }
-    }
+//    histogram.print_histogram(0, 0);
+    std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
 
@@ -324,6 +341,17 @@ void SimpleEstimator::prepare() {
 int DistinctValuesFor(int relation, std::string attribute) {
     // Default is 10
     return 10;
+}
+
+
+int estimateNaturalJoinSize(PathTree path){
+    if (path.isLeaf()) {
+        std::cout << "deze " << path.data << std::endl;
+    } else {
+        std::cout << estimateNaturalJoinSize(*path.left) << std::endl;
+        std::cout << estimateNaturalJoinSize(*path.right) << std::endl;
+    }
+    return -1;
 }
 
 
@@ -339,70 +367,74 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     std::string sourceVertex;
     std::string targetVertex;
 
-    if (relation_direction == ">") {
-        sourceVertex = q->s;
-        targetVertex = q->t;
-    }
+    std::cout << "ditt" << std::endl;
+    estimateNaturalJoinSize(*q->path);
 
-    else if (relation_direction == "<") {
-        sourceVertex = q->t;
-        targetVertex = q->s;
-    }
 
-    if (sourceVertex != "*") {
-        uint32_t int_source = std::stoul(sourceVertex,0);
+//    if (relation_direction == ">") {
+//        sourceVertex = q->s;
+//        targetVertex = q->t;
+//    }
+//
+//    else if (relation_direction == "<") {
+//        sourceVertex = q->t;
+//        targetVertex = q->s;
+//    }
+//
+//    if (sourceVertex != "*") {
+//        uint32_t int_source = std::stoul(sourceVertex,0);
+//
+//        if (targetVertex != "*") {
+//            uint32_t int_target = std::stoul(targetVertex,0);
+//            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
+//                if ((graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(int_source).at(j).second == int_target)) {
+//                    results.push_back(std::make_pair(int_source, int_target));
+//                    sources.insert(int_source);
+//                    targets.insert(int_target);
+//                }
+//            }
+//        }
+//
+//        else {
+//            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
+//                if (graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) {
+//                    results.push_back(std::make_pair(int_source, graph->adj.at(int_source).at(j).second));
+//                    sources.insert(int_source);
+//                    targets.insert(graph->adj.at(int_source).at(j).second);
+//                }
+//            }
+//        }
+//    }
+//    else {
+//
+//        if (targetVertex != "*") {
+//            uint32_t int_target = std::stoul(targetVertex,0);
+//            for (uint32_t i = 0; i < graph->adj.size(); i++) {
+//                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
+//                    if ((graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(i).at(j).second == int_target)) {
+//                        results.push_back(std::make_pair(i, int_target));
+//                        sources.insert(i);
+//                        targets.insert(int_target);
+//                    }
+//                }
+//            }
+//        }
+//        else {
+//            for (uint32_t i = 0; i < graph->adj.size(); i++) {
+//                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
+//                    if (graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) {
+//                        results.push_back(std::make_pair(i, graph->adj.at(i).at(j).second));
+//                        sources.insert(i);
+//                        targets.insert(graph->adj.at(i).at(j).second);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    uint32_t noSources = sources.size();
+//    uint32_t noPaths = results.size();
+//    uint32_t noTargets = targets.size();
 
-        if (targetVertex != "*") {
-            uint32_t int_target = std::stoul(targetVertex,0);
-            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
-                if ((graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(int_source).at(j).second == int_target)) {
-                    results.push_back(std::make_pair(int_source, int_target));
-                    sources.insert(int_source);
-                    targets.insert(int_target);
-                }
-            }
-        }
-
-        else {
-            for (uint32_t j = 0; j < graph->adj.at(int_source).size() ; j++){
-                if (graph->adj.at(int_source).at(j).first == std::stoul(relation_type,0)) {
-                    results.push_back(std::make_pair(int_source, graph->adj.at(int_source).at(j).second));
-                    sources.insert(int_source);
-                    targets.insert(graph->adj.at(int_source).at(j).second);
-                }
-            }
-        }
-    }
-    else {
-
-        if (targetVertex != "*") {
-            uint32_t int_target = std::stoul(targetVertex,0);
-            for (uint32_t i = 0; i < graph->adj.size(); i++) {
-                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
-                    if ((graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) && (graph->adj.at(i).at(j).second == int_target)) {
-                        results.push_back(std::make_pair(i, int_target));
-                        sources.insert(i);
-                        targets.insert(int_target);
-                    }
-                }
-            }
-        }
-        else {
-            for (uint32_t i = 0; i < graph->adj.size(); i++) {
-                for (uint32_t j = 0; j < graph->adj.at(i).size() ; j++){
-                    if (graph->adj.at(i).at(j).first == std::stoul(relation_type,0)) {
-                        results.push_back(std::make_pair(i, graph->adj.at(i).at(j).second));
-                        sources.insert(i);
-                        targets.insert(graph->adj.at(i).at(j).second);
-                    }
-                }
-            }
-        }
-    }
-
-    uint32_t noSources = sources.size();
-    uint32_t noPaths = results.size();
-    uint32_t noTargets = targets.size();
-
-    return cardStat {noSources, noPaths, noTargets};
+    return cardStat {0, 0, 0};
 }
