@@ -371,20 +371,48 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
 }
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
+    std::cout << "start" << std::endl;
+    int32_t T = -1;
 
-    // TODO: Change exact indications to approximations
-    auto query = parsePathTree(q->path);
+    auto path = parsePathTree(q->path);
 
-    // std::string sourceVertex;
-    // std::string targetVertex;
-    // if (relation_direction == ">") {
-    //     sourceVertex = q->s;
-    //     targetVertex = q->t;
-    // }
-    // else if (relation_direction == "<") {
-    //     sourceVertex = q->t;
-    //     targetVertex = q->s;
-    // }
+
+
+    /// Either there are no joins (e.g. just 1 relation/table) 
+    /// or it's a transitive closure (TC).
+    if (path.size() == 1) { 
+        // TODO: TC or Query on single table
+        /// Cases: 
+        /// - Source: *, Target: *
+        /// - Source: 1, Target: *
+        /// - Source: *, Target: 1
+        /// - Source: *, Target: * (TC)
+
+    } else {  
+        /// TODO: At least one join
+        int rel_cur = std::stoul(path.at(0).substr(0, path.at(0).size()-1), 0);  // relation
+        std::string dir_cur = path.at(0).substr(path.at(0).size()-1, 1);  // direction
+        int t_cur = histogram.total_relations.at(rel_cur);  // #tuples in relation table
+        if (dir_cur == ">") {
+            int v_cur = histogram.distinct_source_relations.at(rel_cur);  // V(R, A)
+        } else if (dir_cur == "<") {
+            int v_cur = histogram.distinct_target_relations.at(rel_cur);  // V(R, A)
+        } else {
+            std::cout << "problem with direction " << dir_cur << std::endl;
+            // exit?
+        }
+
+        /// TODO: Iterate over the join
+        for (int i = 1; i < path.size(); i++) {  // start at second entry
+            int rel_other = std::stoul(path.at(i).substr(0, path. at(i).size()-1), 0);  // other table
+            std::string dir_other = path.at(i).substr(path.at(i).size()-1, 1);
+            int t_cur = histogram.total_relations.at(rel_other);  // #tuples in relation table
+            int v_cur = histogram.distinct_target_relations.at(rel_other);  // V(R, A)
+
+
+        }
+    }
+
 
     uint32_t noSources = 0;
     uint32_t noPaths = 0;
