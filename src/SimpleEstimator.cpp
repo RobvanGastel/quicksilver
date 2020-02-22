@@ -337,50 +337,44 @@ int distinctValuesFor(int relation, std::string attribute) {
 }
 
 /// Parse tree to 2D vector
-// void inorderParse(PathTree *node, 
-//         std::vector<std::pair<PathTree, PathTree>> *queries,
-//         std::vector<PathTree> *query) {
-//     if (node == nullptr) {
-//         return;
-//     }
+void inorderParse(PathTree *node, 
+        std::vector<std::pair<std::string, std::string>> *queries,
+        std::vector<std::string> *query) {
+    if (node == nullptr) {
+        return;
+    }
 
-//     inorderParse(node->left, queries, query);
-//     query->push_back(&node);
+    inorderParse(node->left, queries, query);
+    query->push_back(node->data);
     
-//     // A query has 3 components
-//     if (query->size() == 3) {
-//         std::pair<std::string, std::string> p;
-//         std::cout << query << std::endl;
-//         p = std::make_pair(&query->at(0), &query->at(2));
+    // A query has 3 components
+    if (query->size() == 3) {
+        std::pair<std::string, std::string> p;
+        std::cout << query << std::endl;
+        p = std::make_pair(query->at(0), query->at(2));
 
-//         queries->push_back(p);
-//         // std::make_pair(
-//         //     &query[0].data,
-//         //     &query[2].data)
-        
-//         query->clear();
-//         query->push_back(node->data);
-//     }
-//     inorderParse(node->right, queries, query);
-// }
+        queries->push_back(p);
 
-// void parsePathTree(PathTree tree) {
-//     std::vector<std::pair<PathTree, PathTree>> queries;
-//     std::vector<PathTree> query;
+        query->clear();
+        query->push_back(node->data);
+    }
+    inorderParse(node->right, queries, query);
+}
 
-//     inorderParse(&tree, &queries, &query);
+std::vector<std::pair<std::string, std::string>> parsePathTree(PathTree *tree) {
+    std::vector<std::pair<std::string, std::string>> queries;
+    std::vector<std::string> query;
 
-//     for (int i = 0; i < queries.size(); i++) {
-//         std::cout << queries.at(i).first << " " << queries.at(i).second << std::endl;
-//     }
-// }
+    inorderParse(tree, &queries, &query);
 
+}
 
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
 
     // TODO: Change exact indications to approximations
-
+    auto queries = parsePathTree(q->path);
+    
 
     uint32_t noSources = 0;
     uint32_t noPaths = 0;
