@@ -11,11 +11,15 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+# Build
+build/
+
 # Binaries
 quicksilver
 
 # MacOS
 .DS_Store
+.idea/
 
 # vscode
 .vscode/

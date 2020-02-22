@@ -6,13 +6,28 @@
 /////
 ///// Histogram class
 /////
-Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels, 
-        uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
+Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
+                     uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
     labels = noLabels;
     vertices = noVertices;
     depth = u_depth;
     width_size = u_width_size;
-    histogram_type = type_of_histogram;
+    total_memory = 1000000;
+    bucket_memory = 3 * 32;
+    noBuckets = total_memory / bucket_memory;
+    if (type_of_histogram == "equidepth")
+        histogram_type = 0;
+    else if (type_of_histogram == "equiwidth")
+        histogram_type = 1;
+    else if (type_of_histogram == "voptimal")
+        histogram_type = 2;
+    else {
+        std::cout << "Incorrect type of histogram specified" << std::endl;
+        exit (EXIT_FAILURE);
+    }
+    source_buckets.push_back({});
+    distinct_source_relations.push_back({});
+    distinct_target_relations.push_back({});
 }
 
 Histogram::~Histogram() {
@@ -21,18 +36,16 @@ Histogram::~Histogram() {
 
 void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     create_frequency_vectors(adj);
-    std::cout << "Type of histogram to be created: " << histogram_type << std::endl;
-    if (histogram_type == "equidepth")
+    if (histogram_type == 0)
         create_equidepth_histograms();
-    else if (histogram_type == "equiwidth")
+    else if (histogram_type == 1)
         create_equiwidth_histograms();
-//    else if (histogram_type == "voptimal")
-//         create_voptimal_histograms(adj);
+    else if (histogram_type == 2)
+        create_voptimal_histograms();
 }
 
 void Histogram::create_equidepth_histograms() {
     for (int i = 0; i < labels; i++) {
-        std::cout << "Relation " << i << " has size " << source_relations_count[i].size() << std::endl;
         uint32_t n = 0;
         source_buckets.push_back({});
         source_buckets[i].push_back({});
@@ -92,7 +105,6 @@ void Histogram::create_equidepth_histograms() {
 
 void Histogram::create_equiwidth_histograms() {
     for (int i = 0; i < labels; i++) {
-        std::cout << "Relation " << i << " has size " << source_relations_count[i].size() << std::endl;
         uint32_t n = 0;
         source_buckets.push_back({});
         source_buckets[i].push_back({});
@@ -146,6 +158,36 @@ void Histogram::create_equiwidth_histograms() {
     }
 }
 
+void Histogram::create_voptimal_histograms() {
+    uint32_t beta = 300;
+    for (int i = 0; i < labels; i++) {
+        uint32_t n = 0;
+        source_buckets.push_back({});
+        source_buckets[i].push_back({});
+        for (int j = 0; j < source_relations_count[i].size(); j++) {
+            source_buckets[i][n].push_back(j);
+            source_buckets[i][n].push_back(j);
+            source_buckets[i][n].push_back(source_relations_count[i][j]);
+            n++;
+        }
+        uint32_t v_error = 0;
+        while (source_buckets[i].size() > beta) {
+            uint32_t min = 1000;
+
+        }
+
+        n = 0;
+        target_buckets.push_back({});
+        target_buckets[i].push_back({});
+        for (int j = 0; j < target_relations_count[i].size(); j++) {
+            target_buckets[i][n].push_back(j);
+            target_buckets[i][n].push_back(j);
+            target_buckets[i][n].push_back(target_relations_count[i][j]);
+            n++;
+        }
+    }
+}
+
 void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     for (int i = 0; i < labels; i++) {
         relations.push_back({});
@@ -166,6 +208,14 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
             relations[rel_type].push_back(std::make_pair(i, rel_target));
         }
     }
+    for (int rel = 0; rel < labels; rel++) {
+        for (int i = 0; i < vertices; i++) {
+             if (source_relations_count[rel][i] > 0)
+                 distinct_source_relations[rel] += 1;
+            if (target_relations_count[rel][i] > 0)
+                distinct_target_relations[rel] += 1;
+        }
+    }
 
 //    Print size of each relation
 //    for (int i = 0; i < labels; i++) {
@@ -178,29 +228,28 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
 //    }
 }
 
-void Histogram::print_histogram(std::string query_var, uint32_t relation) {
+void Histogram::print_histogram(uint32_t query_var, uint32_t relation) {
     std::cout << "Histogram " << histogram_type << " for " << query_var << " relation " << relation << std::endl;
-    if (query_var == "source") {
+    if (query_var == 0) {
         for (int i = 0; i < source_buckets[relation].size(); i++) {
             std::cout << source_buckets[relation][i][0] << "\t" << source_buckets[relation][i][1] << "\t"
                       << source_buckets[relation][i][2] << std::endl;
         }
     }
-    else if (query_var == "target") {
+    else if (query_var == 1) {
         for (int i = 0; i < target_buckets[relation].size(); i++) {
             std::cout << target_buckets[relation][i][0] << "\t" << target_buckets[relation][i][1] << "\t"
                       << target_buckets[relation][i][2] << std::endl;
         }
     }
     std::cout << std::endl;
-
 }
 
-uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, uint32_t relation) {
+uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation) {
     if (nodeID > vertices)
         return -1;
     int i = 0;
-    if (query_var == "source") {
+    if (query_var == 0) {
         int noBuckets = source_buckets[relation].size();
         while (nodeID > source_buckets[relation][i][1]) {
             i++;
@@ -209,7 +258,7 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, std::string query_var, ui
         }
         return source_buckets[relation][i][2];
     }
-    else if (query_var == "target") {
+    else if (query_var == 1) {
         int noBuckets = target_buckets[relation].size();
         while (nodeID > target_buckets[relation][i][1]) {
             i++;
@@ -276,8 +325,8 @@ void SimpleEstimator::prepare() {
     uint32_t u_width_size = 250;
     Histogram histogram = Histogram(histogram_type, noLabels, noVertices, u_depth, u_width_size);
     histogram.create_histograms(graph->adj);
-    histogram.print_histogram("source", 0);
-    std::cout << histogram.get_query_results(985, "source", 0) << std::endl;
+    histogram.print_histogram(0, 0);
+    std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
 

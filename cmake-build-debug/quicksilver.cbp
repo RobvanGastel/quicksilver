@@ -91,9 +91,6 @@
 		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/Graph.h">
 			<Option target="quicksilver"/>
 		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/Histogram.h">
-			<Option target="quicksilver"/>
-		</Unit>
 		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/PathQuery.h">
 			<Option target="quicksilver"/>
 		</Unit>
@@ -107,9 +104,6 @@
 			<Option target="quicksilver"/>
 		</Unit>
 		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/include/SimpleGraph.h">
-			<Option target="quicksilver"/>
-		</Unit>
-		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/Histogram.cpp">
 			<Option target="quicksilver"/>
 		</Unit>
 		<Unit filename="C:/Users/kitsa/Desktop/TUe/DatabaseTechnology/quicksilver/src/PathQuery.cpp">
