@@ -3,16 +3,20 @@
 #include <set>
 #include <cmath>
 
-
+/////
+///// Histogram class
+/////
 Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
                      uint32_t noVertices, uint32_t u_depth) {
     labels = noLabels;
     vertices = noVertices;
     depth = u_depth;
+
+    width_size = u_width_size;
     total_memory = 1000000;
     bucket_memory = 3 * 32;
-//    noBuckets = total_memory / bucket_memory;
-    noBuckets = 40;
+    noBuckets = total_memory / bucket_memory;
+
     if (type_of_histogram == "equidepth")
         histogram_type = 0;
     else if (type_of_histogram == "equiwidth")
@@ -25,6 +29,7 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     }
     source_buckets.push_back({});
     total_relations.push_back({});
+
     distinct_source_relations.push_back({});
     distinct_target_relations.push_back({});
 }
@@ -282,6 +287,9 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint3
 }
 
 
+/////
+///// SimpleEstimator class
+/////
 SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
     // works only with SimpleGraph
@@ -320,29 +328,68 @@ void SimpleEstimator::prepare() {
     sampleVertices = sampleCount;
 
 
-//    std::cout << "tuple 0: " << 20 * sampleCount[0]
-//        << "\ntuple 1: " << 20 * sampleCount[1]
-//        << "\ntuple 2: " << 20 * sampleCount[2]
-//        << "\ntuple 3: " << 20 * sampleCount[3]
-//        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1]
-//        + sampleCount[2] + sampleCount[3]) << std::endl;
+    std::cout << "tuple 0: " << 20 * sampleCount[0]
+        << "\ntuple 1: " << 20 * sampleCount[1] 
+        << "\ntuple 2: " << 20 * sampleCount[2] 
+        << "\ntuple 3: " << 20 * sampleCount[3] 
+        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1] 
+        + sampleCount[2] + sampleCount[3]) << std::endl;
+
 
     // Creation histograms
     std::string histogram_type = "equidepth";
     uint32_t u_depth = noEdges / 200;
     Histogram histogram = Histogram(histogram_type, noLabels, noVertices, u_depth);
     histogram.create_histograms(graph->adj);
-//    histogram.print_histogram(0, 0);
+    histogram.print_histogram(0, 0);
     std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
 
-// TODO: Needs some kind of Histogram to work properly, V(R, A)
-int DistinctValuesFor(int relation, std::string attribute) {
+// Calculate the V(R, A) values based on the histogram
+int distinctValuesFor(int relation, std::string attribute) {
     // Default is 10
     return 10;
 }
 
+/// Parse tree to 2D vector
+// void inorderParse(PathTree *node, 
+//         std::vector<std::pair<PathTree, PathTree>> *queries,
+//         std::vector<PathTree> *query) {
+//     if (node == nullptr) {
+//         return;
+//     }
+
+//     inorderParse(node->left, queries, query);
+//     query->push_back(&node);
+    
+//     // A query has 3 components
+//     if (query->size() == 3) {
+//         std::pair<std::string, std::string> p;
+//         std::cout << query << std::endl;
+//         p = std::make_pair(&query->at(0), &query->at(2));
+
+//         queries->push_back(p);
+//         // std::make_pair(
+//         //     &query[0].data,
+//         //     &query[2].data)
+        
+//         query->clear();
+//         query->push_back(node->data);
+//     }
+//     inorderParse(node->right, queries, query);
+// }
+
+// void parsePathTree(PathTree tree) {
+//     std::vector<std::pair<PathTree, PathTree>> queries;
+//     std::vector<PathTree> query;
+
+//     inorderParse(&tree, &queries, &query);
+
+//     for (int i = 0; i < queries.size(); i++) {
+//         std::cout << queries.at(i).first << " " << queries.at(i).second << std::endl;
+//     }
+// }
 
 int estimateNaturalJoinSize(PathTree path){
     if (path.isLeaf()) {
@@ -355,20 +402,20 @@ int estimateNaturalJoinSize(PathTree path){
 }
 
 
-cardStat SimpleEstimator::estimate(PathQuery *q) {
-
-    // TODO: Change exact indications to approximations
-    std::set<int> sources = {};
-    std::set<int> targets = {};
-    std::vector<std::pair<uint32_t,uint32_t>> results = {};
-
-    std::string relation_direction = q->path->data.substr(q->path->data.size()-1,1);
-    std::string relation_type = q->path->data.substr(0,q->path->data.size()-1);
-    std::string sourceVertex;
-    std::string targetVertex;
-
-    std::cout << "ditt" << std::endl;
-    estimateNaturalJoinSize(*q->path);
+//cardStat SimpleEstimator::estimate(PathQuery *q) {
+//
+//    // TODO: Change exact indications to approximations
+//    std::set<int> sources = {};
+//    std::set<int> targets = {};
+//    std::vector<std::pair<uint32_t,uint32_t>> results = {};
+//
+//    std::string relation_direction = q->path->data.substr(q->path->data.size()-1,1);
+//    std::string relation_type = q->path->data.substr(0,q->path->data.size()-1);
+//    std::string sourceVertex;
+//    std::string targetVertex;
+//
+//    std::cout << "ditt" << std::endl;
+//    estimateNaturalJoinSize(*q->path);
 
 
 //    if (relation_direction == ">") {
@@ -435,6 +482,17 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 //    uint32_t noSources = sources.size();
 //    uint32_t noPaths = results.size();
 //    uint32_t noTargets = targets.size();
+
+
+
+cardStat SimpleEstimator::estimate(PathQuery *q) {
+
+    // TODO: Change exact indications to approximations
+
+
+    uint32_t noSources = 0;
+    uint32_t noPaths = 0;
+    uint32_t noTargets = 0;
 
     return cardStat {0, 0, 0};
 }

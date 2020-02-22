@@ -19,6 +19,7 @@ public:
     cardStat estimate(PathQuery *q) override ;
 };
 
+/// Histogram class
 class Histogram {
 
 public:
@@ -31,6 +32,7 @@ public:
     uint32_t noBuckets;
     uint32_t histogram_type;
     std::vector<uint32_t> total_relations;
+    
     std::vector<uint32_t> distinct_source_relations;
     std::vector<uint32_t> distinct_target_relations;
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relation_pairs;
