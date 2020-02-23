@@ -4,10 +4,11 @@
 #include "Estimator.h"
 #include "SimpleGraph.h"
 
+
 /// Histogram class
 class Histogram {
 
-private:
+public:
     uint32_t labels;
     uint32_t vertices;
     uint32_t depth;
@@ -16,9 +17,11 @@ private:
     uint32_t bucket_memory;
     uint32_t noBuckets;
     uint32_t histogram_type;
+    std::vector<uint32_t> total_relations;
+
     std::vector<uint32_t> distinct_source_relations;
     std::vector<uint32_t> distinct_target_relations;
-    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relations;
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relation_pairs;
     std::vector<std::vector<uint32_t>> source_relations_count;
     std::vector<std::vector<uint32_t>> target_relations_count;
     std::vector<std::vector<std::vector<uint32_t>>> source_buckets;
@@ -26,7 +29,7 @@ private:
 
 public:
     Histogram() = default;
-    Histogram(std::string &type_of_histogram, uint32_t noLabels, uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size);
+    Histogram(std::string &type_of_histogram, uint32_t noLabels, uint32_t noVertices, uint32_t u_depth);
     ~Histogram();
 
     void create_histograms(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);

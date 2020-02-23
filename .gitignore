@@ -25,3 +25,8 @@ quicksilver
 
 # vscode
 .vscode/
+.vs/
+CMakeSettings.json
+cmake-build-debug/
+
+

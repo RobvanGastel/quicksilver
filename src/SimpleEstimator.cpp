@@ -7,14 +7,15 @@
 ///// Histogram class
 /////
 Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
-                     uint32_t noVertices, uint32_t u_depth, uint32_t u_width_size) {
+                     uint32_t noVertices, uint32_t u_depth) {
     labels = noLabels;
     vertices = noVertices;
     depth = u_depth;
-    width_size = u_width_size;
+
     total_memory = 1000000;
     bucket_memory = 3 * 32;
     noBuckets = total_memory / bucket_memory;
+
     if (type_of_histogram == "equidepth")
         histogram_type = 0;
     else if (type_of_histogram == "equiwidth")
@@ -26,6 +27,8 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
         exit (EXIT_FAILURE);
     }
     source_buckets.push_back({});
+    total_relations.push_back({});
+
     distinct_source_relations.push_back({});
     distinct_target_relations.push_back({});
 }
@@ -105,6 +108,7 @@ void Histogram::create_equidepth_histograms() {
 
 void Histogram::create_equiwidth_histograms() {
     for (int i = 0; i < labels; i++) {
+        width_size = source_relations_count[i].size()/ noBuckets;
         uint32_t n = 0;
         source_buckets.push_back({});
         source_buckets[i].push_back({});
@@ -190,9 +194,12 @@ void Histogram::create_voptimal_histograms() {
 
 void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     for (int i = 0; i < labels; i++) {
-        relations.push_back({});
+        relation_pairs.push_back({});
+        total_relations.push_back({0});
         source_relations_count.push_back({});
         target_relations_count.push_back({});
+        distinct_source_relations.push_back({0});
+        distinct_target_relations.push_back({0});
         for (int k = 0; k < vertices; k++) {
             source_relations_count[i].push_back({0});
             target_relations_count[i].push_back({0});
@@ -205,17 +212,24 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
             uint32_t rel_target = adj[i][j].second;
             source_relations_count[rel_type][i]++;
             target_relations_count[rel_type][rel_target]++;
-            relations[rel_type].push_back(std::make_pair(i, rel_target));
+            total_relations[rel_type]++;
+            relation_pairs[rel_type].push_back(std::make_pair(i, rel_target));
         }
     }
     for (int rel = 0; rel < labels; rel++) {
         for (int i = 0; i < vertices; i++) {
-             if (source_relations_count[rel][i] > 0)
-                 distinct_source_relations[rel] += 1;
+            if (source_relations_count[rel][i] > 0) {
+                distinct_source_relations[rel] += 1;
+             }
             if (target_relations_count[rel][i] > 0)
                 distinct_target_relations[rel] += 1;
         }
     }
+
+//    uint32_t bla = 0;
+//    for (int i = 0; i < labels; i++)
+//        bla += total_relations[i];
+//    printf("Total relations: %d\n", bla);
 
 //    Print size of each relation
 //    for (int i = 0; i < labels; i++) {
@@ -279,16 +293,17 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
     // works only with SimpleGraph
     graph = g;
+
 }
 
 void SimpleEstimator::prepare() {
 
     // Preparation
     // TODO: Remove for evaluation
-    std::cout << "No Edges: " << graph->getNoEdges() << std::endl;
-    std::cout << "No Labels: "  << graph->getNoLabels() << std::endl;
-    std::cout << "No Vertices: "  << graph->getNoVertices() << std::endl;
-    std::cout << "No Distinct Edges: "  << graph->getNoDistinctEdges() << std::endl;
+//    std::cout << "No Edges: " << graph->getNoEdges() << std::endl;
+//    std::cout << "No Labels: "  << graph->getNoLabels() << std::endl;
+//    std::cout << "No Vertices: "  << graph->getNoVertices() << std::endl;
+//    std::cout << "No Distinct Edges: "  << graph->getNoDistinctEdges() << std::endl;
 
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
@@ -312,20 +327,21 @@ void SimpleEstimator::prepare() {
     }
     sampleVertices = sampleCount;
 
-    std::cout << "tuple 0: " << 20 * sampleCount[0]
-        << "\ntuple 1: " << 20 * sampleCount[1] 
-        << "\ntuple 2: " << 20 * sampleCount[2] 
-        << "\ntuple 3: " << 20 * sampleCount[3] 
-        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1] 
-        + sampleCount[2] + sampleCount[3]) << std::endl;
+
+//    std::cout << "tuple 0: " << 20 * sampleCount[0]
+//        << "\ntuple 1: " << 20 * sampleCount[1]
+//        << "\ntuple 2: " << 20 * sampleCount[2]
+//        << "\ntuple 3: " << 20 * sampleCount[3]
+//        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1]
+//        + sampleCount[2] + sampleCount[3]) << std::endl;
+
 
     // Creation histograms
-    std::string histogram_type = "equiwidth";
+    std::string histogram_type = "equidepth";
     uint32_t u_depth = noEdges / 200;
-    uint32_t u_width_size = 250;
-    histogram = Histogram(histogram_type, noLabels, noVertices, u_depth, u_width_size);
+    histogram = Histogram(histogram_type, noLabels, noVertices, u_depth);
     histogram.create_histograms(graph->adj);
-    histogram.print_histogram(0, 0);
+//    histogram.print_histogram(0, 0);
     std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
@@ -429,5 +445,5 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noPaths = 0;
     uint32_t noTargets = 0;
 
-    return cardStat {noSources, noPaths, noTargets};
+    return cardStat {0, 0, 0};
 }
