@@ -412,9 +412,10 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
     /// Either there are no joins (e.g. just 1 relation/table) 
     /// or it's a transitive closure (TC).
-    if (path.size() == 1) { 
-        T = std::stoi(path[0].substr(0, 1));
-        std::string relation = path[0].substr(1, 2);
+    if (path.size() == 1) {
+        T = std::stoi(path[0].substr(0, path[0].size()-1));
+        std::string relation = path[0].substr(path[0].size()-1, 1);
+
 
         /// Cases: 
         if(relation == ">") { // (s,t) such that (s, l, t)
@@ -479,8 +480,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
     int j = path.size()-1;
     while (path.size() > 0) {
-        T = std::stoi(path[j].substr(0, 1));
-        std::string relation = path[j].substr(1, 2);
+        T = std::stoi(path[j].substr(0, path[j].size()-1));
+        std::string relation = path[j].substr(path[j].size()-1, 1);
+
 
         /// Cases:
         if (relation == ">") { // (s,t) such that (s, l, t)
