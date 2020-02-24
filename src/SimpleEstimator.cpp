@@ -327,14 +327,12 @@ void SimpleEstimator::prepare() {
     }
     sampleVertices = sampleCount;
 
-
 //    std::cout << "tuple 0: " << 20 * sampleCount[0]
 //        << "\ntuple 1: " << 20 * sampleCount[1]
 //        << "\ntuple 2: " << 20 * sampleCount[2]
 //        << "\ntuple 3: " << 20 * sampleCount[3]
 //        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1]
 //        + sampleCount[2] + sampleCount[3]) << std::endl;
-
 
     // Creation histograms
     std::string histogram_type = "equidepth";
@@ -380,27 +378,67 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
     std::cout << std::endl;
     std::cout << "Pairs: ";
     for (int i = 0; i < query.size(); i++) {
-        std::cout << query.at(i);
+        std::cout << query.at(i) << ", ";
     }
     std::cout << std::endl;
     return query;
 }
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
-    std::cout << "start" << std::endl;
-    int32_t T = -1;
+    int32_t T = -1; /// Current Tuple "Table"
 
     auto path = parsePathTree(q->path);
+
+    uint32_t noSources = 0;
+    uint32_t noPaths = 0;
+    uint32_t noTargets = 0;
 
     /// Either there are no joins (e.g. just 1 relation/table) 
     /// or it's a transitive closure (TC).
     if (path.size() == 1) { 
         /// TODO: TC or Query on single table
+        T = std::stoi(path[0].substr(0, 1));
+        std::string relation = path[0].substr(0, 1);
+        
+        /// Relation
+        std::cout << path[0].substr(0, 1) << ", " << path[0].substr(1, 2) << std::endl;
+
         /// Cases: 
-        /// - Source: *, Target: *
-        /// - Source: 1, Target: *
-        /// - Source: *, Target: 1
+        if(relation == ">") { // (s,t) such that (s, l, t)
+
+            /// - Source: *, Target: *
+            if(q->s == "*" && q->t == "*") {
+
+            }
+            /// - Source: *, Target: 1
+            else if(q->s == "*") {
+                
+            }
+            /// - Source: 1, Target: *
+            else if(q->t == "*") {
+                
+            }
+        } else if(relation == "<") { // (s,t) such that (t, l, s)
+
+            /// - Source: *, Target: *
+            if(q->s == "*" && q->t == "*") {
+                
+            }
+            /// - Source: *, Target: 1
+            else if(q->s == "*") {
+                
+            }
+            /// - Source: 1, Target: *
+            else if(q->t == "*") {
+                
+            }
+        }
+        
         /// - Source: *, Target: * (TC)
+        if(relation == "+") {
+
+        }
+
 
     } else {  
         /// TODO: At least one join
@@ -423,7 +461,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             // V(R, A)
             int v_cur = histogram.distinct_target_relations.at(rel_cur);
         } else {
-            // TODO
+            /// TODO: ?
             std::cout << "problem with direction " << dir_cur << std::endl;
             // exit?
         }
@@ -433,17 +471,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             // other table
             int rel_other = std::stoul(path.at(i).substr(0, path. at(i).size()-1), 0);  
             std::string dir_other = path.at(i).substr(path.at(i).size()-1, 1);
-            // #tuples in relation table
+            // # tuples in relation table
             int t_cur = histogram.total_relations.at(rel_other);  
             // V(R, A)
             int v_cur = histogram.distinct_target_relations.at(rel_other);  
         }
     }
-
-
-    uint32_t noSources = 0;
-    uint32_t noPaths = 0;
-    uint32_t noTargets = 0;
 
     return cardStat {0, 0, 0};
 }
