@@ -415,11 +415,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     /// or it's a transitive closure (TC).
     if (path.size() == 1) { 
         /// TODO: TC or Query on single table
-        T = std::stoi(path[0].substr(0, 1));
-        std::string relation = path[0].substr(1, 2);
+        std::cout << "YOOOOOOOOOO" << std::endl;
+        T = std::stoi(path[0].substr(0, path[0].size()-1));
+        std::string relation = path[0].substr(path[0].size()-1, 1);
         
         /// Relation
-        std::cout << path[0].substr(0, 1) << ", " << path[0].substr(1, 2) << std::endl;
+        std::cout << path[0].substr(0, 1) << ", " << path[0].substr(path[0].size()-1, 1) << std::endl;
 
         /// Cases: 
         if(relation == ">") { 
