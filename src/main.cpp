@@ -64,34 +64,34 @@ int estimatorBench(std::string &graphFile, std::string &queriesFile) {
 //    std::cout << "\n(2) Running the query workload..." << std::endl;
 //
     auto queries = parseQueries(queriesFile);
-//
-//    for(auto query : queries) {
-//
-//        // perform estimation
-//        // parse the query into an AST
-//        std::cout << "\nProcessing query: " << *query;
-//        std::cout << "Parsed query tree: " << *query->path;
-//
-//        start = std::chrono::steady_clock::now();
-//        auto estimate = est->estimate(query);
-//        end = std::chrono::steady_clock::now();
-//
-//        std::cout << "\nEstimation (noOut, noPaths, noIn) : ";
-//        estimate.print();
-//        std::cout << "Time to estimate: " << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
+
+    for(auto query : queries) {
+
+        // perform estimation
+        // parse the query into an AST
+        std::cout << "\nProcessing query: " << *query;
+        std::cout << "Parsed query tree: " << *query->path;
+
+        start = std::chrono::steady_clock::now();
+        auto estimate = est->estimate(query);
+        end = std::chrono::steady_clock::now();
+
+        std::cout << "\nEstimation (noOut, noPaths, noIn) : ";
+        estimate.print();
+        std::cout << "Time to estimate: " << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
 
         // perform evaluation
-//        auto ev = std::make_unique<SimpleEvaluator>(g);
-//        ev->prepare();
-//        start = std::chrono::steady_clock::now();
-//        auto actual = ev->evaluate(query);
-//        end = std::chrono::steady_clock::now();
-//
-//        std::cout << "Actual (noOut, noPaths, noIn) : ";
-//        actual.print();
-//        std::cout << "Time to evaluate: " << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
+        auto ev = std::make_unique<SimpleEvaluator>(g);
+        ev->prepare();
+        start = std::chrono::steady_clock::now();
+        auto actual = ev->evaluate(query);
+        end = std::chrono::steady_clock::now();
 
-//    }
+        std::cout << "Actual (noOut, noPaths, noIn) : ";
+        actual.print();
+        std::cout << "Time to evaluate: " << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
+
+    }
 
     for(auto query : queries) delete(query);
 
