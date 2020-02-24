@@ -3,6 +3,7 @@
 #include <set>
 #include <cmath>
 #include <cfloat>
+#include <queue>
 
 /////
 ///// Histogram class
@@ -329,7 +330,6 @@ void SimpleEstimator::prepare() {
 
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
-    int noEdges = graph->getNoEdges();
 
     /// Sample tuple sizes
     /// TODO: Find good ratio, sample 5% of the vertices
@@ -402,6 +402,24 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
     return query;
 }
 
+/// Input param; <index vertex, adjacency list index>
+int findTransitiveClosure(int index, std::vector<int>> adjIndices) {
+    std::unordered_set<int> passedVertices;
+    int tcCount = adjIndices.size();
+    passedVertices.insert(graph->adj[index]);
+
+    std::queue<int> Q;
+    for (int i = 0; i < adjIndices.size(); i++) {
+        vertices.push(graph->adj[index][adjIndices[i]].second);
+    }
+
+    while (!queue.empty()) {
+        s = queue.front(); 
+        cout << s << " "; 
+        queue.pop_front();
+    }
+}
+
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
@@ -415,7 +433,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     if (path.size() == 1) {
         T = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
-
 
         /// Cases: 
         if(relation == ">") { // (s,t) such that (s, l, t)
@@ -465,8 +482,29 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             /// TODO: Paper to improve: 
             /// Estimating Result Size and Execution Times for Graph Queries
             /// Silke Trißl and Ulf Leser
+
             /// Current approach follow a set of paths:
-            /// TODO: Use the histogram
+            int tupleCount = histogram.total_relations(T);
+            int tcCount = 0;
+            /// 5% sample
+            for (int j = 0; j < ceil(tupleCount * 0,05); j++) {
+                int index = rand() % graph->getNoVertices();
+                std::vector<int>> AdjIndices;
+
+                for (int i = 0; i < graph->adj[index].size(); i++) {
+                    if (graph->adj[index][i].first == T) {
+                        indices.insert(adjIndex));
+                    }
+                }
+                if (indices.size() == 0) {
+                    j--;
+                }
+
+                // Calculate the transitive closure
+                tcCount += findTransitiveClosure(index, adjIndices);
+            }
+
+            tcCount = tcCount * 20;
         }
     }
 
