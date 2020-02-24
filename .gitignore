@@ -1,4 +1,5 @@
 # CMake
+CMakeFiles/
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -11,6 +12,10 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+# Build
+build/
+cmake-build-debug/
+
 # Binaries
 quicksilver
 
@@ -20,3 +25,8 @@ quicksilver
 
 # vscode
 .vscode/
+.vs/
+CMakeSettings.json
+cmake-build-debug/
+
+

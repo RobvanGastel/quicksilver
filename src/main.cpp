@@ -61,8 +61,8 @@ int estimatorBench(std::string &graphFile, std::string &queriesFile) {
     end = std::chrono::steady_clock::now();
     std::cout << "Time to prepare the estimator: " << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
 
-//    std::cout << "\n(2) Running the query workload..." << std::endl;
-//
+    std::cout << "\n(2) Running the query workload..." << std::endl;
+
     auto queries = parseQueries(queriesFile);
 
     for(auto query : queries) {
