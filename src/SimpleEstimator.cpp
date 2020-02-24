@@ -434,14 +434,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         T = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
 
-<<<<<<< HEAD
-        /// Cases: 
-        if(relation == ">") { // (s,t) such that (s, l, t)
-
-            /// - Source: *, Target: *
-            if(q->s == "*" && q->t == "*") {
-                /// TODO: Use histogram to do vertice estimations
-=======
         // std::cout << histogram.get_query_results(33,0,0) << std::endl;
         // std::cout << histogram.source_relations_count[0][33] << std::endl;
         // std::cout << histogram.get_query_results(29,1,0) << std::endl;
@@ -510,7 +502,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         if (relation == ">") { // (s,t) such that (s, l, t)
             if (q->s == "*") { 
                 if (q->t =="*") { // - Source: *, Target: *
->>>>>>> 7a9c1927b44d2eb3724c13ce8fba22952be51a77
                 noSources = histogram.distinct_source_relations[T];
                 noPaths = histogram.total_relations[T];
                 noTargets = histogram.distinct_target_relations[T];
@@ -617,6 +608,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
             } else if(q->t == "*") {
 
+            } else {
+                
             }
         }
         else if (relation == "<") { // (s,t) such that (t, l, s)
