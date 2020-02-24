@@ -433,50 +433,52 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 
             }
         }
-        
         /// - Source: *, Target: * (TC)
-        if(relation == "+") {
+        else if(relation == "+") {
 
         }
 
 
-    } else {  
-        /// TODO: At least one join
-        /// Cases: 
-        /// - Source: *, Target: *
-        /// - Source: 1, Target: *
-        /// - Source: *, Target: 1
-        /// - Different permutations of >, <
+    } 
+
+    // TODO: Implement in the while
+    // else {  
+    //     /// TODO: At least one join
+    //     /// Cases: 
+    //     /// - Source: *, Target: *
+    //     /// - Source: 1, Target: *
+    //     /// - Source: *, Target: 1
+    //     /// - Different permutations of >, <
         
-        // relation
-        int rel_cur = std::stoul(path.at(0).substr(0, path.at(0).size()-1), 0); 
-        // Direction
-        std::string dir_cur = path.at(0).substr(path.at(0).size()-1, 1); 
-        // # Tuples in relation table
-        int t_cur = histogram.total_relations.at(rel_cur);  
-        if (dir_cur == ">") {
-            // V(R, A)
-            int v_cur = histogram.distinct_source_relations.at(rel_cur);
-        } else if (dir_cur == "<") {
-            // V(R, A)
-            int v_cur = histogram.distinct_target_relations.at(rel_cur);
-        } else {
-            /// TODO: ?
-            std::cout << "problem with direction " << dir_cur << std::endl;
-            // exit?
-        }
+    //     // relation
+    //     int rel_cur = std::stoul(path.at(0).substr(0, path.at(0).size()-1), 0); 
+    //     // Direction
+    //     std::string dir_cur = path.at(0).substr(path.at(0).size()-1, 1); 
+    //     // # Tuples in relation table
+    //     int t_cur = histogram.total_relations.at(rel_cur);  
+    //     if (dir_cur == ">") {
+    //         // V(R, A)
+    //         int v_cur = histogram.distinct_source_relations.at(rel_cur);
+    //     } else if (dir_cur == "<") {
+    //         // V(R, A)
+    //         int v_cur = histogram.distinct_target_relations.at(rel_cur);
+    //     } else {
+    //         /// TODO: ?
+    //         std::cout << "problem with direction " << dir_cur << std::endl;
+    //         // exit?
+    //     }
 
-        /// TODO: Iterate over the join
-        for (int i = 1; i < path.size(); i++) {  
-            // other table
-            int rel_other = std::stoul(path.at(i).substr(0, path. at(i).size()-1), 0);  
-            std::string dir_other = path.at(i).substr(path.at(i).size()-1, 1);
-            // # tuples in relation table
-            int t_cur = histogram.total_relations.at(rel_other);  
-            // V(R, A)
-            int v_cur = histogram.distinct_target_relations.at(rel_other);  
-        }
-    }
+    //     /// TODO: Iterate over the join
+    //     for (int i = 1; i < path.size(); i++) {  
+    //         // other table
+    //         int rel_other = std::stoul(path.at(i).substr(0, path. at(i).size()-1), 0);  
+    //         std::string dir_other = path.at(i).substr(path.at(i).size()-1, 1);
+    //         // # tuples in relation table
+    //         int t_cur = histogram.total_relations.at(rel_other);  
+    //         // V(R, A)
+    //         int v_cur = histogram.distinct_target_relations.at(rel_other);  
+    //     }
+    // }
 
-    return cardStat {0, 0, 0};
+    return cardStat {noSources, noPaths, noTargets};
 }
