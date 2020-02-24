@@ -355,7 +355,7 @@ void SimpleEstimator::prepare() {
     sampleVertices = sampleCount;
 
     /// Creation histograms
-    std::string histogram_type = "equiwidth";
+    std::string histogram_type = "equidepth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
     // histogram.print_histogram(0, 0);
@@ -410,54 +410,71 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noPaths = 0;
     uint32_t noTargets = 0;
 
-    /// Either there are no joins (e.g. just 1 relation/table) 
-    /// or it's a transitive closure (TC).
+    // Either there are no joins (e.g. just 1 relation/table) 
+    // or it's a transitive closure (TC).
     if (path.size() == 1) {
         T = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
 
+        // std::cout << histogram.get_query_results(33,0,0) << std::endl;
+        // std::cout << histogram.source_relations_count[0][33] << std::endl;
+        // std::cout << histogram.get_query_results(29,1,0) << std::endl;
+        // std::cout << histogram.target_relations_count[0][29] << std::endl;
 
         /// Cases: 
-        if(relation == ">") { // (s,t) such that (s, l, t)
-
-            /// - Source: *, Target: *
-            if(q->s == "*" && q->t == "*") {
-                /// TODO: Use histogram to do vertice estimations
+        if (relation == ">") { // (s,t) such that (s, l, t)
+            if (q->s == "*") { 
+                if (q->t =="*") { // - Source: *, Target: *
                 noSources = histogram.distinct_source_relations[T];
                 noPaths = histogram.total_relations[T];
                 noTargets = histogram.distinct_target_relations[T];
-            }
-            /// - Source: *, Target: 1
-            else if(q->s == "*") {
-                noSources = sampleVertices[T];
-                noPaths = sampleVertices[T];
-                noTargets = distinctValuesFor(T, q->t); // TODO: implement V(T, A)
-            }
-            /// - Source: 1, Target: *
-            else if(q->t == "*") {
-                noSources = distinctValuesFor(T, q->s); // TODO: implement V(T, A)
-                noPaths = sampleVertices[T];
-                noTargets = sampleVertices[T]; 
+                } else { // - Source: *, Target: i
+                    int t_i = std::stoi(q->t);
+                    noSources = histogram.target_relations_count[T][t_i];
+                    noPaths = histogram.target_relations_count[T][t_i];
+                    noTargets = 1;                    
+                }
+            } else {
+                int s_i = std::stoi(q->s);
+
+                if (q->t =="*") { // - Source: i, Target: *
+                    noSources = 1;
+                    noPaths = histogram.source_relations_count[T][s_i];
+                    noTargets = histogram.source_relations_count[T][s_i];
+                } else { // - Source: i, Target: i
+                    int t_i = std::stoi(q->t);
+                    int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;
+                }
             }
         } else if(relation == "<") { // (s,t) such that (t, l, s)
-
-            /// - Source: *, Target: *
-            if(q->s == "*" && q->t == "*") {
-                noSources = histogram.distinct_source_relations[T]; 
+            if (q->s == "*") { 
+                if (q->t =="*") { // - Source: *, Target: *
+                noSources = histogram.distinct_source_relations[T];
                 noPaths = histogram.total_relations[T];
                 noTargets = histogram.distinct_target_relations[T];
-            }
-            /// - Source: *, Target: 1
-            else if(q->s == "*") {
-                noSources = distinctValuesFor(T, q->t); // TODO: implement V(T, A)
-                noPaths = sampleVertices[T];
-                noTargets = sampleVertices[T];
-            }
-            /// - Source: 1, Target: *
-            else if(q->t == "*") {
-                noSources = sampleVertices[T];
-                noPaths = sampleVertices[T];
-                noTargets = distinctValuesFor(T, q->s); // TODO: implement V(T, A)
+                } else { // - Source: *, Target: i
+                    int t_i = std::stoi(q->t);
+                    noSources = histogram.source_relations_count[T][t_i];
+                    noPaths = histogram.source_relations_count[T][t_i];
+                    noTargets = 1;                    
+                }
+            } else {
+                int s_i = std::stoi(q->s);
+
+                if (q->t =="*") { // - Source: i, Target: *
+                    noSources = 1;
+                    noPaths = histogram.target_relations_count[T][s_i];
+                    noTargets = histogram.target_relations_count[T][s_i];
+                } else { // - Source: i, Target: i
+                    int t_i = std::stoi(q->t);
+                    int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;
+                }
             }
         }
         /// - Source: *, Target: * (TC)
