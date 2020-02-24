@@ -298,19 +298,12 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
 void SimpleEstimator::prepare() {
 
-    // Preparation
-    // TODO: Remove for evaluation
-//    std::cout << "No Edges: " << graph->getNoEdges() << std::endl;
-//    std::cout << "No Labels: "  << graph->getNoLabels() << std::endl;
-//    std::cout << "No Vertices: "  << graph->getNoVertices() << std::endl;
-//    std::cout << "No Distinct Edges: "  << graph->getNoDistinctEdges() << std::endl;
-
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
     int noEdges = graph->getNoEdges();
 
-    // Sample tuple sizes
-    // TODO: Find good ratio, sample 5% of the vertices
+    /// Sample tuple sizes
+    /// TODO: Find good ratio, sample 5% of the vertices
     int samples = ceil(0.05 * noVertices);
 
     std::vector<int> sampleCount(noLabels, 0);
@@ -325,21 +318,19 @@ void SimpleEstimator::prepare() {
             i--;
         }
     }
+    // Multiply sample by 20
+    for(int i = 0; i < sampleCount.size(); i++) {
+        sampleCount[i] = sampleCount[i] * 20;
+    }
+
     sampleVertices = sampleCount;
 
-//    std::cout << "tuple 0: " << 20 * sampleCount[0]
-//        << "\ntuple 1: " << 20 * sampleCount[1]
-//        << "\ntuple 2: " << 20 * sampleCount[2]
-//        << "\ntuple 3: " << 20 * sampleCount[3]
-//        << "\nCount: " << 20 * (sampleCount[0] + sampleCount[1]
-//        + sampleCount[2] + sampleCount[3]) << std::endl;
-
-    // Creation histograms
+    /// Creation histograms
     std::string histogram_type = "equidepth";
     uint32_t u_depth = noEdges / 200;
     histogram = Histogram(histogram_type, noLabels, noVertices, u_depth);
     histogram.create_histograms(graph->adj);
-//    histogram.print_histogram(0, 0);
+    // histogram.print_histogram(0, 0);
     std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
@@ -398,44 +389,68 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     if (path.size() == 1) { 
         /// TODO: TC or Query on single table
         T = std::stoi(path[0].substr(0, 1));
-        std::string relation = path[0].substr(0, 1);
+        std::string relation = path[0].substr(1, 2);
         
         /// Relation
         std::cout << path[0].substr(0, 1) << ", " << path[0].substr(1, 2) << std::endl;
 
         /// Cases: 
-        if(relation == ">") { // (s,t) such that (s, l, t)
+        if(relation == ">") { 
+            // (s,t) such that (s, l, t)
+            std::string sourceVertex = q->s;
+            std::string targetVertex = q->t;
 
             /// - Source: *, Target: *
             if(q->s == "*" && q->t == "*") {
-
+                /// TODO: Use histogram to do vertice estimations
+                noSources = sampleVertices[T];
+                noPaths = sampleVertices[T];
+                noTargets = sampleVertices[T];
             }
             /// - Source: *, Target: 1
             else if(q->s == "*") {
-                
+                noSources = sampleVertices[T];
+                noPaths = sampleVertices[T];
+                noTargets = sampleVertices[T]; // TODO: Replace V(T, A)
             }
             /// - Source: 1, Target: *
             else if(q->t == "*") {
-                
+                noSources = sampleVertices[T]; // TODO: Replace V(T, A)
+                noPaths = sampleVertices[T];
+                noTargets = sampleVertices[T]; 
             }
-        } else if(relation == "<") { // (s,t) such that (t, l, s)
+        } else if(relation == "<") { 
+            // (s,t) such that (t, l, s)
+            std::string sourceVertex = q->t;
+            std::string targetVertex = q->s;
 
             /// - Source: *, Target: *
             if(q->s == "*" && q->t == "*") {
-                
+                noSources = sampleVertices[T]; 
+                noPaths = sampleVertices[T];
+                noTargets = sampleVertices[T];
             }
             /// - Source: *, Target: 1
             else if(q->s == "*") {
-                
+                noSources = sampleVertices[T]; // TODO: Replace V(T, A)
+                noPaths = sampleVertices[T];
+                noTargets = sampleVertices[T];
             }
             /// - Source: 1, Target: *
             else if(q->t == "*") {
-                
+                noSources = sampleVertices[T];
+                noPaths = sampleVertices[T];
+                noTargets = sampleVertices[T]; // TODO: Replace V(T, A)
             }
         }
         /// - Source: *, Target: * (TC)
         else if(relation == "+") {
+            /// TODO: Paper to improve: 
+            /// Estimating Result Size and Execution Times for Graph Queries
+            /// Silke Trißl and Ulf Leser
+            /// Current approach follow a set of paths:
 
+            
         }
 
 
