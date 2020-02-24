@@ -23,7 +23,7 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     else if (type_of_histogram == "voptimal")
         histogram_type = 2;
     else {
-        std::cout << "Incorrect type of histogram specified" << std::endl;
+        // std::cout << "Incorrect type of histogram specified" << std::endl;
         exit (EXIT_FAILURE);
     }
     source_buckets.push_back({});
@@ -163,9 +163,9 @@ void Histogram::create_equiwidth_histograms() {
 }
 
 void Histogram::create_voptimal_histograms() {
-    std::cout << "Creating V-Optimal Histogram" << std::endl;
+    // std::cout << "Creating V-Optimal Histogram" << std::endl;
     for (int i = 0; i < labels; i++) {
-        std::cout << "Relation " << i << std::endl;
+        // std::cout << "Relation " << i << std::endl;
         uint32_t n = 0;
         source_buckets.push_back({});
         for (uint32_t j = 0; j < source_relations_count[i].size(); j++) {
@@ -272,20 +272,20 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
 }
 
 void Histogram::print_histogram(uint32_t query_var, uint32_t relation) {
-    std::cout << "Histogram " << histogram_type << " for " << query_var << " relation " << relation << std::endl;
+    // std::cout << "Histogram " << histogram_type << " for " << query_var << " relation " << relation << std::endl;
     if (query_var == 0) {
         for (int i = 0; i < source_buckets[relation].size(); i++) {
-            std::cout << source_buckets[relation][i][0] << "\t" << source_buckets[relation][i][1] << "\t"
-                      << source_buckets[relation][i][2] << std::endl;
+            // std::cout << source_buckets[relation][i][0] << "\t" << source_buckets[relation][i][1] << "\t"
+            //           << source_buckets[relation][i][2] << std::endl;
         }
     }
     else if (query_var == 1) {
         for (int i = 0; i < target_buckets[relation].size(); i++) {
-            std::cout << target_buckets[relation][i][0] << "\t" << target_buckets[relation][i][1] << "\t"
-                      << target_buckets[relation][i][2] << std::endl;
+            // std::cout << target_buckets[relation][i][0] << "\t" << target_buckets[relation][i][1] << "\t"
+            //           << target_buckets[relation][i][2] << std::endl;
         }
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
 }
 
 uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation) {
@@ -359,7 +359,7 @@ void SimpleEstimator::prepare() {
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
     // histogram.print_histogram(0, 0);
-    std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
+    // std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
 
@@ -393,12 +393,12 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
         query.push_back(tree->data);
     }
     
-    std::cout << std::endl;
-    std::cout << "Pairs: ";
+    // std::cout << std::endl;
+    // std::cout << "Pairs: ";
     for (int i = 0; i < query.size(); i++) {
-        std::cout << query.at(i) << ", ";
+        // std::cout << query.at(i) << ", ";
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
     return query;
 }
 
