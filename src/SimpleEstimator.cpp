@@ -2,19 +2,19 @@
 #include "SimpleEstimator.h"
 #include <set>
 #include <cmath>
+#include <cfloat>
 
 /////
 ///// Histogram class
 /////
 Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
-                     uint32_t noVertices, uint32_t u_depth) {
+                     uint32_t noVertices) {
     labels = noLabels;
     vertices = noVertices;
-    depth = u_depth;
-
     total_memory = 1000000;
     bucket_memory = 3 * 32;
-    noBuckets = total_memory / bucket_memory;
+//    noBuckets = total_memory / bucket_memory;
+    noBuckets = 200;
 
     if (type_of_histogram == "equidepth")
         histogram_type = 0;
@@ -28,7 +28,6 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     }
     source_buckets.push_back({});
     total_relations.push_back({});
-
     distinct_source_relations.push_back({});
     distinct_target_relations.push_back({});
 }
@@ -49,6 +48,7 @@ void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, ui
 
 void Histogram::create_equidepth_histograms() {
     for (int i = 0; i < labels; i++) {
+        depth = total_relations[i]/ noBuckets;
         uint32_t n = 0;
         source_buckets.push_back({});
         source_buckets[i].push_back({});
@@ -163,31 +163,60 @@ void Histogram::create_equiwidth_histograms() {
 }
 
 void Histogram::create_voptimal_histograms() {
-    uint32_t beta = 300;
+    std::cout << "Creating V-Optimal Histogram" << std::endl;
     for (int i = 0; i < labels; i++) {
+        std::cout << "Relation " << i << std::endl;
         uint32_t n = 0;
         source_buckets.push_back({});
-        source_buckets[i].push_back({});
-        for (int j = 0; j < source_relations_count[i].size(); j++) {
-            source_buckets[i][n].push_back(j);
-            source_buckets[i][n].push_back(j);
-            source_buckets[i][n].push_back(source_relations_count[i][j]);
+        for (uint32_t j = 0; j < source_relations_count[i].size(); j++) {
+            source_buckets[i].push_back({j, j, source_relations_count[i][j]});
             n++;
         }
         uint32_t v_error = 0;
-        while (source_buckets[i].size() > beta) {
-            uint32_t min = 1000;
-
+        while (source_buckets[i].size() > noBuckets) {
+            double_t min = DBL_MAX;
+            uint32_t k = 0;
+            for (uint32_t j = 0; j < source_buckets[i].size() - 1; j++) {
+                std::vector<uint32_t> temp_bucket = {source_buckets[i][j][0], source_buckets[i][j+1][1], source_buckets[i][j][2] + source_buckets[i][j+1][2]};
+                double_t error1 = source_buckets[i][j][2] * ((double_t)(source_buckets[i][j][1] - source_buckets[i][j][0]) / 12);
+                double_t error2 = source_buckets[i][j+1][2] * ((double_t)(source_buckets[i][j+1][1] - source_buckets[i][j+1][0]) / 12);
+                double_t error3 = temp_bucket[2] * ((double_t)(temp_bucket[1] - temp_bucket[0]) / 12);
+                double_t new_error = v_error - error1 - error2 + error3;
+                if (new_error < min) {
+                    min = new_error;
+                    k = j;
+                }
+            }
+            source_buckets[i][k][2] += source_buckets[i][k+1][2];
+            source_buckets[i][k][1] = source_buckets[i][k+1][1];
+            source_buckets[i].erase(source_buckets[i].begin() + k + 1);
+            v_error = min;
         }
-
         n = 0;
         target_buckets.push_back({});
-        target_buckets[i].push_back({});
-        for (int j = 0; j < target_relations_count[i].size(); j++) {
-            target_buckets[i][n].push_back(j);
-            target_buckets[i][n].push_back(j);
-            target_buckets[i][n].push_back(target_relations_count[i][j]);
+        for (uint32_t j = 0; j < target_relations_count[i].size(); j++) {
+            target_buckets[i].push_back({j, j, target_relations_count[i][j]});
             n++;
+        }
+        v_error = 0;
+        while (target_buckets[i].size() > noBuckets) {
+            double_t min = DBL_MAX;
+            uint32_t k = 0;
+            for (uint32_t j = 0; j < target_buckets[i].size() - 1; j++) {
+                std::vector<uint32_t> temp_bucket = {target_buckets[i][j][0], target_buckets[i][j+1][1], target_buckets[i][j][2] + target_buckets[i][j+1][2]};
+                double_t error1 = target_buckets[i][j][2] * ((double_t)(target_buckets[i][j][1] - target_buckets[i][j][0]) / 12);
+                double_t error2 = target_buckets[i][j+1][2] * ((double_t)(target_buckets[i][j+1][1] - target_buckets[i][j+1][0]) / 12);
+                double_t error3 = temp_bucket[2] * ((double_t)(temp_bucket[1] - temp_bucket[0]) / 12);
+                double_t new_error = v_error - error1 - error2 + error3;
+                if (new_error < min) {
+                    min = new_error;
+                    k = j;
+                }
+            }
+            target_buckets[i][k][2] += target_buckets[i][k+1][2];
+            target_buckets[i][k][1] = target_buckets[i][k+1][1];
+            target_buckets[i].erase(target_buckets[i].begin() + k + 1);
+            v_error = min;
         }
     }
 }
@@ -218,10 +247,10 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
     }
     for (int rel = 0; rel < labels; rel++) {
         for (int i = 0; i < vertices; i++) {
-            if (source_relations_count[rel][i] > 0) {
-                distinct_source_relations[rel] += 1;
+             if (source_relations_count[rel][i] > 0) {
+                 distinct_source_relations[rel] += 1;
              }
-            if (target_relations_count[rel][i] > 0)
+             if (target_relations_count[rel][i] > 0)
                 distinct_target_relations[rel] += 1;
         }
     }
@@ -326,9 +355,8 @@ void SimpleEstimator::prepare() {
     sampleVertices = sampleCount;
 
     /// Creation histograms
-    std::string histogram_type = "equidepth";
-    uint32_t u_depth = noEdges / 200;
-    histogram = Histogram(histogram_type, noLabels, noVertices, u_depth);
+    std::string histogram_type = "equiwidth";
+    histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
     // histogram.print_histogram(0, 0);
     std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
@@ -347,10 +375,9 @@ void inorderParse(PathTree *node,
     if (node == nullptr) {
         return;
     }
-
     inorderParse(node->left, query);
 
-    if(node->data != "/") {
+    if (node->data != "/") {
         query->push_back(node->data);
     }
 

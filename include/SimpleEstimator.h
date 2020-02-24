@@ -4,50 +4,52 @@
 #include "Estimator.h"
 #include "SimpleGraph.h"
 
-
-/// Histogram class
 class Histogram {
 
-public:
-    uint32_t labels;
-    uint32_t vertices;
-    uint32_t depth;
-    uint32_t width_size;
-    uint32_t total_memory;
-    uint32_t bucket_memory;
-    uint32_t noBuckets;
-    uint32_t histogram_type;
-    std::vector<uint32_t> total_relations;
+    public:
+        uint32_t labels;
+        uint32_t vertices;
+        uint32_t depth;
+        uint32_t width_size;
+        uint32_t total_memory;
+        uint32_t bucket_memory;
+        uint32_t noBuckets;
+        uint32_t histogram_type;
+        // Array of ints with the total counts for each relation
+        std::vector<uint32_t> total_relations;
+        // Array of ints with the distinct counts for each relation, e.g (1 0 2) and (1 0 3)
+        // would return 1 for source
+        std::vector<uint32_t> distinct_source_relations;
+        // would return 2 for target
+        std::vector<uint32_t> distinct_target_relations;
+        // Array of tuples for each relation
+        std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relation_pairs;
+        // Array of ints with the relation count of each node for each relation,
+        // e.g. source_relations_count[0][5] for relation 0 and node 5
+        std::vector<std::vector<uint32_t>> source_relations_count;
+        std::vector<std::vector<uint32_t>> target_relations_count;
+        // Array of tuples for each relation with the starting node, ending node and bucket size
+        std::vector<std::vector<std::vector<uint32_t>>> source_buckets;
+        std::vector<std::vector<std::vector<uint32_t>>> target_buckets;
 
-    std::vector<uint32_t> distinct_source_relations;
-    std::vector<uint32_t> distinct_target_relations;
-    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relation_pairs;
-    std::vector<std::vector<uint32_t>> source_relations_count;
-    std::vector<std::vector<uint32_t>> target_relations_count;
-    std::vector<std::vector<std::vector<uint32_t>>> source_buckets;
-    std::vector<std::vector<std::vector<uint32_t>>> target_buckets;
+    public:
+        Histogram() = default;
+        Histogram(std::string &type_of_histogram, uint32_t noLabels, uint32_t noVertices);
+        ~Histogram();
 
-public:
-    Histogram() = default;
-    Histogram(std::string &type_of_histogram, uint32_t noLabels, uint32_t noVertices, uint32_t u_depth);
-    ~Histogram();
+        void create_histograms(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
 
-    void create_histograms(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
+        void create_voptimal_histograms();
 
-    void create_voptimal_histograms();
+        void create_equidepth_histograms();
 
-    void create_equidepth_histograms();
+        void create_equiwidth_histograms();
 
-    void create_equiwidth_histograms();
+        void create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
 
-    // void create_voptimal_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj);
+        void print_histogram(uint32_t query_var, uint32_t relation);
 
-    void create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
-
-    void print_histogram(uint32_t query_var, uint32_t relation);
-
-    uint32_t get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation);
-
+        uint32_t get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation);
 };
 
 class SimpleEstimator : public Estimator {
