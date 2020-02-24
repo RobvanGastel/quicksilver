@@ -403,22 +403,23 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
 }
 
 /// Input param; <index vertex, adjacency list index>
-int findTransitiveClosure(int index, std::vector<int>> adjIndices) {
-    std::unordered_set<int> passedVertices;
-    int tcCount = adjIndices.size();
-    passedVertices.insert(graph->adj[index]);
+// int findTransitiveClosure(int index, std::vector<int>> adjIndices) {
+    // std::unordered_set<int> passedVertices;
+    // int tcCount = adjIndices.size();
+    // passedVertices.insert(graph->adj[index]);
 
-    std::queue<int> Q;
-    for (int i = 0; i < adjIndices.size(); i++) {
-        vertices.push(graph->adj[index][adjIndices[i]].second);
-    }
+    // std::queue<int> Q;
+    // for (int i = 0; i < adjIndices.size(); i++) {
+    //     vertices.push(graph->adj[index][adjIndices[i]].second);
+    // }
 
-    while (!queue.empty()) {
-        s = queue.front(); 
-        cout << s << " "; 
-        queue.pop_front();
-    }
-}
+    // while (!queue.empty()) {
+    //     s = queue.front(); 
+    //     cout << s << " "; 
+    //     queue.pop_front();
+    // }
+    // return 0;
+// }
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
@@ -561,27 +562,27 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             /// Silke Trißl and Ulf Leser
 
             /// Current approach follow a set of paths:
-            int tupleCount = histogram.total_relations(T);
-            int tcCount = 0;
-            /// 5% sample
-            for (int j = 0; j < ceil(tupleCount * 0,05); j++) {
-                int index = rand() % graph->getNoVertices();
-                std::vector<int>> AdjIndices;
+            // int tupleCount = histogram.total_relations(T);
+            // int tcCount = 0;
+            // /// 5% sample
+            // for (int j = 0; j < ceil(tupleCount * 0,05); j++) {
+            //     int index = rand() % graph->getNoVertices();
+            //     std::vector<int>> AdjIndices;
 
-                for (int i = 0; i < graph->adj[index].size(); i++) {
-                    if (graph->adj[index][i].first == T) {
-                        indices.insert(adjIndex));
-                    }
-                }
-                if (indices.size() == 0) {
-                    j--;
-                }
+            //     for (int i = 0; i < graph->adj[index].size(); i++) {
+            //         if (graph->adj[index][i].first == T) {
+            //             indices.insert(adjIndex));
+            //         }
+            //     }
+            //     if (indices.size() == 0) {
+            //         j--;
+            //     }
 
-                // Calculate the transitive closure
-                tcCount += findTransitiveClosure(index, adjIndices);
-            }
+            //     // Calculate the transitive closure
+            //     tcCount += findTransitiveClosure(index, adjIndices);
+            // }
 
-            tcCount = tcCount * 20;
+            // tcCount = tcCount * 20;
         }
     }
 
@@ -594,39 +595,42 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     }
 
     int j = path.size()-1;
-    while (path.size() > 0) {
-        T = std::stoi(path[j].substr(0, path[j].size()-1));
-        std::string relation = path[j].substr(path[j].size()-1, 1);
+    int fullSize = path.size()-1;
+    if(q->s == "*" && q->t == "*") { // - Source: *, Target: *
+        int Trs;
 
+        while (path.size() > 1) {
+            int Ts = std::stoi(path[j].substr(0, path[j].size()-1));
+            int Tr = std::stoi(path[j-1].substr(0, path[j-1].size()-1));
+            std::string relation = path[j].substr(path[j].size()-1, 1);
 
-        /// Cases:
-        if (relation == ">") { // (s,t) such that (s, l, t)
-            
-            if(q->s == "*" && q->t == "*") {
+            std::cout << histogram.total_relations[Ts]/histogram.distinct_source_relations[Ts] << std::endl;
 
-            } else if(q->s == "*") {
+            if (relation == ">" || relation == "<") {
+                int Tr_count = histogram.total_relations[Tr];
+                int Ts_count;
 
-            } else if(q->t == "*") {
-
-            } else {
+                if (j == fullSize) {
+                    Ts_count = histogram.total_relations[Ts];
+                    path.pop_back();
+                    j--;
+                } else {
+                    Ts_count = Trs;
+                }
                 
+                int Trs = ceil(Tr_count * Ts_count * 1/10);
+                std::cout << Trs << std::endl;
             }
-        }
-        else if (relation == "<") { // (s,t) such that (t, l, s)
-            
-            if(q->s == "*" && q->t == "*") {
 
-            } else if(q->s == "*") {
-
-            } else if(q->t == "*") {
-
-            }
+            path.pop_back();
+            j--;
         }
 
 
-        path.pop_back();
-        j--;
+
     }
+ 
 
+ 
     return cardStat {noSources, noPaths, noTargets};
 }
