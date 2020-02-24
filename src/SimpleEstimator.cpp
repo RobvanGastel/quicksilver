@@ -403,9 +403,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             /// - Source: *, Target: *
             if(q->s == "*" && q->t == "*") {
                 /// TODO: Use histogram to do vertice estimations
-                noSources = sampleVertices[T];
-                noPaths = sampleVertices[T];
-                noTargets = sampleVertices[T];
+                noSources = histogram.distinct_source_relations[T];
+                noPaths = histogram.total_relations[T];
+                noTargets = histogram.distinct_target_relations[T];
             }
             /// - Source: *, Target: 1
             else if(q->s == "*") {
@@ -426,9 +426,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
             /// - Source: *, Target: *
             if(q->s == "*" && q->t == "*") {
-                noSources = sampleVertices[T]; 
-                noPaths = sampleVertices[T];
-                noTargets = sampleVertices[T];
+                noSources = histogram.distinct_source_relations[T]; 
+                noPaths = histogram.total_relations[T];
+                noTargets = histogram.distinct_target_relations[T];
             }
             /// - Source: *, Target: 1
             else if(q->s == "*") {
