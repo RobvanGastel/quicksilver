@@ -438,11 +438,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             else if(q->s == "*") {
                 noSources = sampleVertices[T];
                 noPaths = sampleVertices[T];
-                noTargets = sampleVertices[T]; // TODO: Replace V(T, A)
+                noTargets = distinctValuesFor(T, q->t); // TODO: implement V(T, A)
             }
             /// - Source: 1, Target: *
             else if(q->t == "*") {
-                noSources = sampleVertices[T]; // TODO: Replace V(T, A)
+                noSources = distinctValuesFor(T, q->s); // TODO: implement V(T, A)
                 noPaths = sampleVertices[T];
                 noTargets = sampleVertices[T]; 
             }
@@ -459,7 +459,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }
             /// - Source: *, Target: 1
             else if(q->s == "*") {
-                noSources = sampleVertices[T]; // TODO: Replace V(T, A)
+                noSources = distinctValuesFor(T, q->t); // TODO: implement V(T, A)
                 noPaths = sampleVertices[T];
                 noTargets = sampleVertices[T];
             }
@@ -467,7 +467,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             else if(q->t == "*") {
                 noSources = sampleVertices[T];
                 noPaths = sampleVertices[T];
-                noTargets = sampleVertices[T]; // TODO: Replace V(T, A)
+                noTargets = distinctValuesFor(T, q->s); // TODO: implement V(T, A)
             }
         }
         /// - Source: *, Target: * (TC)
@@ -476,8 +476,33 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             /// Estimating Result Size and Execution Times for Graph Queries
             /// Silke Trißl and Ulf Leser
             /// Current approach follow a set of paths:
+            /// TODO: Use the histogram
         }
-    } 
+    }
+
+    /// Cases of joins:
+    /// Order doesn't matter if s = "*" and t = "*"
+    /// Order right to left => s = "*" and t = 1, so reverse
+    std::reverse(path.begin(), path.end());
+    /// Order left to right => s = 1 and t = "*"
+
+    /// There is at least one join
+    /// Cases:
+    int j = 0;
+    while (path.size() > 1) {
+        T = std::stoi(path[j].substr(0, 1));
+        std::string relation = path[j].substr(1, 2);
+
+            if(q->s == "*" && q->t == "*") {
+
+            } else if(q->t == "*") {
+                
+            } else if(q->t == "*") {
+
+            }
+
+        j++;
+    }
 
     // TODO: Implement in the while
     // else {  
