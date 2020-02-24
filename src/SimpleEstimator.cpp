@@ -377,7 +377,6 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
-
     auto path = parsePathTree(q->path);
 
     uint32_t noSources = 0;
@@ -387,18 +386,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     /// Either there are no joins (e.g. just 1 relation/table) 
     /// or it's a transitive closure (TC).
     if (path.size() == 1) { 
-        /// TODO: TC or Query on single table
         T = std::stoi(path[0].substr(0, 1));
         std::string relation = path[0].substr(1, 2);
-        
-        /// Relation
-        std::cout << path[0].substr(0, 1) << ", " << path[0].substr(1, 2) << std::endl;
 
         /// Cases: 
-        if(relation == ">") { 
-            // (s,t) such that (s, l, t)
-            std::string sourceVertex = q->s;
-            std::string targetVertex = q->t;
+        if(relation == ">") { // (s,t) such that (s, l, t)
 
             /// - Source: *, Target: *
             if(q->s == "*" && q->t == "*") {
@@ -419,10 +411,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 noPaths = sampleVertices[T];
                 noTargets = sampleVertices[T]; 
             }
-        } else if(relation == "<") { 
-            // (s,t) such that (t, l, s)
-            std::string sourceVertex = q->t;
-            std::string targetVertex = q->s;
+        } else if(relation == "<") { // (s,t) such that (t, l, s)
 
             /// - Source: *, Target: *
             if(q->s == "*" && q->t == "*") {
@@ -454,67 +443,44 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     }
 
     /// Cases of joins:
-    /// Order doesn't matter if s = "*" and t = "*"
-    /// Order right to left => s = "*" and t = 1, so reverse
-    std::reverse(path.begin(), path.end());
-    /// Order left to right => s = 1 and t = "*"
+    /// Order doesn't matter => s = "*" and t = "*"
+    /// Order right to left => s = "*" and t = 1
+    /// Order left to right => s = 1 and t = "*", so reverse
+    if (q->s != "*") {
+        std::reverse(path.begin(), path.end());
+    }
 
-    /// There is at least one join
-    /// Cases:
-    int j = 0;
-    while (path.size() > 1) {
+    int j = path.size()-1;
+    while (path.size() > 0) {
         T = std::stoi(path[j].substr(0, 1));
         std::string relation = path[j].substr(1, 2);
 
+        /// Cases:
+        if (relation == ">") { // (s,t) such that (s, l, t)
+            
             if(q->s == "*" && q->t == "*") {
 
-            } else if(q->t == "*") {
-                
+            } else if(q->s == "*") {
+
             } else if(q->t == "*") {
 
             }
+        }
+        else if (relation == "<") { // (s,t) such that (t, l, s)
+            
+            if(q->s == "*" && q->t == "*") {
 
-        j++;
+            } else if(q->s == "*") {
+
+            } else if(q->t == "*") {
+
+            }
+        }
+
+
+        path.pop_back();
+        j--;
     }
-
-    // TODO: Implement in the while
-    // else {  
-    //     /// TODO: At least one join
-    //     /// Cases: 
-    //     /// - Source: *, Target: *
-    //     /// - Source: 1, Target: *
-    //     /// - Source: *, Target: 1
-    //     /// - Different permutations of >, <
-        
-    //     // relation
-    //     int rel_cur = std::stoul(path.at(0).substr(0, path.at(0).size()-1), 0); 
-    //     // Direction
-    //     std::string dir_cur = path.at(0).substr(path.at(0).size()-1, 1); 
-    //     // # Tuples in relation table
-    //     int t_cur = histogram.total_relations.at(rel_cur);  
-    //     if (dir_cur == ">") {
-    //         // V(R, A)
-    //         int v_cur = histogram.distinct_source_relations.at(rel_cur);
-    //     } else if (dir_cur == "<") {
-    //         // V(R, A)
-    //         int v_cur = histogram.distinct_target_relations.at(rel_cur);
-    //     } else {
-    //         /// TODO: ?
-    //         std::cout << "problem with direction " << dir_cur << std::endl;
-    //         // exit?
-    //     }
-
-    //     /// TODO: Iterate over the join
-    //     for (int i = 1; i < path.size(); i++) {  
-    //         // other table
-    //         int rel_other = std::stoul(path.at(i).substr(0, path. at(i).size()-1), 0);  
-    //         std::string dir_other = path.at(i).substr(path.at(i).size()-1, 1);
-    //         // # tuples in relation table
-    //         int t_cur = histogram.total_relations.at(rel_other);  
-    //         // V(R, A)
-    //         int v_cur = histogram.distinct_target_relations.at(rel_other);  
-    //     }
-    // }
 
     return cardStat {noSources, noPaths, noTargets};
 }
