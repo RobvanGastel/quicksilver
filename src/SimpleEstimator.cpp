@@ -364,16 +364,58 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
     return query;
 }
 
+/// Sample transitive closure queries
+std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T) {
+    auto se = SimpleEvaluator(graph);
+    
+    // TODO: Use P formula to calculate sample size
+    int sampleSize = ceil(0.05 * graph->getNoVertices());
+    int numNewAdded = 1;
+
+    /// Create sample graph (TC)
+    auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
+    // Use max upperbound for labels
+    sampleGraph->setNoLabels(sampleSize); 
+
+    auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
+    // Use max upperbound for labels
+    base->setNoLabels(sampleSize); 
+
+    for(uint32_t source = 0; source < sampleSize; source++) {
+        int index = rand() % graph->getNoVertices();
+
+        for (auto labelTarget : graph->adj[index]) {
+
+            auto label = labelTarget.first;
+            auto target = labelTarget.second;
+
+            if (label == T) {
+                if(source < sampleSize) {
+                    sampleGraph->addEdge(source, target, 0);
+                    base->addEdge(source, target, 0);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    while (numNewAdded) {
+        auto delta = se.join(sampleGraph, base);
+        numNewAdded = se.unionDistinct(sampleGraph, delta);
+    }
+
+    return sampleGraph;
+}
+
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
 
-    auto se = SimpleEvaluator(graph);
-
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
-    
+
     // Either there are no joins (e.g. just 1 relation/table) 
     // or it's a transitive closure (TC).
     if (path.size() == 1) {
@@ -506,9 +548,10 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             /// Estimating Result Size and Execution Times for Graph Queries
             /// Silke Trißl and Ulf Leser
 
-            auto out = se.transitiveClosure(T, graph);
+            // auto out =
+            auto out = SampleTransitiveClosure(T);
             noSources = histogram.distinct_source_relations[T];
-            noPaths = out->getNoDistinctEdges();
+            noPaths = out->getNoDistinctEdges()*20;
             noTargets = histogram.distinct_source_relations[T];
         }
     }
