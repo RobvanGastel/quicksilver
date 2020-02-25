@@ -453,17 +453,19 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 noTargets = histogram.distinct_target_relations[T];
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
-                    noSources = histogram.target_relations_count[T][t_i];
-                    noPaths = histogram.target_relations_count[T][t_i];
-                    noTargets = 1;                    
+                    int result = histogram.target_relations_count[T][t_i];
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;                   
                 }
             } else {
                 int s_i = std::stoi(q->s);
 
                 if (q->t =="*") { // - Source: i, Target: *
-                    noSources = 1;
-                    noPaths = histogram.source_relations_count[T][s_i];
-                    noTargets = histogram.source_relations_count[T][s_i];
+                    int result = histogram.source_relations_count[T][s_i];
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;
                 } else { // - Source: i, Target: i
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
@@ -475,22 +477,24 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         } else if(relation == "<") { // (s,t) such that (t, l, s)
             if (q->s == "*") { 
                 if (q->t =="*") { // - Source: *, Target: *
-                noSources = histogram.distinct_source_relations[T];
+                noSources = histogram.distinct_target_relations[T];
                 noPaths = histogram.total_relations[T];
-                noTargets = histogram.distinct_target_relations[T];
+                noTargets = histogram.distinct_source_relations[T];
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
-                    noSources = histogram.source_relations_count[T][t_i];
-                    noPaths = histogram.source_relations_count[T][t_i];
-                    noTargets = 1;                    
+                    int result = histogram.source_relations_count[T][t_i];
+                    noSources = result; 
+                    noPaths = result; 
+                    noTargets = result;                  
                 }
             } else {
                 int s_i = std::stoi(q->s);
 
                 if (q->t =="*") { // - Source: i, Target: *
-                    noSources = 1;
-                    noPaths = histogram.target_relations_count[T][s_i];
-                    noTargets = histogram.target_relations_count[T][s_i];
+                    int result = histogram.target_relations_count[T][s_i];
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;
                 } else { // - Source: i, Target: i
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
@@ -561,9 +565,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     // }
     
     // To prevent 0 predictions
-    noSources = std::max(noSources, (uint32_t)1);
-    noPaths = std::max(noPaths, (uint32_t)1);
-    noTargets = std::max(noTargets, (uint32_t)1);
+    // noSources = std::max(noSources, (uint32_t)1);
+    // noPaths = std::max(noPaths, (uint32_t)1);
+    // noTargets = std::max(noTargets, (uint32_t)1);
 
     return cardStat {noSources, noPaths, noTargets};
 }
