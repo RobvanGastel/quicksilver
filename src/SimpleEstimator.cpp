@@ -331,29 +331,6 @@ void SimpleEstimator::prepare() {
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
 
-    /// Sample tuple sizes
-    /// TODO: Find good ratio, sample 5% of the vertices
-    int samples = ceil(0.05 * noVertices);
-
-    std::vector<int> sampleCount(noLabels, 0);
-    for(int i = 0; i < samples; i++) {
-        int index = rand() % noVertices;
-
-        if (graph->adj[index].size() > 0) {
-            int adjIndex = rand() % graph->adj[index].size();
-            int ct = graph->adj[index][adjIndex].first;
-            sampleCount[ct] = sampleCount[ct] + 1;
-        } else { // No relation edge found,
-            i--;
-        }
-    }
-    // Multiply sample by 20
-    for(int i = 0; i < sampleCount.size(); i++) {
-        sampleCount[i] = sampleCount[i] * 20;
-    }
-
-    sampleVertices = sampleCount;
-
     /// Creation histograms
     std::string histogram_type = "equiwidth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
@@ -402,25 +379,6 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
     return query;
 }
 
-/// Input param; <index vertex, adjacency list index>
-// int findTransitiveClosure(int index, std::vector<int>> adjIndices) {
-    // std::unordered_set<int> passedVertices;
-    // int tcCount = adjIndices.size();
-    // passedVertices.insert(graph->adj[index]);
-
-    // std::queue<int> Q;
-    // for (int i = 0; i < adjIndices.size(); i++) {
-    //     vertices.push(graph->adj[index][adjIndices[i]].second);
-    // }
-
-    // while (!queue.empty()) {
-    //     s = queue.front(); 
-    //     cout << s << " "; 
-    //     queue.pop_front();
-    // }
-    // return 0;
-// }
-
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
@@ -429,8 +387,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
     
-    Either there are no joins (e.g. just 1 relation/table) 
-    or it's a transitive closure (TC).
+    // Either there are no joins (e.g. just 1 relation/table) 
+    // or it's a transitive closure (TC).
     if (path.size() == 1) {
         T = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
