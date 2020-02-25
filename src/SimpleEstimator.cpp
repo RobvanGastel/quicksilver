@@ -14,7 +14,6 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     vertices = noVertices;
     total_memory = 1000000;
     bucket_memory = 3 * 32;
-//    noBuckets = total_memory / bucket_memory;
     noBuckets = 200;
 
     if (type_of_histogram == "equidepth")
@@ -323,7 +322,6 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
     // works only with SimpleGraph
     graph = g;
-
 }
 
 void SimpleEstimator::prepare() {
@@ -339,14 +337,7 @@ void SimpleEstimator::prepare() {
     // std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
 }
 
-
-// Calculate the V(R, A) values based on the histogram
-int distinctValuesFor(int relation, std::string attribute) {
-    // Default is 10
-    return 10;
-}
-
-/// Parse tree to 2D vector
+/// Parse tree to Vector of queries
 void inorderParse(PathTree *node,
         std::vector<std::string> *query) {
     if (node == nullptr) {
@@ -369,13 +360,6 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
     } else {
         query.push_back(tree->data);
     }
-    
-    // std::cout << std::endl;
-    // std::cout << "Pairs: ";
-    for (int i = 0; i < query.size(); i++) {
-        // std::cout << query.at(i) << ", ";
-    }
-    // std::cout << std::endl;
     return query;
 }
 
@@ -515,32 +499,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         }
         /// - Source: *, Target: * (TC)
         else if(relation == "+") {
-            /// TODO: Paper to improve: 
+            /// TODO: Paper to improve, uses GRIPP data structure: 
             /// Estimating Result Size and Execution Times for Graph Queries
             /// Silke Trißl and Ulf Leser
 
-            /// Current approach follow a set of paths:
-            // int tupleCount = histogram.total_relations(T);
-            // int tcCount = 0;
-            // /// 5% sample
-            // for (int j = 0; j < ceil(tupleCount * 0,05); j++) {
-            //     int index = rand() % graph->getNoVertices();
-            //     std::vector<int>> AdjIndices;
-
-            //     for (int i = 0; i < graph->adj[index].size(); i++) {
-            //         if (graph->adj[index][i].first == T) {
-            //             indices.insert(adjIndex));
-            //         }
-            //     }
-            //     if (indices.size() == 0) {
-            //         j--;
-            //     }
-
-            //     // Calculate the transitive closure
-            //     tcCount += findTransitiveClosure(index, adjIndices);
-            // }
-
-            // tcCount = tcCount * 20;
+            /// ...
         }
     }
 
@@ -552,52 +515,50 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         std::reverse(path.begin(), path.end());
     }
 
-    int j = path.size()-2;
-    int fullSize = path.size()-1;
-    if(path.size() > 1 && q->s == "*" && q->t == "*") { // - Source: *, Target: *
-        int Trs;
+    // Causes; segmentation fault
+    // int j = path.size()-2;
+    // int fullSize = path.size()-1;
+    // if(path.size() > 1 && q->s == "*" && q->t == "*") { // - Source: *, Target: *
+    //     int Trs;
 
-        while (path.size() > 0) {
-            int Tr = std::stoi(path[j].substr(0, path[j].size()-1));
-            std::string relation = path[j].substr(path[j].size()-1, 1);
+    //     while (path.size() > 0) {
+    //         int Tr = std::stoi(path[j].substr(0, path[j].size()-1));
+    //         std::string relation = path[j].substr(path[j].size()-1, 1);
 
-            // std::cout << histogram.total_relations[Tr]/histogram.distinct_target_relations[Tr] << std::endl;
+    //         // std::cout << histogram.total_relations[Tr]/histogram.distinct_target_relations[Tr] << std::endl;
 
-            if (relation == ">" || relation == "<") {
-                int Tr_count = histogram.total_relations[Tr];
-                int Ts_count;
-                int v;
+    //         if (relation == ">" || relation == "<") {
+    //             int Tr_count = histogram.total_relations[Tr];
+    //             int Ts_count;
+    //             int v;
 
-                if (j+1 == fullSize) {
-                    int Ts = std::stoi(path[j+1].substr(0, path[j+1].size()-1));
-                    Ts_count = histogram.total_relations[Ts];
-                    v = std::max(
-                        Tr_count / histogram.distinct_source_relations[Tr],
-                        Ts_count / histogram.distinct_target_relations[Ts]
-                    );
-                    std::cout << "v: " << v << std::endl;
-                    path.pop_back();
-                } else {
-                    v = 100;
-                    Ts_count = Trs;
-                }
+    //             if (j+1 == fullSize) {
+    //                 int Ts = std::stoi(path[j+1].substr(0, path[j+1].size()-1));
+    //                 Ts_count = histogram.total_relations[Ts];
+    //                 v = std::max(
+    //                     Tr_count / histogram.distinct_source_relations[Tr],
+    //                     Ts_count / histogram.distinct_target_relations[Ts]
+    //                 );
+    //                 std::cout << "v: " << v << std::endl;
+    //                 path.pop_back();
+    //             } else {
+    //                 v = 100;
+    //                 Ts_count = Trs;
+    //             }
                 
-                int Trs = ceil(Tr_count * Ts_count / v);
-                std::cout << Trs << std::endl;
-            }
+    //             int Trs = ceil(Tr_count * Ts_count / v);
+    //             std::cout << Trs << std::endl;
+    //         }
 
-            path.pop_back();
-            j--;
-        }
-
-
-
-    }
+    //         path.pop_back();
+    //         j--;
+    //     }
+    // }
     
+    // To prevent 0 predictions
     noSources = std::max(noSources, (uint32_t)1);
     noPaths = std::max(noPaths, (uint32_t)1);
     noTargets = std::max(noTargets, (uint32_t)1);
 
- 
     return cardStat {noSources, noPaths, noTargets};
 }
