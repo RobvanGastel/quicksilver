@@ -509,17 +509,17 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     int result = histogram.target_relations_count[T][t_i];
                     noSources = result;
                     noPaths = result;
-                    noTargets = result;                   
+                    noTargets = 1;                   
                 }
             } else {
                 int s_i = std::stoi(q->s);
 
                 if (q->t =="*") { // - Source: i, Target: *
                     int result = histogram.source_relations_count[T][s_i];
-                    noSources = result;
+                    noSources = 1;
                     noPaths = result;
                     noTargets = result;
-                } else { // - Source: i, Target: i
+                } else { // - Source: i, Target: j
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
                     noSources = result;
@@ -538,17 +538,17 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     int result = histogram.source_relations_count[T][t_i];
                     noSources = result; 
                     noPaths = result; 
-                    noTargets = result;                  
+                    noTargets = 1;                  
                 }
             } else {
                 int s_i = std::stoi(q->s);
 
                 if (q->t =="*") { // - Source: i, Target: *
                     int result = histogram.target_relations_count[T][s_i];
-                    noSources = result;
+                    noSources = 1;
                     noPaths = result;
                     noTargets = result;
-                } else { // - Source: i, Target: i
+                } else { // - Source: i, Target: j
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
                     noSources = result;
