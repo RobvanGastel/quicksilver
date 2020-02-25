@@ -515,6 +515,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
+    // std::cout << "\n\npath size: " << path.size() << std::endl;
 
     // Either there are no joins (e.g. just 1 relation/table) 
     // or it's a transitive closure (TC).
@@ -527,11 +528,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         // std::cout << histogram.target_relations_count[0][29] << std::endl;
         if (relation == ">") { // (s,t) such that (s, l, t)
             if (q->s == "*") {
-                if (q->t =="*") { // - Source: *, Target: *
+                if (q->t =="*") { // source: *, target: *
                     noSources = histogram.distinct_source_relations[T];
                     noPaths = histogram.total_relations[T];
                     noTargets = histogram.distinct_target_relations[T];
-                } else { // - Source: *, Target: i
+                } else { // source: *, target: i
                     int t_i = std::stoi(q->t);
                     int result = histogram.target_relations_count[T][t_i];
                     noSources = result;
@@ -541,12 +542,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             } else {
                 int s_i = std::stoi(q->s);
 
-                if (q->t =="*") { // - Source: i, Target: *
+                if (q->t =="*") { // source: i, target: *
                     int result = histogram.source_relations_count[T][s_i];
                     noSources = 1;
                     noPaths = result;
                     noTargets = result;
-                } else { // - Source: i, Target: j
+                } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
                     noSources = result;
@@ -556,11 +557,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }
         } else if(relation == "<") { // (s,t) such that (t, l, s)
             if (q->s == "*") {
-                if (q->t =="*") { // - Source: *, Target: *
+                if (q->t =="*") { // source: *, target: *
                 noSources = histogram.distinct_target_relations[T];
                 noPaths = histogram.total_relations[T];
                 noTargets = histogram.distinct_source_relations[T];
-                } else { // - Source: *, Target: i
+                } else { // source: *, target: j
                     int t_i = std::stoi(q->t);
                     int result = histogram.source_relations_count[T][t_i];
                     noSources = result; 
@@ -570,12 +571,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             } else {
                 int s_i = std::stoi(q->s);
 
-                if (q->t =="*") { // - Source: i, Target: *
+                if (q->t =="*") { // source: i, target: *
                     int result = histogram.target_relations_count[T][s_i];
                     noSources = 1;
                     noPaths = result;
                     noTargets = result;
-                } else { // - Source: i, Target: j
+                } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
                     noSources = result;
@@ -584,7 +585,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }
         }
-            /// - Source: *, Target: * (TC)
+            // - Source: *, Target: * (TC)
         else if(relation == "+") {
             /// TODO: Paper to improve, uses GRIPP data structure: 
             /// Estimating Result Size and Execution Times for Graph Queries
@@ -620,15 +621,45 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }  
         }
+    } else if (path.size() > 1) {
+        // if (q->t != "*") {
+        //     std::reverse(path.begin(), path.end());
+        // }
+        
+        if (q->s == "*") { // source: *
+            if (q->t =="*") { // source: *, target: *
+                for (int j = 1; j < path.size(); j++) {
+                    int label_j;
+                    T = std::stoi(path[j].substr(0, path[j].size()-1));
+                    std::string relation = path[j].substr(path[j].size()-1, 1);
+                    std::cout << "\n\nT: " << T << "   relation: " << relation << std::endl;
+
+                    if (j == 1) {
+                        
+                    } else {
+
+                    }
+                }
+            } else { // source: *, target: j
+            
+            }
+        } else {
+            if (q->t =="*") { // source: i, target: *
+
+            } else { // source: i, target: j
+
+            }
+        }
     }
+    
 
     /// Cases of joins:
     /// Order doesn't matter => s = "*" and t = "*"
     /// Order right to left => s = "*" and t = 1
     /// Order left to right => s = 1 and t = "*", so reverse
-    if (q->s != "*") {
-        std::reverse(path.begin(), path.end());
-    }
+    // if (q->s != "*") {
+    //     std::reverse(path.begin(), path.end());
+    // }
 
 
     // Causes; segmentation fault
