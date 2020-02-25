@@ -365,20 +365,19 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
 }
 
 /// Sample transitive closure queries
-std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T) {
+std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, float sample) {
     auto se = SimpleEvaluator(graph);
     
-    // TODO: Use P formula to calculate sample size
-    int sampleSize = ceil(0.05 * graph->getNoVertices());
+    int sampleSize = ceil(sample * graph->getNoVertices());
     int numNewAdded = 1;
 
     /// Create sample graph (TC)
+    // Use max upperbound for labels
     auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    // Use max upperbound for labels
     sampleGraph->setNoLabels(sampleSize); 
-
-    auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
+    
     // Use max upperbound for labels
+    auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
     base->setNoLabels(sampleSize); 
 
     for(uint32_t source = 0; source < sampleSize; source++) {
@@ -398,6 +397,34 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T) {
                 }
             }
         }
+    }
+
+    while (numNewAdded) {
+        auto delta = se.join(sampleGraph, base);
+        numNewAdded = se.unionDistinct(sampleGraph, delta);
+    }
+
+    return sampleGraph;
+}
+
+/// Sample transitive closure for 1 source or target
+std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int node, bool reverse) {
+    auto se = SimpleEvaluator(graph);    
+    int numNewAdded = 1;
+
+    /// Create sample graph (TC)
+    auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
+    sampleGraph->setNoLabels(1); 
+
+    auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
+    base->setNoLabels(1);
+    
+    for (auto labelTarget : graph->adj[node]) {
+
+        auto label = labelTarget.first;
+        auto target = labelTarget.second;
+        sampleGraph->addEdge(0, target, 0);
+        base->addEdge(0, target, 0);
     }
 
     while (numNewAdded) {
@@ -489,12 +516,36 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             /// TODO: Paper to improve, uses GRIPP data structure: 
             /// Estimating Result Size and Execution Times for Graph Queries
             /// Silke Trißl and Ulf Leser
+            
+            float sample = 0.05;
+            if (q->s == "*") { 
+                if (q->t =="*") { // - Source: *, Target: *
+                    auto out = SampleTransitiveClosure(T, sample);
+                    noSources = histogram.distinct_source_relations[T];
+                    // To retrieve 100% value estimate
+                    noPaths = out->getNoDistinctEdges()*1/sample; 
+                    noTargets = histogram.distinct_source_relations[T];
+                } else { // - Source: *, Target: i
+                    int t_i = std::stoi(q->t);
+                    auto out = SampleTransitiveClosure(T, t_i, true);
 
-            // auto out =
-            auto out = SampleTransitiveClosure(T);
-            noSources = histogram.distinct_source_relations[T];
-            noPaths = out->getNoDistinctEdges()*20;
-            noTargets = histogram.distinct_source_relations[T];
+                    noSources = out->getNoDistinctEdges(); 
+                    noPaths = out->getNoDistinctEdges(); 
+                    noTargets = 1;
+                
+                }
+            } else {
+                int s_i = std::stoi(q->s);
+                if (q->t =="*") { // - Source: i, Target: *
+                    auto out = SampleTransitiveClosure(T, s_i, false);
+
+                    noSources = 1;
+                    noPaths = out->getNoDistinctEdges(); 
+                    noTargets = out->getNoDistinctEdges();
+                } else { // - Source: i, Target: j
+                    int t_j = std::stoi(q->t);
+                }
+            }  
         }
     }
 
