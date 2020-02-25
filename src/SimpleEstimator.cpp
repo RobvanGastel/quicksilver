@@ -635,7 +635,10 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
 
     }
- 
+    
+    noSources = std::max(noSources, (uint32_t)1);
+    noPaths = std::max(noPaths, (uint32_t)1);
+    noTargets = std::max(noTargets, (uint32_t)1);
 
  
     return cardStat {noSources, noPaths, noTargets};
