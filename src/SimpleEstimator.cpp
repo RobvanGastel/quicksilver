@@ -429,216 +429,216 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
     
-    // Either there are no joins (e.g. just 1 relation/table) 
-    // or it's a transitive closure (TC).
-    // if (path.size() == 1) {
-    //     T = std::stoi(path[0].substr(0, path[0].size()-1));
-    //     std::string relation = path[0].substr(path[0].size()-1, 1);
+    Either there are no joins (e.g. just 1 relation/table) 
+    or it's a transitive closure (TC).
+    if (path.size() == 1) {
+        T = std::stoi(path[0].substr(0, path[0].size()-1));
+        std::string relation = path[0].substr(path[0].size()-1, 1);
 
-    //     // std::cout << histogram.get_query_results(33,0,0) << std::endl;
-    //     // std::cout << histogram.source_relations_count[0][33] << std::endl;
-    //     // std::cout << histogram.get_query_results(29,1,0) << std::endl;
-    //     // std::cout << histogram.target_relations_count[0][29] << std::endl;
+        // std::cout << histogram.get_query_results(33,0,0) << std::endl;
+        // std::cout << histogram.source_relations_count[0][33] << std::endl;
+        // std::cout << histogram.get_query_results(29,1,0) << std::endl;
+        // std::cout << histogram.target_relations_count[0][29] << std::endl;
 
-    //     // // Cases (precise): 
-    //     // if (relation == ">") { // (s,t) such that (s, l, t)
-    //     //     if (q->s == "*") { 
-    //     //         if (q->t =="*") { // - Source: *, Target: *
-    //     //         noSources = histogram.distinct_source_relations[T];
-    //     //         noPaths = histogram.total_relations[T];
-    //     //         noTargets = histogram.distinct_target_relations[T];
-    //     //         } else { // - Source: *, Target: i
-    //     //             int t_i = std::stoi(q->t);
-    //     //             noSources = histogram.target_relations_count[T][t_i];
-    //     //             noPaths = histogram.target_relations_count[T][t_i];
-    //     //             noTargets = 1;                    
-    //     //         }
-    //     //     } else {
-    //     //         int s_i = std::stoi(q->s);
+        // // Cases (precise): 
+        // if (relation == ">") { // (s,t) such that (s, l, t)
+        //     if (q->s == "*") { 
+        //         if (q->t =="*") { // - Source: *, Target: *
+        //         noSources = histogram.distinct_source_relations[T];
+        //         noPaths = histogram.total_relations[T];
+        //         noTargets = histogram.distinct_target_relations[T];
+        //         } else { // - Source: *, Target: i
+        //             int t_i = std::stoi(q->t);
+        //             noSources = histogram.target_relations_count[T][t_i];
+        //             noPaths = histogram.target_relations_count[T][t_i];
+        //             noTargets = 1;                    
+        //         }
+        //     } else {
+        //         int s_i = std::stoi(q->s);
 
-    //     //         if (q->t =="*") { // - Source: i, Target: *
-    //     //             noSources = 1;
-    //     //             noPaths = histogram.source_relations_count[T][s_i];
-    //     //             noTargets = histogram.source_relations_count[T][s_i];
-    //     //         } else { // - Source: i, Target: i
-    //     //             int t_i = std::stoi(q->t);
-    //     //             int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
-    //     //             noSources = result;
-    //     //             noPaths = result;
-    //     //             noTargets = result;
-    //     //         }
-    //     //     }
-    //     // } else if(relation == "<") { // (s,t) such that (t, l, s)
-    //     //     if (q->s == "*") { 
-    //     //         if (q->t =="*") { // - Source: *, Target: *
-    //     //         noSources = histogram.distinct_source_relations[T];
-    //     //         noPaths = histogram.total_relations[T];
-    //     //         noTargets = histogram.distinct_target_relations[T];
-    //     //         } else { // - Source: *, Target: i
-    //     //             int t_i = std::stoi(q->t);
-    //     //             noSources = histogram.source_relations_count[T][t_i];
-    //     //             noPaths = histogram.source_relations_count[T][t_i];
-    //     //             noTargets = 1;                    
-    //     //         }
-    //     //     } else {
-    //     //         int s_i = std::stoi(q->s);
+        //         if (q->t =="*") { // - Source: i, Target: *
+        //             noSources = 1;
+        //             noPaths = histogram.source_relations_count[T][s_i];
+        //             noTargets = histogram.source_relations_count[T][s_i];
+        //         } else { // - Source: i, Target: i
+        //             int t_i = std::stoi(q->t);
+        //             int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
+        //             noSources = result;
+        //             noPaths = result;
+        //             noTargets = result;
+        //         }
+        //     }
+        // } else if(relation == "<") { // (s,t) such that (t, l, s)
+        //     if (q->s == "*") { 
+        //         if (q->t =="*") { // - Source: *, Target: *
+        //         noSources = histogram.distinct_source_relations[T];
+        //         noPaths = histogram.total_relations[T];
+        //         noTargets = histogram.distinct_target_relations[T];
+        //         } else { // - Source: *, Target: i
+        //             int t_i = std::stoi(q->t);
+        //             noSources = histogram.source_relations_count[T][t_i];
+        //             noPaths = histogram.source_relations_count[T][t_i];
+        //             noTargets = 1;                    
+        //         }
+        //     } else {
+        //         int s_i = std::stoi(q->s);
 
-    //     //         if (q->t =="*") { // - Source: i, Target: *
-    //     //             noSources = 1;
-    //     //             noPaths = histogram.target_relations_count[T][s_i];
-    //     //             noTargets = histogram.target_relations_count[T][s_i];
-    //     //         } else { // - Source: i, Target: i
-    //     //             int t_i = std::stoi(q->t);
-    //     //             int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
-    //     //             noSources = result;
-    //     //             noPaths = result;
-    //     //             noTargets = result;
-    //     //         }
-    //     //     }
-    //     // }
+        //         if (q->t =="*") { // - Source: i, Target: *
+        //             noSources = 1;
+        //             noPaths = histogram.target_relations_count[T][s_i];
+        //             noTargets = histogram.target_relations_count[T][s_i];
+        //         } else { // - Source: i, Target: i
+        //             int t_i = std::stoi(q->t);
+        //             int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
+        //             noSources = result;
+        //             noPaths = result;
+        //             noTargets = result;
+        //         }
+        //     }
+        // }
         
-    //     // Cases (estimates): 
-    //     // std::cout << histogram.get_query_results(29,1,0) << std::endl;
-    //     // std::cout << histogram.target_relations_count[0][29] << std::endl;
-    //     if (relation == ">") { // (s,t) such that (s, l, t)
-    //         if (q->s == "*") { 
-    //             if (q->t =="*") { // - Source: *, Target: *
-    //             noSources = histogram.distinct_source_relations[T];
-    //             noPaths = histogram.total_relations[T];
-    //             noTargets = histogram.distinct_target_relations[T];
-    //             } else { // - Source: *, Target: i
-    //                 int t_i = std::stoi(q->t);
-    //                 noSources = histogram.target_relations_count[T][t_i];
-    //                 noPaths = histogram.target_relations_count[T][t_i];
-    //                 noTargets = 1;                    
-    //             }
-    //         } else {
-    //             int s_i = std::stoi(q->s);
+        // Cases (estimates): 
+        // std::cout << histogram.get_query_results(29,1,0) << std::endl;
+        // std::cout << histogram.target_relations_count[0][29] << std::endl;
+        if (relation == ">") { // (s,t) such that (s, l, t)
+            if (q->s == "*") { 
+                if (q->t =="*") { // - Source: *, Target: *
+                noSources = histogram.distinct_source_relations[T];
+                noPaths = histogram.total_relations[T];
+                noTargets = histogram.distinct_target_relations[T];
+                } else { // - Source: *, Target: i
+                    int t_i = std::stoi(q->t);
+                    noSources = histogram.target_relations_count[T][t_i];
+                    noPaths = histogram.target_relations_count[T][t_i];
+                    noTargets = 1;                    
+                }
+            } else {
+                int s_i = std::stoi(q->s);
 
-    //             if (q->t =="*") { // - Source: i, Target: *
-    //                 noSources = 1;
-    //                 noPaths = histogram.source_relations_count[T][s_i];
-    //                 noTargets = histogram.source_relations_count[T][s_i];
-    //             } else { // - Source: i, Target: i
-    //                 int t_i = std::stoi(q->t);
-    //                 int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
-    //                 noSources = result;
-    //                 noPaths = result;
-    //                 noTargets = result;
-    //             }
-    //         }
-    //     } else if(relation == "<") { // (s,t) such that (t, l, s)
-    //         if (q->s == "*") { 
-    //             if (q->t =="*") { // - Source: *, Target: *
-    //             noSources = histogram.distinct_source_relations[T];
-    //             noPaths = histogram.total_relations[T];
-    //             noTargets = histogram.distinct_target_relations[T];
-    //             } else { // - Source: *, Target: i
-    //                 int t_i = std::stoi(q->t);
-    //                 noSources = histogram.source_relations_count[T][t_i];
-    //                 noPaths = histogram.source_relations_count[T][t_i];
-    //                 noTargets = 1;                    
-    //             }
-    //         } else {
-    //             int s_i = std::stoi(q->s);
+                if (q->t =="*") { // - Source: i, Target: *
+                    noSources = 1;
+                    noPaths = histogram.source_relations_count[T][s_i];
+                    noTargets = histogram.source_relations_count[T][s_i];
+                } else { // - Source: i, Target: i
+                    int t_i = std::stoi(q->t);
+                    int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;
+                }
+            }
+        } else if(relation == "<") { // (s,t) such that (t, l, s)
+            if (q->s == "*") { 
+                if (q->t =="*") { // - Source: *, Target: *
+                noSources = histogram.distinct_source_relations[T];
+                noPaths = histogram.total_relations[T];
+                noTargets = histogram.distinct_target_relations[T];
+                } else { // - Source: *, Target: i
+                    int t_i = std::stoi(q->t);
+                    noSources = histogram.source_relations_count[T][t_i];
+                    noPaths = histogram.source_relations_count[T][t_i];
+                    noTargets = 1;                    
+                }
+            } else {
+                int s_i = std::stoi(q->s);
 
-    //             if (q->t =="*") { // - Source: i, Target: *
-    //                 noSources = 1;
-    //                 noPaths = histogram.target_relations_count[T][s_i];
-    //                 noTargets = histogram.target_relations_count[T][s_i];
-    //             } else { // - Source: i, Target: i
-    //                 int t_i = std::stoi(q->t);
-    //                 int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
-    //                 noSources = result;
-    //                 noPaths = result;
-    //                 noTargets = result;
-    //             }
-    //         }
-    //     }
-    //     /// - Source: *, Target: * (TC)
-    //     else if(relation == "+") {
-    //         /// TODO: Paper to improve: 
-    //         /// Estimating Result Size and Execution Times for Graph Queries
-    //         /// Silke Trißl and Ulf Leser
+                if (q->t =="*") { // - Source: i, Target: *
+                    noSources = 1;
+                    noPaths = histogram.target_relations_count[T][s_i];
+                    noTargets = histogram.target_relations_count[T][s_i];
+                } else { // - Source: i, Target: i
+                    int t_i = std::stoi(q->t);
+                    int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;
+                }
+            }
+        }
+        /// - Source: *, Target: * (TC)
+        else if(relation == "+") {
+            /// TODO: Paper to improve: 
+            /// Estimating Result Size and Execution Times for Graph Queries
+            /// Silke Trißl and Ulf Leser
 
-    //         /// Current approach follow a set of paths:
-    //         // int tupleCount = histogram.total_relations(T);
-    //         // int tcCount = 0;
-    //         // /// 5% sample
-    //         // for (int j = 0; j < ceil(tupleCount * 0,05); j++) {
-    //         //     int index = rand() % graph->getNoVertices();
-    //         //     std::vector<int>> AdjIndices;
+            /// Current approach follow a set of paths:
+            // int tupleCount = histogram.total_relations(T);
+            // int tcCount = 0;
+            // /// 5% sample
+            // for (int j = 0; j < ceil(tupleCount * 0,05); j++) {
+            //     int index = rand() % graph->getNoVertices();
+            //     std::vector<int>> AdjIndices;
 
-    //         //     for (int i = 0; i < graph->adj[index].size(); i++) {
-    //         //         if (graph->adj[index][i].first == T) {
-    //         //             indices.insert(adjIndex));
-    //         //         }
-    //         //     }
-    //         //     if (indices.size() == 0) {
-    //         //         j--;
-    //         //     }
+            //     for (int i = 0; i < graph->adj[index].size(); i++) {
+            //         if (graph->adj[index][i].first == T) {
+            //             indices.insert(adjIndex));
+            //         }
+            //     }
+            //     if (indices.size() == 0) {
+            //         j--;
+            //     }
 
-    //         //     // Calculate the transitive closure
-    //         //     tcCount += findTransitiveClosure(index, adjIndices);
-    //         // }
+            //     // Calculate the transitive closure
+            //     tcCount += findTransitiveClosure(index, adjIndices);
+            // }
 
-    //         // tcCount = tcCount * 20;
-    //     }
-    // }
+            // tcCount = tcCount * 20;
+        }
+    }
 
-    // /// Cases of joins:
-    // /// Order doesn't matter => s = "*" and t = "*"
-    // /// Order right to left => s = "*" and t = 1
-    // /// Order left to right => s = 1 and t = "*", so reverse
-    // if (q->s != "*") {
-    //     std::reverse(path.begin(), path.end());
-    // }
+    /// Cases of joins:
+    /// Order doesn't matter => s = "*" and t = "*"
+    /// Order right to left => s = "*" and t = 1
+    /// Order left to right => s = 1 and t = "*", so reverse
+    if (q->s != "*") {
+        std::reverse(path.begin(), path.end());
+    }
 
-    // int j = path.size()-2;
-    // int fullSize = path.size()-1;
-    // if(path.size() > 1 && q->s == "*" && q->t == "*") { // - Source: *, Target: *
-    //     int Trs;
+    int j = path.size()-2;
+    int fullSize = path.size()-1;
+    if(path.size() > 1 && q->s == "*" && q->t == "*") { // - Source: *, Target: *
+        int Trs;
 
-    //     while (path.size() > 0) {
-    //         int Tr = std::stoi(path[j].substr(0, path[j].size()-1));
-    //         std::string relation = path[j].substr(path[j].size()-1, 1);
+        while (path.size() > 0) {
+            int Tr = std::stoi(path[j].substr(0, path[j].size()-1));
+            std::string relation = path[j].substr(path[j].size()-1, 1);
 
-    //         // std::cout << histogram.total_relations[Tr]/histogram.distinct_target_relations[Tr] << std::endl;
+            // std::cout << histogram.total_relations[Tr]/histogram.distinct_target_relations[Tr] << std::endl;
 
-    //         if (relation == ">" || relation == "<") {
-    //             int Tr_count = histogram.total_relations[Tr];
-    //             int Ts_count;
-    //             int v;
+            if (relation == ">" || relation == "<") {
+                int Tr_count = histogram.total_relations[Tr];
+                int Ts_count;
+                int v;
 
-    //             if (j+1 == fullSize) {
-    //                 int Ts = std::stoi(path[j+1].substr(0, path[j+1].size()-1));
-    //                 Ts_count = histogram.total_relations[Ts];
-    //                 v = std::max(
-    //                     Tr_count / histogram.distinct_source_relations[Tr],
-    //                     Ts_count / histogram.distinct_target_relations[Ts]
-    //                 );
-    //                 std::cout << "v: " << v << std::endl;
-    //                 path.pop_back();
-    //             } else {
-    //                 v = 100;
-    //                 Ts_count = Trs;
-    //             }
+                if (j+1 == fullSize) {
+                    int Ts = std::stoi(path[j+1].substr(0, path[j+1].size()-1));
+                    Ts_count = histogram.total_relations[Ts];
+                    v = std::max(
+                        Tr_count / histogram.distinct_source_relations[Tr],
+                        Ts_count / histogram.distinct_target_relations[Ts]
+                    );
+                    std::cout << "v: " << v << std::endl;
+                    path.pop_back();
+                } else {
+                    v = 100;
+                    Ts_count = Trs;
+                }
                 
-    //             int Trs = ceil(Tr_count * Ts_count / v);
-    //             std::cout << Trs << std::endl;
-    //         }
+                int Trs = ceil(Tr_count * Ts_count / v);
+                std::cout << Trs << std::endl;
+            }
 
-    //         path.pop_back();
-    //         j--;
-    //     }
+            path.pop_back();
+            j--;
+        }
 
 
 
-    // }
+    }
     
-    // noSources = std::max(noSources, (uint32_t)1);
-    // noPaths = std::max(noPaths, (uint32_t)1);
-    // noTargets = std::max(noTargets, (uint32_t)1);
+    noSources = std::max(noSources, (uint32_t)1);
+    noPaths = std::max(noPaths, (uint32_t)1);
+    noTargets = std::max(noTargets, (uint32_t)1);
 
  
     return cardStat {noSources, noPaths, noTargets};
