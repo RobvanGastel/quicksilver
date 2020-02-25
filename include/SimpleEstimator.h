@@ -23,7 +23,8 @@ class Histogram {
         // would return 2 for target
         std::vector<uint32_t> distinct_target_relations;
         // Array of tuples for each relation
-        std::vector<std::vector<std::pair<uint32_t, uint32_t>>> relation_pairs;
+        std::vector<std::vector<std::vector<std::pair<uint32_t, uint32_t>>>> relation_pairs;
+        std::vector<std::vector<std::vector<std::pair<uint32_t, uint32_t>>>> reverse_relation_pairs;
         // Array of ints with the relation count of each node for each relation,
         // e.g. source_relations_count[0][5] for relation 0 and node 5
         std::vector<std::vector<uint32_t>> source_relations_count;
@@ -31,6 +32,7 @@ class Histogram {
         // Array of tuples for each relation with the starting node, ending node and bucket size
         std::vector<std::vector<std::vector<uint32_t>>> source_buckets;
         std::vector<std::vector<std::vector<uint32_t>>> target_buckets;
+        std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> multidimensional_matrix;
 
     public:
         Histogram() = default;
