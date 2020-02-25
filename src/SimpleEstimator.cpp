@@ -429,8 +429,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
     
-    Either there are no joins (e.g. just 1 relation/table) 
-    or it's a transitive closure (TC).
+    // Either there are no joins (e.g. just 1 relation/table) 
+    // or it's a transitive closure (TC).
     if (path.size() == 1) {
         T = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
