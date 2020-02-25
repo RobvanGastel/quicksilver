@@ -368,7 +368,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
 
-
+    auto se = SimpleEvaluator(graph);
 
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
@@ -510,9 +510,10 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             /// Estimating Result Size and Execution Times for Graph Queries
             /// Silke Trißl and Ulf Leser
 
-            /// ...
-            // transitiveClosure
-
+            auto out = se.transitiveClosure(T, graph);
+            noSources = histogram.distinct_source_relations[T];
+            noPaths = out->getNoDistinctEdges();
+            noTargets = histogram.distinct_source_relations[T];
         }
     }
 
