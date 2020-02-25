@@ -273,20 +273,20 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
 }
 
 void Histogram::print_histogram(uint32_t query_var, uint32_t relation) {
-    // std::cout << "Histogram " << histogram_type << " for " << query_var << " relation " << relation << std::endl;
+    std::cout << "Histogram " << histogram_type << " for " << query_var << " relation " << relation << std::endl;
     if (query_var == 0) {
         for (int i = 0; i < source_buckets[relation].size(); i++) {
-            // std::cout << source_buckets[relation][i][0] << "\t" << source_buckets[relation][i][1] << "\t"
-            //           << source_buckets[relation][i][2] << std::endl;
+            std::cout << source_buckets[relation][i][0] << "\t" << source_buckets[relation][i][1] << "\t"
+                      << source_buckets[relation][i][2] << std::endl;
         }
     }
     else if (query_var == 1) {
         for (int i = 0; i < target_buckets[relation].size(); i++) {
-            // std::cout << target_buckets[relation][i][0] << "\t" << target_buckets[relation][i][1] << "\t"
-            //           << target_buckets[relation][i][2] << std::endl;
+            std::cout << target_buckets[relation][i][0] << "\t" << target_buckets[relation][i][1] << "\t"
+                      << target_buckets[relation][i][2] << std::endl;
         }
     }
-    // std::cout << std::endl;
+    std::cout << std::endl;
 }
 
 uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation) {
@@ -355,7 +355,7 @@ void SimpleEstimator::prepare() {
     sampleVertices = sampleCount;
 
     /// Creation histograms
-    std::string histogram_type = "equidepth";
+    std::string histogram_type = "equiwidth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
     // histogram.print_histogram(0, 0);
@@ -428,7 +428,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
-
+    
     // Either there are no joins (e.g. just 1 relation/table) 
     // or it's a transitive closure (TC).
     if (path.size() == 1) {
@@ -594,31 +594,37 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         std::reverse(path.begin(), path.end());
     }
 
-    int j = path.size()-1;
+    int j = path.size()-2;
     int fullSize = path.size()-1;
-    if(q->s == "*" && q->t == "*") { // - Source: *, Target: *
+    if(path.size() > 1 && q->s == "*" && q->t == "*") { // - Source: *, Target: *
         int Trs;
 
-        while (path.size() > 1) {
-            int Ts = std::stoi(path[j].substr(0, path[j].size()-1));
-            int Tr = std::stoi(path[j-1].substr(0, path[j-1].size()-1));
+        while (path.size() > 0) {
+            int Tr = std::stoi(path[j].substr(0, path[j].size()-1));
             std::string relation = path[j].substr(path[j].size()-1, 1);
 
-            std::cout << histogram.total_relations[Ts]/histogram.distinct_source_relations[Ts] << std::endl;
+            // std::cout << histogram.total_relations[Tr]/histogram.distinct_target_relations[Tr] << std::endl;
 
             if (relation == ">" || relation == "<") {
                 int Tr_count = histogram.total_relations[Tr];
                 int Ts_count;
+                int v;
 
-                if (j == fullSize) {
+                if (j+1 == fullSize) {
+                    int Ts = std::stoi(path[j+1].substr(0, path[j+1].size()-1));
                     Ts_count = histogram.total_relations[Ts];
+                    v = std::max(
+                        Tr_count / histogram.distinct_source_relations[Tr],
+                        Ts_count / histogram.distinct_target_relations[Ts]
+                    );
+                    std::cout << "v: " << v << std::endl;
                     path.pop_back();
-                    j--;
                 } else {
+                    v = 100;
                     Ts_count = Trs;
                 }
                 
-                int Trs = ceil(Tr_count * Ts_count * 1/10);
+                int Trs = ceil(Tr_count * Ts_count / v);
                 std::cout << Trs << std::endl;
             }
 
