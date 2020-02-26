@@ -614,10 +614,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             std::reverse(path.begin(), path.end());
         }
 
-        std::shared_ptr<SimpleGraph> out;
-        std::shared_ptr<SimpleGraph> secondOut;
-        bool TC = false;
-
         for (int i = 0; i < path.size(); i++) {
             T = std::stoi(path[i].substr(0, path[i].size()-1));
             std::string relation = path[i].substr(path[i].size()-1, 1);
@@ -627,39 +623,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             } else {
                 temp = (float)histogram.total_relations[T]/(float)graph->getNoVertices();
             }
-
-            float sample = 0.05;
-            // Special condition TC joins
-            if (relation == "+") {
-                TC = true;
-                if(i == 0) { // First iteration
-                    out = SampleTransitiveClosure(T, sample);
-                } else {
-                    secondOut = SampleTransitiveClosure(T, sample);
-
-                    auto se = SimpleEvaluator(graph);  
-                    int numNewAdded = 1;
-                    while (numNewAdded) {
-                        auto delta = se.join(secondOut, out);
-                        numNewAdded = se.unionDistinct(secondOut, delta);
-                    }
-
-                    out = secondOut;
-                }
-
-                if(i == path.size()) {
-                    noPaths = out->getNoDistinctEdges()*1/sample;
-                }
-            }
-            
         }
-
         temp = temp * graph->getNoVertices();
 
         int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
         int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
 
-        if (!TC) {
         if (q->s == "*") {
             if (q->t =="*") { // - Source: *, Target: *
             noSources = histogram.distinct_target_relations[T_s];
@@ -680,7 +649,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 noPaths = temp;
                 noTargets = temp;
             } else { // - Source: i, Target: j
-                /// TODO: Sample this relation
+                /// TODO: Bad estimates
                 int t_i = std::stoi(q->t);
                 int result = std::min(histogram.source_relations_count[T_s][t_i], 
                     histogram.target_relations_count[T_t][s_i]);
@@ -688,7 +657,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 noPaths = result;
                 noTargets = result;
             }
-        }
         }
     }
 
