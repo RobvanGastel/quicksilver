@@ -362,7 +362,7 @@ void SimpleEstimator::prepare() {
     int noVertices = graph->getNoVertices();
 
     /// Creation histograms
-    std::string histogram_type = "equiwidth";
+    std::string histogram_type = "equidepth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
 
