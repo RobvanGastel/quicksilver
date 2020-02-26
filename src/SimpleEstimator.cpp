@@ -14,7 +14,7 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     vertices = noVertices;
     total_memory = 1000000;
     bucket_memory = 3 * 32;
-    noBuckets = 200;
+    noBuckets = 100;
 
     if (type_of_histogram == "equidepth")
         histogram_type = 0;
@@ -37,12 +37,12 @@ Histogram::~Histogram() {
 
 void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     create_frequency_vectors(adj);
-    if (histogram_type == 0)
-        create_equidepth_histograms();
-    else if (histogram_type == 1)
-        create_equiwidth_histograms();
-    else if (histogram_type == 2)
-        create_voptimal_histograms();
+    // if (histogram_type == 0)
+    //     create_equidepth_histograms();
+    // else if (histogram_type == 1)
+    //     create_equiwidth_histograms();
+    // else if (histogram_type == 2)
+    //     create_voptimal_histograms();
 }
 
 void Histogram::create_equidepth_histograms() {
@@ -362,7 +362,7 @@ void SimpleEstimator::prepare() {
     int noVertices = graph->getNoVertices();
 
     /// Creation histograms
-    std::string histogram_type = "equidepth";
+    std::string histogram_type = "equiwidth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
 
