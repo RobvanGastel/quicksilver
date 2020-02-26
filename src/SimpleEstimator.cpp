@@ -14,7 +14,7 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     vertices = noVertices;
     total_memory = 1000000;
     bucket_memory = 3 * 32;
-    noBuckets = 100;
+    noBuckets = 200;
 
     if (type_of_histogram == "equidepth")
         histogram_type = 0;
