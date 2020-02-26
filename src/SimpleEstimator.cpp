@@ -367,30 +367,39 @@ void SimpleEstimator::prepare() {
     histogram.create_histograms(graph->adj);
 
     /// Characteristic sets
-    /// Vertice 0; [Distinct, T0, T1, ... ]
-    /// TODO: Distinct
-    // auto adj = graph->adj;
+    std::vector<int> countNumber;
+    std::vector<std::vector<int>> countRelations;
+    countNumber.push_back({});
+    countRelations.push_back({});
 
-    // charsets.push_back({});
-    // for(int i = 0; i < noVertices; i++) {
-    //     charsets.push_back({});
-    // }
+    auto adj =  graph->adj;
+    for(int j = 0; j < adj.size(); j++) {
+        std::vector<int> count = std::vector<int>(noLabels, 0);
 
-    // for (int i = 0; i < noVertices; i++) {
-    //     for (int j = 0; j < adj[i].size(); j++) {
-    //         charsets[i][adj[i][j].first] += 1;
-    //     }
-    // }
+        for(int i = 0; i < adj[j].size(); i++) {
+            int index = (int) adj[j][i].first;
+            count[index] += 1;
+        }
 
-    // // source_relation_count
+        bool found = false;
+        for(int k = 0; k < countRelations.size(); k++) {
+            if(count == countRelations[k]) {
+                countNumber[k] += 1;
+                found = true;
+                break;
+            }
+        }   
 
-    // std::cout << charsets.size() << std::endl;
-    // for (int i = 0; i < charsets.size()-1; i++) {
-    //     for (int j = 0; j < charsets[i].size()-1; j++) {
-    //         std::cout << "T_" << j << " Relation, count " << charsets[i][j] <<std::endl;
-    //     }
-    // }
+        if(!found) {
+            countRelations.push_back(count);
+            countNumber.push_back(1);
+        }
+    }
 
+    std::cout << countNumber.size() << std::endl;
+    std::cout << countRelations.size() << std::endl;
+    
+    // for(int i = 0;)
 }
 
 
@@ -490,6 +499,26 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int
 
     return sampleGraph;
 }
+
+// void StarJoinCardinality(int Sc, int Q) {
+//     // Sq = {p_0, p_1, p_2 ... };
+//     int card = 0;
+
+//     for(int j = 0; j < Sc; j++) {
+//         int m = 1;
+//         int o = 1;
+//         for(int i = 0; i < n; i++) {
+//             if ?oi is bound to a value oi
+//                 o = min(o, sel(?oi = oi|?p = pi))
+//             } else {
+//                 m = m * 
+//             }
+//         }
+//         card = card + S.distinct * m * o;
+//     }
+
+//     return card;
+// }
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
