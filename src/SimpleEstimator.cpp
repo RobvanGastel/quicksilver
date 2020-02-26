@@ -373,6 +373,21 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint3
 }
 
 
+std::vector<int> get_relation_info(std::string relation) {
+    std::vector<int> relation_info;
+
+    // relation label
+    int T = std::stoi(relation.substr(0, relation.size()-1));
+    relation_info.push_back(T);
+
+    // relation direction
+    std::string dir = relation.substr(relation.size()-1, 1);
+    relation_info.push_back(int(dir != ">") + int(dir == "*")); // 0:>; 1:<; 2:+;
+
+    return relation_info;
+}
+
+
 /////
 ///// SimpleEstimator class
 /////
@@ -625,23 +640,26 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         // if (q->t != "*") {
         //     std::reverse(path.begin(), path.end());
         // }
+
         
+        std::vector<int> relation_0 = get_relation_info(path[0]);
+        std::cout << "\n\n    relation_0: " << relation_0[0] << " " << relation_0[1] << std::endl;
+
         if (q->s == "*") { // source: *
             if (q->t =="*") { // source: *, target: *
+
                 for (int j = 1; j < path.size(); j++) {
-                    int label_j;
-                    T = std::stoi(path[j].substr(0, path[j].size()-1));
-                    std::string relation = path[j].substr(path[j].size()-1, 1);
-                    std::cout << "\n\nT: " << T << "   relation: " << relation << std::endl;
+                    std::vector<int> relation_j = get_relation_info(path[j]);
+                    std::cout << "    relation_j: " << relation_j[j] << " " << relation_j[j] << std::endl;
 
                     if (j == 1) {
-                        
+                            
                     } else {
 
                     }
                 }
             } else { // source: *, target: j
-            
+                // should never happen -> reverse path
             }
         } else {
             if (q->t =="*") { // source: i, target: *
