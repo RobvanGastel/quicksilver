@@ -4,7 +4,6 @@
 #include <set>
 #include <cmath>
 #include <cfloat>
-#include <queue>
 
 /////
 ///// Histogram class
@@ -24,7 +23,6 @@ Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
     else if (type_of_histogram == "voptimal")
         histogram_type = 2;
     else {
-        // std::cout << "Incorrect type of histogram specified" << std::endl;
         exit (EXIT_FAILURE);
     }
     source_buckets.push_back({});
@@ -300,33 +298,10 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
                     uint32_t final_count = std::distance(final_answers.begin(),
                                                     std::unique(final_answers.begin(), final_answers.end()));
                     multidimensional_matrix[rel_x][rel_y][x_normal].push_back({tuples, middle_count, final_count});
-                    //            if (final_count > 0 ){
-                    //                std::cout << std::endl;
-                    //                std::cout << "For " << rel_x << " and " << rel_y << std::endl;
-                    //                std::cout << tuples << std::endl;
-                    //                std::cout << middle_count << std::endl;
-                    //                std::cout << final_count << std::endl;
-                    //            }
                 }
             }
         }
     }
-
-
-//    uint32_t bla = 0;
-//    for (int i = 0; i < labels; i++)
-//        bla += total_relations[i];
-//    printf("Total relations: %d\n", bla);
-
-//    Print size of each relation
-//    for (int i = 0; i < labels; i++) {
-//        uint32_t relation_sum = 0;
-//        for (int k = 0; k < vertices; k++) {
-//            relation_sum += source_relations_count[i][k];
-//            std::cout << source_relations_count[i][k] << std::endl;
-//        }
-//        std::cout << "Relation " << i << ": " << relation_sum << std::endl;
-//    }
 }
 
 void Histogram::print_histogram(uint32_t query_var, uint32_t relation) {
@@ -383,23 +358,6 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 }
 
 void SimpleEstimator::prepare() {
-//    std::vector<std::vector<uint32_t >> cardinalities;
-//    for (int i = 0; i < graph->getNoLabels(); i++) {
-//        cardinalities.push_back({});
-//        for (int j = 0; j < graph->getNoVertices(); j++)
-//            cardinalities[i].push_back({0});
-//    }
-//    for (uint32_t i = 0; i < graph->reverse_adj.size(); i++){
-//        for (uint32_t j = 0; j < graph->reverse_adj[i].size() ; j++) {
-//            uint32_t rel_type = graph->reverse_adj[i][j].first;
-//            uint32_t rel_source = graph->reverse_adj[i][j].second;
-//            cardinalities
-//        }
-//    }
-
-
-
-
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
 
@@ -407,9 +365,40 @@ void SimpleEstimator::prepare() {
     std::string histogram_type = "equiwidth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
-    // histogram.print_histogram(0, 0);
-    // std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
+
+    /// Characteristic sets
+    /// Vertice 0; [Distinct, T0, T1, ... ]
+    /// TODO: Distinct
+    auto adj = graph->adj;
+
+    charsets.push_back({});
+    charsets.reserve(noVertices);
+    for(int i = 0; i < noVertices; i++) {
+        charsets[i].reserve(noLabels);
+        charsets[i].push_back({});
+        // for(int j = 0; j < noLabels; i++) {
+        //     charsets[i][j].push_back({});
+        // }
+    }
+
+    // charsets.reserve(noVertices);
+    for (int i = 0; i < noVertices; i++) {
+        // charsets[i].reserve(noLabels);
+        for (int j = 0; j < adj[i].size(); j++) {
+            charsets[i][adj[i][j].first] += 1;
+
+        }
+    }
+
+    std::cout << charsets.size() << std::endl;
+    for (int i = 0; i < charsets.size()-1; i++) {
+        for (int j = 0; j < charsets[i].size()-1; j++) {
+            std::cout << "T_" << j << " Relation, count " << charsets[i][j] <<std::endl;
+        }
+    }
+
 }
+
 
 /// Parse tree to Vector of queries
 void inorderParse(PathTree *node,
@@ -620,6 +609,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }  
         }
+    } else if(path.size() > 1) {
+
     }
 
     /// Cases of joins:
@@ -629,52 +620,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     if (q->s != "*") {
         std::reverse(path.begin(), path.end());
     }
-
-
-    // Causes; segmentation fault
-    // int j = path.size()-2;
-    // int fullSize = path.size()-1;
-    // if(path.size() > 1 && q->s == "*" && q->t == "*") { // - Source: *, Target: *
-    //     int Trs;
-
-    //     while (path.size() > 0) {
-    //         int Tr = std::stoi(path[j].substr(0, path[j].size()-1));
-    //         std::string relation = path[j].substr(path[j].size()-1, 1);
-
-    //         // std::cout << histogram.total_relations[Tr]/histogram.distinct_target_relations[Tr] << std::endl;
-
-    //         if (relation == ">" || relation == "<") {
-    //             int Tr_count = histogram.total_relations[Tr];
-    //             int Ts_count;
-    //             int v;
-
-    //             if (j+1 == fullSize) {
-    //                 int Ts = std::stoi(path[j+1].substr(0, path[j+1].size()-1));
-    //                 Ts_count = histogram.total_relations[Ts];
-    //                 v = std::max(
-    //                     Tr_count / histogram.distinct_source_relations[Tr],
-    //                     Ts_count / histogram.distinct_target_relations[Ts]
-    //                 );
-    //                 std::cout << "v: " << v << std::endl;
-    //                 path.pop_back();
-    //             } else {
-    //                 v = 100;
-    //                 Ts_count = Trs;
-    //             }
-                
-    //             int Trs = ceil(Tr_count * Ts_count / v);
-    //             std::cout << Trs << std::endl;
-    //         }
-
-    //         path.pop_back();
-    //         j--;
-    //     }
-    // }
-    
-    // To prevent 0 predictions
-    // noSources = std::max(noSources, (uint32_t)1);
-    // noPaths = std::max(noPaths, (uint32_t)1);
-    // noTargets = std::max(noTargets, (uint32_t)1);
 
     return cardStat {noSources, noPaths, noTargets};
 }
