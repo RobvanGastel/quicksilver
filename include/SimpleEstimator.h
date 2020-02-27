@@ -63,7 +63,10 @@ class SimpleEstimator : public Estimator {
     // Data structure to store vector of tuples for each relation
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> relation_vector;
 
-    std::vector<std::vector<int>> charsets;
+    // Characteristic sets
+    std::vector<int> countNumber;
+    std::vector<std::vector<int>> countRelations;
+    void StarJoinCardinality(std::vector<int> setQuery);
 
 public:
     explicit SimpleEstimator(std::shared_ptr<SimpleGraph> &g);

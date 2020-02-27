@@ -367,14 +367,12 @@ void SimpleEstimator::prepare() {
     histogram.create_histograms(graph->adj);
 
     /// Characteristic sets
-    std::vector<int> countNumber;
-    std::vector<std::vector<int>> countRelations;
-    countNumber.push_back({});
-    countRelations.push_back({});
+    // countNumber.push_back({});
+    // countRelations.push_back({});
 
     auto adj =  graph->adj;
     for(int j = 0; j < adj.size(); j++) {
-        std::vector<int> count = std::vector<int>(noLabels, 0);
+        std::vector<int> count = std::vector<int>(4, 0);
 
         for(int i = 0; i < adj[j].size(); i++) {
             int index = (int) adj[j][i].first;
@@ -396,10 +394,7 @@ void SimpleEstimator::prepare() {
         }
     }
 
-    std::cout << countNumber.size() << std::endl;
-    std::cout << countRelations.size() << std::endl;
-    
-    // for(int i = 0;)
+    // std::cout << countRelations.size() << std::endl;
 }
 
 
@@ -500,25 +495,34 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int
     return sampleGraph;
 }
 
-// void StarJoinCardinality(int Sc, int Q) {
-//     // Sq = {p_0, p_1, p_2 ... };
-//     int card = 0;
+/// setQuery is the set of tuples to join
+void SimpleEstimator::StarJoinCardinality(std::vector<int> setQuery) {
+    int card = 0;
 
-//     for(int j = 0; j < Sc; j++) {
-//         int m = 1;
-//         int o = 1;
-//         for(int i = 0; i < n; i++) {
-//             if ?oi is bound to a value oi
-//                 o = min(o, sel(?oi = oi|?p = pi))
-//             } else {
-//                 m = m * 
-//             }
-//         }
-//         card = card + S.distinct * m * o;
-//     }
+    for(int tuple : setQuery) {
+        // for each S subset of Sc : Sq subset of S
+        float m = 1;
+        int o = 1;
 
-//     return card;
-// }
+        int countDist = 0;
+        for(int i = 0; i < countRelations.size(); i++) { 
+            // if ?oi is bound to a value oi
+            //     o = min(o, sel(?oi = oi|?p = pi))
+            // } else {
+                countDist = countNumber[i];
+                // std::cout << countDist << std::endl;
+                // std::cout << countRelations[i][tuple] << std::endl;
+                m = m * (float) countRelations[i][tuple] / (float) countDist;
+            
+                std::cout << m << std::endl;
+            // }
+        }
+        card = ceil(card + countDist * m * o);
+    }
+    
+    std::cout << card << std::endl;
+    // return card;
+}
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
@@ -633,7 +637,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }  
         }
     } else if(path.size() > 1) {
-        float temp = 0;
+        float temp = 1;
 
         /// Cases of joins:
         /// Order doesn't matter => s = "*" and t = "*"
@@ -643,15 +647,15 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             std::reverse(path.begin(), path.end());
         }
 
+        /// Temp create join tuples
+        std::vector<int> setQuery = {};
+
         for (int i = 0; i < path.size(); i++) {
             T = std::stoi(path[i].substr(0, path[i].size()-1));
             std::string relation = path[i].substr(path[i].size()-1, 1);
+            temp = temp * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
 
-            if (temp != 0) {
-                temp = temp * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-            } else {
-                temp = (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-            }
+            setQuery.push_back(T);
         }
         temp = temp * graph->getNoVertices();
 
@@ -663,6 +667,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             noSources = histogram.distinct_target_relations[T_s];
             noPaths = temp;
             noTargets = histogram.distinct_source_relations[T_t];
+            
+            StarJoinCardinality(setQuery);
             } else { // - Source: *, Target: i
                 int t_i = std::stoi(q->t);
 
