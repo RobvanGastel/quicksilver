@@ -386,6 +386,8 @@ Stats::Stats(uint32_t noLabels, uint32_t noVertices) {
     vertices = noVertices;
     
     total_relations.push_back({});
+    source_buckets.push_back({});
+    total_relations.push_back({});
     distinct_source_relations.push_back({});
     distinct_target_relations.push_back({});
 }
@@ -395,6 +397,8 @@ Stats::~Stats() {
 }
 
 void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
+    relation_pairs = std::vector<uint32_t> (labels);
+    reverse_relation_pairs = std::vector<std::vector<uint32_t>> (labels);
     distinct_source_relations = std::vector<uint32_t> (labels);
     distinct_target_relations = std::vector<uint32_t> (labels);
 
@@ -423,61 +427,99 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                 distinct_target_relations[rel_type] += 1;
         }
     }
-    
-    std::vector<std::vector<std::vector<std::vector<uint32_t>>>> tuples = std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
-        std::vector<std::vector<std::vector<uint32_t>>> (labels,
-            std::vector<std::vector<uint32_t>> (2,
-                std::vector<uint32_t> (2, (uint32_t)0))));
-    std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> source_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
-        std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
-            std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
-                std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
-    std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> middle_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
-        std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
-            std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
-                std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
-    std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> final_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
-        std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
-            std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
-                std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
+    // for (int i = 0; i < labels; i++) {
+    //     relation_pairs.push_back({});
+    //     reverse_relation_pairs.push_back({});
+    //     total_relations.push_back({0});
+    //     source_relations_count.push_back({});
+    //     target_relations_count.push_back({});
+    //     distinct_source_relations.push_back({0});
+    //     distinct_target_relations.push_back({0});
+    //     for (int k = 0; k < vertices; k++) {
+    //         relation_pairs[i].push_back({});
+    //         reverse_relation_pairs[i].push_back({});
+    //         source_relations_count[i].push_back({0});
+    //         target_relations_count[i].push_back({0});
+    //     }
+    // }
 
-    // matrix[rel_label_i][rel_label_j][rel_type_i][rel_type_j] = {tuples, source_dist, middle_dist, final_dist}
-    multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> (labels,
-        std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
-            std::vector<std::vector<std::vector<uint32_t>>> (2,
-                std::vector<std::vector<uint32_t>> (2, 
-                    std::vector<uint32_t> (4, 0)))));
-
-    for (uint32_t rel_1_source = 0; rel_1_source < adj.size(); rel_1_source++){
-        for (uint32_t i = 0; i < adj[rel_1_source].size(); i++) {
-            uint32_t rel_1_type = adj[rel_1_source][i].first;
-            uint32_t rel_1_target = adj[rel_1_source][i].second;
-
-            for (uint32_t rel_2_source = 0; rel_2_source < adj.size(); rel_2_source++){
-
-                for (uint32_t j = 0; j < adj[rel_2_source].size(); j++) {
-                    uint32_t rel_2_type = adj[rel_2_source][j].first;
-                    uint32_t rel_2_target = adj[rel_2_source][j].second;
-
-                    if (rel_1_target == rel_2_source) { // l1>/l2>   l2</l1<
-                        tuples[rel_1_type][rel_2_type][0][0]++;
-                    }
-                    if (rel_1_target == rel_2_target) { // l1>/l2<   l2</l1>
-                        tuples[rel_1_type][rel_2_type][0][1]++;
-
-                    }
-                    if (rel_1_source == rel_2_source) { // l1</l2>   l2>/l1<
-                        tuples[rel_1_type][rel_2_type][1][0]++;
-
-                    }
-                    if (rel_1_source == rel_2_target) { // l1</l2<   l2>/l1>
-                        tuples[rel_1_type][rel_2_type][1][2]++;
-
-                    }
-                }
-            }
+    for (uint32_t i = 0; i < adj.size(); i++){
+        for (uint32_t j = 0; j < adj[i].size() ; j++) {
+            uint32_t rel_type = adj[i][j].first;
+            uint32_t rel_target = adj[i][j].second;
+            source_relations_count[rel_type][i]++;
+            target_relations_count[rel_type][rel_target]++;
+            total_relations[rel_type]++;
+            relation_pairs[rel_type][i].push_back(std::make_pair(i, rel_target));
+            reverse_relation_pairs[rel_type][rel_target].push_back(std::make_pair(rel_target, i));
         }
     }
+    for (int rel = 0; rel < labels; rel++) {
+        for (int i = 0; i < vertices; i++) {
+             if (source_relations_count[rel][i] > 0) {
+                 distinct_source_relations[rel] += 1;
+             }
+             if (target_relations_count[rel][i] > 0)
+                distinct_target_relations[rel] += 1;
+        }
+    }
+
+
+    // LOW MEMORY IMPLEMENTATION
+    // std::vector<std::vector<std::vector<std::vector<uint32_t>>>> tuples = std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
+    //     std::vector<std::vector<std::vector<uint32_t>>> (labels,
+    //         std::vector<std::vector<uint32_t>> (2,
+    //             std::vector<uint32_t> (2, (uint32_t)0))));
+    // std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> source_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
+    //     std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
+    //         std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
+    //             std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
+    // std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> middle_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
+    //     std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
+    //         std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
+    //             std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
+    // std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> final_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
+    //     std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
+    //         std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
+    //             std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
+
+    // // matrix[rel_label_i][rel_label_j][rel_type_i][rel_type_j] = {tuples, source_dist, middle_dist, final_dist}
+    // multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> (labels,
+    //     std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
+    //         std::vector<std::vector<std::vector<uint32_t>>> (2,
+    //             std::vector<std::vector<uint32_t>> (2, 
+    //                 std::vector<uint32_t> (4, 0)))));
+
+    // for (uint32_t rel_1_source = 0; rel_1_source < adj.size(); rel_1_source++){
+    //     for (uint32_t i = 0; i < adj[rel_1_source].size(); i++) {
+    //         uint32_t rel_1_type = adj[rel_1_source][i].first;
+    //         uint32_t rel_1_target = adj[rel_1_source][i].second;
+
+    //         for (uint32_t rel_2_source = 0; rel_2_source < adj.size(); rel_2_source++){
+
+    //             for (uint32_t j = 0; j < adj[rel_2_source].size(); j++) {
+    //                 uint32_t rel_2_type = adj[rel_2_source][j].first;
+    //                 uint32_t rel_2_target = adj[rel_2_source][j].second;
+
+    //                 if (rel_1_target == rel_2_source) { // l1>/l2>   l2</l1<
+    //                     tuples[rel_1_type][rel_2_type][0][0]++;
+    //                 }
+    //                 if (rel_1_target == rel_2_target) { // l1>/l2<   l2</l1>
+    //                     tuples[rel_1_type][rel_2_type][0][1]++;
+
+    //                 }
+    //                 if (rel_1_source == rel_2_source) { // l1</l2>   l2>/l1<
+    //                     tuples[rel_1_type][rel_2_type][1][0]++;
+
+    //                 }
+    //                 if (rel_1_source == rel_2_target) { // l1</l2<   l2>/l1>
+    //                     tuples[rel_1_type][rel_2_type][1][2]++;
+
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     // std::cout << rel_source << "   " << rel_type << "   " << rel_target << std::endl;
 
