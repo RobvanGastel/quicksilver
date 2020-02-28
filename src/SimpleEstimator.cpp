@@ -449,12 +449,22 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int
     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
     base->setNoLabels(1);
     
-    for (auto labelTarget : graph->adj[node]) {
+    if (reverse) {
+        for (auto labelTarget : graph->reverse_adj[node]) {
 
-        auto label = labelTarget.first;
-        auto target = labelTarget.second;
-        sampleGraph->addEdge(0, target, 0);
-        base->addEdge(0, target, 0);
+            auto label = labelTarget.first;
+            auto target = labelTarget.second;
+            sampleGraph->addEdge(0, target, 0);
+            base->addEdge(0, target, 0);
+        }
+    } else {
+        for (auto labelTarget : graph->adj[node]) {
+
+            auto label = labelTarget.first;
+            auto target = labelTarget.second;
+            sampleGraph->addEdge(0, target, 0);
+            base->addEdge(0, target, 0);
+        }    
     }
 
     while (numNewAdded) {
