@@ -341,7 +341,7 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint3
             if (i == noBuckets)
                 return -1;
         }
-        return target_buckets[relation][i][2];
+        return target_buckets[relation][i][2]/(target_buckets[relation][i][1]-target_buckets[relation][i][0]);
     }
     else
         return -1;
@@ -594,29 +594,23 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             std::reverse(path.begin(), path.end());
         }
 
-        std::cout << std::endl;
-        for (int i = 0; i < path.size(); i++) {
-            std::cout << path[i] << ", ";
-        }
-        std::cout << std::endl;
-
-        /// Basic approach to joins from the characteristic set paper
-        int T = 1;
-        float card = 1;
-        for (int i = 0; i < path.size(); i++) {
-            T = std::stoi(path[i].substr(0, path[i].size()-1));
-            std::string relation = path[i].substr(path[i].size()-1, 1);
-            card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-        }
-        card = card * graph->getNoVertices();
-
-        /// Source and target node 
+        /// Source and target tuple/"Table" 
         int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
         int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
-
+        float card = 1;
 
         if (q->s == "*") {
             if (q->t =="*") { // - Source: *, Target: *
+            /// Basic approach to joins from the characteristic set paper,
+            /// Of a star join.
+            int T = 0;
+            for (int i = 0; i < path.size(); i++) {
+                T = std::stoi(path[i].substr(0, path[i].size()-1));
+                // std::string relation = path[i].substr(path[i].size()-1, 1); TODO: Remove but use for TC
+                card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+            }
+            card = card * graph->getNoVertices();
+            
             noSources = histogram.distinct_target_relations[T_s];
             noPaths = card;
             noTargets = histogram.distinct_source_relations[T_t];
@@ -624,17 +618,31 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             } else { // - Source: *, Target: i
                 int t_i = std::stoi(q->t);
 
+                int T = 0;
+                for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+                }
+                card = card * graph->getNoVertices();
+
                 noSources = card; 
                 noPaths = card; 
                 noTargets = 1;                  
             }
         } else {
             int s_i = std::stoi(q->s);
-
             if (q->t =="*") { // - Source: i, Target: *
-                noSources = 1;
-                noPaths = card;
+                int T = 0;
+                for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+                }
+                card = card * graph->getNoVertices() * 1/histogram.total_relations[T_s];
+
+                noSources = 1; 
+                noPaths = card; 
                 noTargets = card;
+
             } else { // - Source: i, Target: j
                 /// TODO: Bad estimates
                 int t_i = std::stoi(q->t);
