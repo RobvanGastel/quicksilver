@@ -599,60 +599,72 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
         float card = 1;
 
-        if (q->s == "*") {
-            if (q->t =="*") { // - Source: *, Target: *
-            /// Basic approach to joins from the characteristic set paper,
-            /// Of a star join.
-            int T = 0;
-            for (int i = 0; i < path.size(); i++) {
-                T = std::stoi(path[i].substr(0, path[i].size()-1));
-                // std::string relation = path[i].substr(path[i].size()-1, 1); TODO: Remove but use for TC
-                card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-            }
-            card = card * graph->getNoVertices();
-            
-            noSources = histogram.distinct_target_relations[T_s];
-            noPaths = card;
-            noTargets = histogram.distinct_source_relations[T_t];
-            
-            } else { // - Source: *, Target: i
-                int t_i = std::stoi(q->t);
-
-                int T = 0;
-                for (int i = 0; i < path.size(); i++) {
-                        T = std::stoi(path[i].substr(0, path[i].size()-1));
-                        card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-                }
-                card = card * graph->getNoVertices();
-
-                noSources = card; 
-                noPaths = card; 
-                noTargets = 1;                  
-            }
-        } else {
-            int s_i = std::stoi(q->s);
-            if (q->t =="*") { // - Source: i, Target: *
-                int T = 0;
-                for (int i = 0; i < path.size(); i++) {
-                        T = std::stoi(path[i].substr(0, path[i].size()-1));
-                        card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-                }
-                card = card * graph->getNoVertices() * 1/histogram.total_relations[T_s];
-
-                noSources = 1; 
-                noPaths = card; 
-                noTargets = card;
-
-            } else { // - Source: i, Target: j
-                /// TODO: Bad estimates
-                int t_i = std::stoi(q->t);
-                int result = std::min(histogram.source_relations_count[T_s][t_i], 
-                    histogram.target_relations_count[T_t][s_i]);
-                noSources = result;
-                noPaths = result;
-                noTargets = result;
+        bool containsTC;
+        for(int = 0; i < path.size(); i++) {
+            std::string relation = path[i].substr(path[i].size()-1, 1);
+            if(relation == "+") {
+                containsTC = true;
+                break;
             }
         }
+
+        if (!containsTC) {
+            if (q->s == "*") {
+                if (q->t =="*") { // - Source: *, Target: *
+                /// Basic approach to joins from the characteristic set paper,
+                /// Of a star join.
+                int T = 0;
+                for (int i = 0; i < path.size(); i++) {
+                    T = std::stoi(path[i].substr(0, path[i].size()-1));
+                    card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+                }
+                card = card * graph->getNoVertices();
+                
+                noSources = histogram.distinct_target_relations[T_s];
+                noPaths = card;
+                noTargets = histogram.distinct_source_relations[T_t];
+                
+                } else { // - Source: *, Target: i
+                    int t_i = std::stoi(q->t);
+
+                    int T = 0;
+                    for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+                    }
+                    card = card * graph->getNoVertices();
+
+                    noSources = card; 
+                    noPaths = card; 
+                    noTargets = 1;                  
+                }
+            } else {
+                int s_i = std::stoi(q->s);
+                if (q->t =="*") { // - Source: i, Target: *
+                    int T = 0;
+                    for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+                    }
+                    card = card * graph->getNoVertices() * 1/histogram.total_relations[T_s];
+
+                    noSources = 1; 
+                    noPaths = card; 
+                    noTargets = card;
+
+                } else { // - Source: i, Target: j
+                    /// TODO: Bad estimates
+                    int t_i = std::stoi(q->t);
+                    int result = std::min(histogram.source_relations_count[T_s][t_i], 
+                        histogram.target_relations_count[T_t][s_i]);
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = result;
+                }
+            }
+        }
+    } else { /// The path contains TC
+        /// TODO: Solve TC join
     }
 
     return cardStat {noSources, noPaths, noTargets};
