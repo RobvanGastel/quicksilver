@@ -392,8 +392,8 @@ void SimpleEstimator::prepare() {
     }
 
     std::cout << std::endl;
-    int sum;
-    std::cout << "Distinct | 0      | 1     | 2     | 3     |"  << std::endl;
+    int sum = 0;
+    std::cout << "Distinct  |Multiplicity | 0      | 1     | 2     | 3     |"  << std::endl;
     for (int i = 0; i < countRelations.size(); i++) {
         
         std::cout << countNumber[i] << "\t  ";
@@ -404,7 +404,8 @@ void SimpleEstimator::prepare() {
         sum += countNumber[i];
     }
     std::cout << "total sum: " << sum << std::endl;
-    std::cout << "total graph edges: " << graph->getNoEdges() << std::endl;
+    std::cout << "total graph edges: " << graph->getNoVertices() << std::endl;
+
 }
 
 
@@ -506,42 +507,44 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int
 }
 
 /// setQuery is the set of tuples to join
-// void SimpleEstimator::StarJoinCardinality(std::vector<int> setQuery) {
-//     int card = 0;
+void SimpleEstimator::StarJoinCardinality(std::vector<int> setQuery) {
+    float card = 0;
 
-//     // for each S subset of Sc : Sq subset of S
-//     // Loops over all the characteristic sets in SC
-//     // that is the super-set of the Query characteristic
-//     // set
-//     for(int tuple : setQuery) {
-//         float m = 1;
-//         int o = 1;
+    // Loops over all the characteristic sets in Sc
+    // that is the super-set of the Query characteristic
+    // set
+    for(int i = 0; i < countRelations.size(); i++) { 
+        float m = 1;
+        int o = 1;
+        int countDist = 1;
 
-//         int countDist = 0;
+        for(int tuple : setQuery) {
 
-//         // Iterate over the triplets in the query
-//         for(int i = 0; i < countRelations.size(); i++) { 
+            // Check if tuple S is a subset of Sc, otherwise continue
+            if(countRelations[i][tuple] == 0) { 
+                continue;
+            }
 
-//             // if object is bounded, take the minimum of 
-//             // the selectivity lower bound among all 
-//             // object bounded triples in query
-//             if(false) // ?oi is bound to a value oi
-//             // o = std::min(o, sel(?oi = oi|?p = pi))
-            
-//             // else, update the cummulative selectivity (m) 
-//             } else {
-//                 countDist = countNumber[i];
-//                 m = m * (float) countRelations[i][tuple] 
-//                     / (float) countDist;
-//             }
-//         }
-//         // Calculate the cardinality in current characteristic
-//         // set and add to global cardinality
-//         card = ceil(card + countDist * m * o);
-//     }
+            // if object is bounded, take the minimum of 
+            // the selectivity lower bound among all 
+            // object bounded triples in query
+            // ?oi is bound to a value oi
+            if()
+                o = std::min(o, sel(?oi = oi|?p = pi))
+            } else {
+                // else, update the cummulative selectivity (m) 
+                int countDist = countNumber[i];
+                m = m * (float) countRelations[i][tuple] / (float) countDist;
+            }
+        }
+
+        // Calculate the cardinality in current characteristic
+        // set and add to global cardinality
+        card = ceil(card + countDist * m * o);
+    }
     
-//     // return card;
-// }
+    std::cout <<std::endl << card << std::endl;
+}
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
@@ -666,8 +669,25 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             std::reverse(path.begin(), path.end());
         }
 
+        // std::cout << std::endl;
+        // for (int i = 0; i < path.size(); i++) {
+        //     std::cout << path[i] << std::endl;
+        // }
+
         /// Temp create join tuples
         std::vector<int> setQuery = {};
+
+        int T = 1;
+        // Relation 1, T=1
+        std::vector<std::pair<int, int>> tuple = {};
+        for (int i = 0; i < histogram.relation_pairs[T].size(); i++) {
+            for (int j = 0; j < histogram.relation_pairs[T][i].size(); j++) {
+                // std::cout << j << std::endl;
+                // first the source edge, second the target edge
+                // std::cout << histogram.relation_pairs[T][i][j].first << ", " << histogram.relation_pairs[T][i][j].second << std::endl;
+                tuple.push_back(std::make_pair(histogram.relation_pairs[T][i][j].first, histogram.relation_pairs[T][i][j].second));
+            }
+        }
 
         for (int i = 0; i < path.size(); i++) {
             T = std::stoi(path[i].substr(0, path[i].size()-1));
@@ -676,6 +696,10 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
             setQuery.push_back(T);
         }
+
+        StarJoinCardinality(setQuery);
+
+
         temp = temp * graph->getNoVertices();
 
         int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
@@ -687,7 +711,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             noPaths = temp;
             noTargets = histogram.distinct_source_relations[T_t];
             
-            // StarJoinCardinality(setQuery);
             } else { // - Source: *, Target: i
                 int t_i = std::stoi(q->t);
 
