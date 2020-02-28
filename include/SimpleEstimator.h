@@ -66,7 +66,6 @@ class SimpleEstimator : public Estimator {
     // Characteristic sets
     std::vector<int> countNumber;
     std::vector<std::vector<int>> countRelations;
-    void StarJoinCardinality(std::vector<int> setQuery);
 
 public:
     explicit SimpleEstimator(std::shared_ptr<SimpleGraph> &g);

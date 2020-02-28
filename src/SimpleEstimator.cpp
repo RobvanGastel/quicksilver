@@ -37,12 +37,12 @@ Histogram::~Histogram() {
 
 void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     create_frequency_vectors(adj);
-    // if (histogram_type == 0)
-    //     create_equidepth_histograms();
-    // else if (histogram_type == 1)
-    //     create_equiwidth_histograms();
-    // else if (histogram_type == 2)
-    //     create_voptimal_histograms();
+    if (histogram_type == 0)
+        create_equidepth_histograms();
+    else if (histogram_type == 1)
+        create_equiwidth_histograms();
+    else if (histogram_type == 2)
+        create_voptimal_histograms();
 }
 
 void Histogram::create_equidepth_histograms() {
@@ -365,47 +365,6 @@ void SimpleEstimator::prepare() {
     std::string histogram_type = "equidepth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
-
-    /// Characteristic sets
-    auto adj =  graph->adj;
-    for(int j = 0; j < adj.size(); j++) {
-        std::vector<int> count = std::vector<int>(4, 0);
-
-        for(int i = 0; i < adj[j].size(); i++) {
-            int index = (int) adj[j][i].first;
-            count[index] += 1;
-        }
-
-        bool found = false;
-        for(int k = 0; k < countRelations.size(); k++) {
-            if(count == countRelations[k]) {
-                countNumber[k] += 1;
-                found = true;
-                break;
-            }
-        }   
-
-        if(!found) {
-            countRelations.push_back(count);
-            countNumber.push_back(1);
-        }
-    }
-
-    std::cout << std::endl;
-    int sum = 0;
-    std::cout << "Distinct  |Multiplicity | 0      | 1     | 2     | 3     |"  << std::endl;
-    for (int i = 0; i < countRelations.size(); i++) {
-        
-        std::cout << countNumber[i] << "\t  ";
-        for (int j = 0; j < noLabels; j++) {
-            std::cout << " " << countRelations[i][j] << "\t  ";
-        }
-        std::cout << std::endl;
-        sum += countNumber[i];
-    }
-    std::cout << "total sum: " << sum << std::endl;
-    std::cout << "total graph edges: " << graph->getNoVertices() << std::endl;
-
 }
 
 
@@ -506,46 +465,6 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int
     return sampleGraph;
 }
 
-/// setQuery is the set of tuples to join
-void SimpleEstimator::StarJoinCardinality(std::vector<int> setQuery) {
-    float card = 0;
-
-    // Loops over all the characteristic sets in Sc
-    // that is the super-set of the Query characteristic
-    // set
-    for(int i = 0; i < countRelations.size(); i++) { 
-        float m = 1;
-        int o = 1;
-        int countDist = 1;
-
-        for(int tuple : setQuery) {
-
-            // Check if tuple S is a subset of Sc, otherwise continue
-            if(countRelations[i][tuple] == 0) { 
-                continue;
-            }
-
-            // if object is bounded, take the minimum of 
-            // the selectivity lower bound among all 
-            // object bounded triples in query
-            // ?oi is bound to a value oi
-            if()
-                o = std::min(o, sel(?oi = oi|?p = pi))
-            } else {
-                // else, update the cummulative selectivity (m) 
-                int countDist = countNumber[i];
-                m = m * (float) countRelations[i][tuple] / (float) countDist;
-            }
-        }
-
-        // Calculate the cardinality in current characteristic
-        // set and add to global cardinality
-        card = ceil(card + countDist * m * o);
-    }
-    
-    std::cout <<std::endl << card << std::endl;
-}
-
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t T = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
@@ -560,9 +479,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         T = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
         
-        // Cases (estimates): 
-        // std::cout << histogram.get_query_results(29,1,0) << std::endl;
-        // std::cout << histogram.target_relations_count[0][29] << std::endl;
         if (relation == ">") { // (s,t) such that (s, l, t)
             if (q->s == "*") {
                 if (q->t =="*") { // - Source: *, Target: *
@@ -659,7 +575,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }  
         }
     } else if(path.size() > 1) {
-        float temp = 1;
 
         /// Cases of joins:
         /// Order doesn't matter => s = "*" and t = "*"
@@ -669,53 +584,38 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             std::reverse(path.begin(), path.end());
         }
 
-        // std::cout << std::endl;
-        // for (int i = 0; i < path.size(); i++) {
-        //     std::cout << path[i] << std::endl;
-        // }
-
-        /// Temp create join tuples
-        std::vector<int> setQuery = {};
-
-        int T = 1;
-        // Relation 1, T=1
-        std::vector<std::pair<int, int>> tuple = {};
-        for (int i = 0; i < histogram.relation_pairs[T].size(); i++) {
-            for (int j = 0; j < histogram.relation_pairs[T][i].size(); j++) {
-                // std::cout << j << std::endl;
-                // first the source edge, second the target edge
-                // std::cout << histogram.relation_pairs[T][i][j].first << ", " << histogram.relation_pairs[T][i][j].second << std::endl;
-                tuple.push_back(std::make_pair(histogram.relation_pairs[T][i][j].first, histogram.relation_pairs[T][i][j].second));
-            }
+        std::cout << std::endl;
+        for (int i = 0; i < path.size(); i++) {
+            std::cout << path[i] << ", ";
         }
+        std::cout << std::endl;
 
+        /// Basic approach to joins from the characteristic set paper
+        int T = 1;
+        float card = 1;
         for (int i = 0; i < path.size(); i++) {
             T = std::stoi(path[i].substr(0, path[i].size()-1));
             std::string relation = path[i].substr(path[i].size()-1, 1);
-            temp = temp * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-
-            setQuery.push_back(T);
+            card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
         }
+        card = card * graph->getNoVertices();
 
-        StarJoinCardinality(setQuery);
-
-
-        temp = temp * graph->getNoVertices();
-
+        /// Source and target node 
         int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
         int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
+
 
         if (q->s == "*") {
             if (q->t =="*") { // - Source: *, Target: *
             noSources = histogram.distinct_target_relations[T_s];
-            noPaths = temp;
+            noPaths = card;
             noTargets = histogram.distinct_source_relations[T_t];
             
             } else { // - Source: *, Target: i
                 int t_i = std::stoi(q->t);
 
-                noSources = temp; 
-                noPaths = temp; 
+                noSources = card; 
+                noPaths = card; 
                 noTargets = 1;                  
             }
         } else {
@@ -723,8 +623,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
             if (q->t =="*") { // - Source: i, Target: *
                 noSources = 1;
-                noPaths = temp;
-                noTargets = temp;
+                noPaths = card;
+                noTargets = card;
             } else { // - Source: i, Target: j
                 /// TODO: Bad estimates
                 int t_i = std::stoi(q->t);
