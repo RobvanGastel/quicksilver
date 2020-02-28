@@ -37,12 +37,12 @@ Histogram::~Histogram() {
 
 void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
     create_frequency_vectors(adj);
-    if (histogram_type == 0)
-        create_equidepth_histograms();
-    else if (histogram_type == 1)
-        create_equiwidth_histograms();
-    else if (histogram_type == 2)
-        create_voptimal_histograms();
+    // if (histogram_type == 0)
+    //     create_equidepth_histograms();
+    // else if (histogram_type == 1)
+    //     create_equiwidth_histograms();
+    // else if (histogram_type == 2)
+    //     create_voptimal_histograms();
 }
 
 void Histogram::create_equidepth_histograms() {
@@ -548,7 +548,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }
         }
-            /// - Source: *, Target: * (TC)
+        /// - Source: *, Target: * (TC)
         else if(relation == "+") {
             /// TODO: Paper to improve, uses GRIPP data structure: 
             /// Estimating Result Size and Execution Times for Graph Queries
@@ -569,7 +569,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noSources = out->getNoDistinctEdges(); 
                     noPaths = out->getNoDistinctEdges(); 
                     noTargets = 1;
-                
                 }
             } else {
                 int s_i = std::stoi(q->s);
@@ -580,6 +579,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noPaths = out->getNoDistinctEdges(); 
                     noTargets = out->getNoDistinctEdges();
                 } else { // - Source: i, Target: j
+                    /// TODO: Implement
                     int t_j = std::stoi(q->t);
                 }
             }  
@@ -599,8 +599,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
         float card = 1;
 
-        bool containsTC;
-        for(int = 0; i < path.size(); i++) {
+        bool containsTC = false;
+        for(int i = 0; i < path.size(); i++) {
             std::string relation = path[i].substr(path[i].size()-1, 1);
             if(relation == "+") {
                 containsTC = true;
@@ -611,18 +611,18 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         if (!containsTC) {
             if (q->s == "*") {
                 if (q->t =="*") { // - Source: *, Target: *
-                /// Basic approach to joins from the characteristic set paper,
-                /// Of a star join.
-                int T = 0;
-                for (int i = 0; i < path.size(); i++) {
-                    T = std::stoi(path[i].substr(0, path[i].size()-1));
-                    card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
-                }
-                card = card * graph->getNoVertices();
-                
-                noSources = histogram.distinct_target_relations[T_s];
-                noPaths = card;
-                noTargets = histogram.distinct_source_relations[T_t];
+                    /// Basic approach to joins from the characteristic set paper,
+                    /// Of a star join.
+                    int T = 0;
+                    for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+                    }
+                    card = card * graph->getNoVertices();
+                    
+                    noSources = histogram.distinct_target_relations[T_s];
+                    noPaths = card;
+                    noTargets = histogram.distinct_source_relations[T_t];
                 
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
@@ -646,14 +646,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                         T = std::stoi(path[i].substr(0, path[i].size()-1));
                         card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
                     }
-                    card = card * graph->getNoVertices() * 1/histogram.total_relations[T_s];
+                    card = card * graph->getNoVertices();
 
                     noSources = 1; 
                     noPaths = card; 
                     noTargets = card;
 
                 } else { // - Source: i, Target: j
-                    /// TODO: Bad estimates
+                    /// TODO: Implement
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.source_relations_count[T_s][t_i], 
                         histogram.target_relations_count[T_t][s_i]);
@@ -662,9 +662,64 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noTargets = result;
                 }
             }
+        } else { /// The path contains TC
+            /// TODO: Solve TC join
+            float sample = 0.10;
+
+            if (q->s == "*") { 
+                if (q->t =="*") { // - Source: *, Target: *
+
+                    for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        auto out = SampleTransitiveClosure(T, sample);
+                        int result = out->getNoDistinctEdges()*1/sample;
+                        card = card * (float)result/(float)graph->getNoVertices();
+                    }
+                    card = card * graph->getNoVertices();
+
+                    noSources = histogram.distinct_target_relations[T_s];
+                    noPaths = card;
+                    noTargets = histogram.distinct_source_relations[T_t];
+                    
+                } else { // - Source: *, Target: i
+                    int t_i = std::stoi(q->t);
+
+                    for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        auto out =  SampleTransitiveClosure(T, t_i, true);
+                        int result = out->getNoDistinctEdges()*1/sample;
+                        card = card * (float)result/(float)graph->getNoVertices();
+                    }
+                    card = card * graph->getNoVertices();
+
+                    noSources = card; 
+                    noPaths = card; 
+                    noTargets = 1;    
+                }
+            } else {
+                int s_i = std::stoi(q->s);
+                if (q->t =="*") { // - Source: i, Target: *
+
+                    for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        auto out =  SampleTransitiveClosure(T, s_i, false);
+                        int result = out->getNoDistinctEdges()*1/sample;
+                        card = card * (float)result/(float)graph->getNoVertices();
+                        std::cout << card << std::endl;
+
+                    }
+                    card = card * graph->getNoVertices();
+
+                    noSources = 1; 
+                    noPaths = card; 
+                    noTargets = card;    
+
+                } else { // - Source: i, Target: j
+                    /// TODO: Implement
+                    int t_j = std::stoi(q->t);
+                }
+            }  
         }
-    } else { /// The path contains TC
-        /// TODO: Solve TC join
     }
 
     return cardStat {noSources, noPaths, noTargets};
