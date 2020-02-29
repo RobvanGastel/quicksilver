@@ -565,7 +565,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noSources = count*1/sample;
                     // To retrieve 100% value estimate
                     noPaths = out->getNoDistinctEdges()*1/sample; 
-                    noTargets = count * 1/sample;
+                    noTargets = count*1/sample;
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
                     auto out = SampleTransitiveClosure(T, t_i, true);
@@ -762,7 +762,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noTargets = count*1/sample;  
 
                 } else { // - Source: i, Target: j
-                    /// TODO: Implement
                     int t_j = std::stoi(q->t);
                 }
             }  
