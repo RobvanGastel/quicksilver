@@ -667,7 +667,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }
         } else { /// The path contains TC
-            /// TODO: Solve TC join
             float sample = 0.05;
 
             if (q->s == "*") { 
