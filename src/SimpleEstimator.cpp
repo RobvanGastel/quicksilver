@@ -423,23 +423,18 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
     
     for (uint32_t rel_x = 0; rel_x < labels; rel_x++) {
         for (uint32_t rel_y = 0; rel_y < labels; rel_y++) {
+                y_pairs = relation_pairs[rel_y];
             for (uint32_t x_normal = 0; x_normal < (uint32_t)2; x_normal++) {
-                    if (x_normal == (uint32_t)0)
-                        x_pairs = relation_pairs[rel_x];
-                    else
-                        x_pairs = reverse_relation_pairs[rel_x];
-
-                // for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
-                uint32_t y_normal = 0;
                 uint32_t tuples = 0;
                 std::unordered_set<uint32_t> source_answers = {};
                 std::unordered_set<uint32_t> middle_answers = {};
                 std::unordered_set<uint32_t> final_answers = {};
-
-                if (y_normal == (uint32_t)0)
-                    y_pairs = relation_pairs[rel_y];
+                
+                if (x_normal == (uint32_t)0)
+                    x_pairs = relation_pairs[rel_x];
                 else
-                    y_pairs = reverse_relation_pairs[rel_y];
+                    x_pairs = reverse_relation_pairs[rel_x];
+
 
                 for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs.size(); source_x++) {
                     for (uint32_t i = 0; i < x_pairs[source_x].size(); i++) {
@@ -450,12 +445,6 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                             middle_answers.insert(x_target);
                             final_answers.insert(y_pairs[x_target].begin(), y_pairs[x_target].end());
                             tuples += y_pairs[x_target].size();
-
-                            // for (uint32_t source_y = 0; source_y < (uint32_t)y_pairs[x_target].size(); source_y++) {
-                            //     uint32_t final_target = y_pairs[x_target][source_y];
-                            //     final_answers.insert(final_target);
-                            //     tuples++;
-                            // }
                         }
                     }
                 }
@@ -467,9 +456,8 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                     (uint32_t)final_answers.size()
                 };
 
-                multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = result;
-                multidimensional_matrix[rel_y][rel_x][1-x_normal][1-y_normal] = result;
-                // }                    
+                multidimensional_matrix[rel_x][rel_y][x_normal][0] = result;
+                multidimensional_matrix[rel_y][rel_x][1-x_normal][1] = result;                   
             }
         }
     }
@@ -714,18 +702,20 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             float sample = 0.05;
             if (q->s == "*") { 
                 if (q->t =="*") { // - Source: *, Target: *
-                    auto out = SampleTransitiveClosure(T, sample);
+                    // auto out = SampleTransitiveClosure(T, sample);
                     
-                    int count = 0;
-                    for (int i = 0; i < out->adj.size(); i++) {
-                        if(out->adj[i].size() > 0) {
-                            count += 1;
-                        }
-                    }
-                    noSources = count*1/sample;
-                    // To retrieve 100% value estimate
-                    noPaths = out->getNoDistinctEdges()*1/sample; 
-                    noTargets = count*1/sample;
+                    // int count = 0;
+                    // for (int i = 0; i < out->adj.size(); i++) {
+                    //     if(out->adj[i].size() > 0) {
+                    //         count += 1;
+                    //     }
+                    // }
+                    // noSources = count*1/sample;
+                    // // To retrieve 100% value estimate
+                    // noPaths = out->getNoDistinctEdges()*1/sample; 
+                    // noTargets = count*1/sample;
+
+
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
                     auto out = SampleTransitiveClosure(T, t_i, true);
@@ -830,7 +820,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
             }
         }
-    }
+    
     
 
     /// Cases of joins:
@@ -840,7 +830,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     // if (q->s != "*") {
     //     std::reverse(path.begin(), path.end());
     // }
-    
+
         /// Source and target tuple/"Table" 
         int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
         int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
@@ -974,7 +964,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noPaths = card; 
                     noTargets = 1;    
                 }
-            } else {
+            } else { // - Source: i
                 int s_i = std::stoi(q->s);
                 if (q->t =="*") { // - Source: i, Target: *             
                     float result = 1;
