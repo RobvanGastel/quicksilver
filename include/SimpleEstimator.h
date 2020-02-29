@@ -61,8 +61,10 @@ class Stats {
         uint32_t vertices;
         // Array of ints with the total counts for each relation
         std::vector<uint32_t> total_relations;
-        std::vector<uint32_t>  relation_pairs;
-        std::vector<uint32_t>  reverse_relation_pairs;
+        std::vector<std::vector<std::vector<uint32_t>>>  relation_pairs;
+        std::vector<std::vector<std::vector<uint32_t>>>  reverse_relation_pairs;
+        // std::vector<std::vector<std::vector<std::pair<uint32_t, uint32_t>>>>  relation_pairs;
+        // std::vector<std::vector<std::vector<std::pair<uint32_t, uint32_t>>>>  reverse_relation_pairs;
         // Array of ints with the distinct counts for each relation, e.g (1 0 2) and (1 0 3)
         // would return 1 for source
         std::vector<uint32_t> distinct_source_relations;
