@@ -404,11 +404,11 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, flo
     /// Create sample graph (TC)
     // Use max upperbound for labels
     auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    sampleGraph->setNoLabels(sampleSize); 
+    sampleGraph->setNoLabels(sampleSize);
     
     // Use max upperbound for labels
     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    base->setNoLabels(sampleSize); 
+    base->setNoLabels(sampleSize);
 
     for(uint32_t source = 0; source < sampleSize; source++) {
         int index = rand() % graph->getNoVertices();
@@ -664,13 +664,13 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }
         } else { /// The path contains TC
             /// TODO: Solve TC join
-            float sample = 0.10;
+            float sample = 0.05;
 
             if (q->s == "*") { 
                 if (q->t =="*") { // - Source: *, Target: *
-
-                    for (int i = 0; i < path.size(); i++) {
-                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                    T = std::stoi(path[0].substr(0, path[0].size()-1));
+                    auto out = SampleTransitiveClosure(T, sample);
+                    for (int i = 1; i < path.size(); i++) {
                         auto out = SampleTransitiveClosure(T, sample);
                         int result = out->getNoDistinctEdges()*1/sample;
                         card = card * (float)result/(float)graph->getNoVertices();
