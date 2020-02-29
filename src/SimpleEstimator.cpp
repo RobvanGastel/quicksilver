@@ -279,13 +279,16 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
                     else
                         y_pairs = reverse_relation_pairs[rel_y];
                     uint32_t tuples = 0;
+                    std::vector<uint32_t> source_answers = {};
                     std::vector<uint32_t> middle_answers = {};
                     std::vector<uint32_t> final_answers = {};
                     for (int source_x = 0; source_x < x_pairs.size(); source_x++) {
                         for (int k = 0; k < x_pairs[source_x].size(); k++) {
                             uint32_t target = x_pairs[source_x][k].second;
-                            if (y_pairs[target].size() > 0)
+                            if (y_pairs[target].size() > 0) {
+                                source_answers.push_back(source_x);
                                 middle_answers.push_back(target);
+                            }
                             for (int source_y = 0; source_y < y_pairs[target].size(); source_y++) {
                                 uint32_t final_target = y_pairs[target][source_y].second;
                                 final_answers.push_back(final_target);
@@ -293,11 +296,21 @@ void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint3
                             }
                         }
                     }
+                    uint32_t source_count = std::distance(source_answers.begin(),
+                                                    std::unique(source_answers.begin(), source_answers.end()));
                     uint32_t middle_count = std::distance(middle_answers.begin(),
                                                      std::unique(middle_answers.begin(), middle_answers.end()));
                     uint32_t final_count = std::distance(final_answers.begin(),
                                                     std::unique(final_answers.begin(), final_answers.end()));
-                    multidimensional_matrix[rel_x][rel_y][x_normal].push_back({tuples, middle_count, final_count});
+
+                    multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {tuples, source_count, middle_count, final_count};
+                    //            if (final_count > 0 ){
+                    //                std::cout << std::endl;
+                    //                std::cout << "For " << rel_x << " and " << rel_y << std::endl;
+                    //                std::cout << tuples << std::endl;
+                    //                std::cout << middle_count << std::endl;
+                    //                std::cout << final_count << std::endl;
+                    //            }
                 }
             }
         }
@@ -349,6 +362,147 @@ uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint3
 
 
 /////
+///// Stats class
+/////
+Stats::Stats(uint32_t noLabels, uint32_t noVertices) {
+    labels = noLabels;
+    vertices = noVertices;
+    
+    total_relations.push_back({});
+    distinct_source_relations.push_back({});
+    distinct_target_relations.push_back({});
+}
+
+Stats::~Stats() {
+    // TODO: Free all memory
+}
+
+void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
+    total_relations = std::vector<uint32_t> (labels, 0);
+    source_relations_count = std::vector<std::vector<uint32_t>> (labels, std::vector<uint32_t> (vertices));
+    target_relations_count = std::vector<std::vector<uint32_t>> (labels, std::vector<uint32_t> (vertices));
+    relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
+        std::vector<std::vector<uint32_t>> (vertices,
+            std::vector<uint32_t> ()));
+    reverse_relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
+        std::vector<std::vector<uint32_t>> (vertices,
+            std::vector<uint32_t> ()));
+    distinct_source_relations = std::vector<uint32_t> (labels);
+    distinct_target_relations = std::vector<uint32_t> (labels);
+
+    for (uint32_t rel_source = 0; rel_source < adj.size(); rel_source++){
+        for (uint32_t i = 0; i < adj[rel_source].size() ; i++) {
+            uint32_t rel_type = adj[rel_source][i].first;
+            uint32_t rel_target = adj[rel_source][i].second;
+            source_relations_count[rel_type][rel_source]++;
+            target_relations_count[rel_type][rel_target]++;
+            total_relations[rel_type]++;
+            relation_pairs[rel_type][rel_source].push_back(rel_target);
+            reverse_relation_pairs[rel_type][rel_target].push_back(rel_source);
+        }
+    }
+
+    for (uint32_t rel_type = 0; rel_type < labels; rel_type++) {
+        for (uint32_t vertice = 0; vertice < vertices; vertice++) {
+             if (source_relations_count[rel_type][vertice] > 0) {
+                 distinct_source_relations[rel_type]++;
+             }
+             if (target_relations_count[rel_type][vertice] > 0)
+                distinct_target_relations[rel_type]++;
+        }
+    }
+
+    // // matrix[rel_label_i][rel_label_j][rel_type_i][rel_type_j] = {tuples, source_dist, middle_dist, final_dist}
+    multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> (labels,
+        std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
+            std::vector<std::vector<std::vector<uint32_t>>> (2,
+                std::vector<std::vector<uint32_t>> (2, 
+                    std::vector<uint32_t> (4, 999)))));
+    std::vector<std::vector<uint32_t>> x_pairs;
+    std::vector<std::vector<uint32_t>> y_pairs;
+    
+    for (uint32_t rel_x = 0; rel_x < labels; rel_x++) {
+        for (uint32_t rel_y = 0; rel_y < labels; rel_y++) {
+            for (uint32_t x_normal = 0; x_normal < (uint32_t)2; x_normal++) {
+                    if (x_normal == (uint32_t)0)
+                        x_pairs = relation_pairs[rel_x];
+                    else
+                        x_pairs = reverse_relation_pairs[rel_x];
+
+                // for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
+                uint32_t y_normal = 0;
+                uint32_t tuples = 0;
+                std::unordered_set<uint32_t> source_answers = {};
+                std::unordered_set<uint32_t> middle_answers = {};
+                std::unordered_set<uint32_t> final_answers = {};
+
+                if (y_normal == (uint32_t)0)
+                    y_pairs = relation_pairs[rel_y];
+                else
+                    y_pairs = reverse_relation_pairs[rel_y];
+
+                for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs.size(); source_x++) {
+                    for (uint32_t i = 0; i < x_pairs[source_x].size(); i++) {
+                        uint32_t x_target = x_pairs[source_x][i];
+
+                        if (y_pairs[x_target].size() > (uint32_t)0) {
+                            source_answers.insert(source_x);
+                            middle_answers.insert(x_target);
+                            final_answers.insert(y_pairs[x_target].begin(), y_pairs[x_target].end());
+                            tuples += y_pairs[x_target].size();
+
+                            // for (uint32_t source_y = 0; source_y < (uint32_t)y_pairs[x_target].size(); source_y++) {
+                            //     uint32_t final_target = y_pairs[x_target][source_y];
+                            //     final_answers.insert(final_target);
+                            //     tuples++;
+                            // }
+                        }
+                    }
+                }
+
+                std::vector<uint32_t> result = {
+                    tuples,
+                    (uint32_t)source_answers.size(),
+                    (uint32_t)middle_answers.size(), 
+                    (uint32_t)final_answers.size()
+                };
+
+                multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = result;
+                multidimensional_matrix[rel_y][rel_x][1-x_normal][1-y_normal] = result;
+                // }                    
+            }
+        }
+    }
+}
+
+
+std::vector<uint32_t> get_relation_info(std::string relation) { // path[0]
+    std::vector<uint32_t> relation_info;
+
+    // relation label
+    uint32_t T = std::stoi(relation.substr(0, relation.size()-1));
+    relation_info.push_back(T);
+
+    // relation direction
+    std::string dir = relation.substr(relation.size()-1, 1);
+    relation_info.push_back(uint32_t(dir != ">") + uint32_t(dir == "*")); // 0:>; 1:<; 2:+;
+
+    return relation_info;
+}
+
+
+uint32_t get_in(std::vector<uint32_t> relation_info, Histogram histogram) {
+    if (relation_info[1] == 0) {
+        return histogram.distinct_target_relations[relation_info[0]];
+    } else if (relation_info[1] == 1) {
+        return histogram.distinct_source_relations[relation_info[0]];
+    } else {
+        return (uint32_t)-1;
+    }
+}
+
+
+/////
 ///// SimpleEstimator class
 /////
 SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
@@ -365,6 +519,11 @@ void SimpleEstimator::prepare() {
     std::string histogram_type = "equidepth";
     histogram = Histogram(histogram_type, noLabels, noVertices);
     histogram.create_histograms(graph->adj);
+    // histogram.print_histogram(0, 0);
+    // std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
+    stats = Stats(noLabels, noVertices);
+    stats.create_stats(graph->adj);
+
 }
 
 
@@ -482,6 +641,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
+    // std::cout << "\n\npath size: " << path.size() << std::endl;
 
     // Either there are no joins (e.g. just 1 relation/table) 
     // or it's a transitive closure (TC).
@@ -491,11 +651,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         
         if (relation == ">") { // (s,t) such that (s, l, t)
             if (q->s == "*") {
-                if (q->t =="*") { // - Source: *, Target: *
+                if (q->t =="*") { // source: *, target: *
                     noSources = histogram.distinct_source_relations[T];
                     noPaths = histogram.total_relations[T];
                     noTargets = histogram.distinct_target_relations[T];
-                } else { // - Source: *, Target: i
+                } else { // source: *, target: i
                     int t_i = std::stoi(q->t);
                     int result = histogram.target_relations_count[T][t_i];
                     noSources = result;
@@ -505,12 +665,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             } else {
                 int s_i = std::stoi(q->s);
 
-                if (q->t =="*") { // - Source: i, Target: *
+                if (q->t =="*") { // source: i, target: *
                     int result = histogram.source_relations_count[T][s_i];
                     noSources = 1;
                     noPaths = result;
                     noTargets = result;
-                } else { // - Source: i, Target: j
+                } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.target_relations_count[T][t_i], histogram.source_relations_count[T][s_i]);
                     noSources = result;
@@ -520,11 +680,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }
         } else if(relation == "<") { // (s,t) such that (t, l, s)
             if (q->s == "*") {
-                if (q->t =="*") { // - Source: *, Target: *
+                if (q->t =="*") { // source: *, target: *
                 noSources = histogram.distinct_target_relations[T];
                 noPaths = histogram.total_relations[T];
                 noTargets = histogram.distinct_source_relations[T];
-                } else { // - Source: *, Target: i
+                } else { // source: *, target: j
                     int t_i = std::stoi(q->t);
                     int result = histogram.source_relations_count[T][t_i];
                     noSources = result; 
@@ -534,12 +694,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             } else {
                 int s_i = std::stoi(q->s);
 
-                if (q->t =="*") { // - Source: i, Target: *
+                if (q->t =="*") { // source: i, target: *
                     int result = histogram.target_relations_count[T][s_i];
                     noSources = 1;
                     noPaths = result;
                     noTargets = result;
-                } else { // - Source: i, Target: j
+                } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
                     int result = std::min(histogram.source_relations_count[T][t_i], histogram.target_relations_count[T][s_i]);
                     noSources = result;
@@ -548,7 +708,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }
         }
-        /// - Source: *, Target: * (TC)
+            // - Source: *, Target: * (TC)
         else if(relation == "+") {
             
             float sample = 0.05;
@@ -596,8 +756,91 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         /// Order left to right => s = 1 and t = "*", so reverse
         if (q->s != "*") {
             std::reverse(path.begin(), path.end());
-        }
+        }        
 
+        // std::vector<int> relation_0 = get_relation_info(path[0]);
+        std::vector<uint32_t> relation_i;
+        std::vector<uint32_t> relation_j;
+
+        // basic info
+        int in;     // l1.in
+        int d_oi;   // d(o, T_{r/l1})
+
+        // multidimensional matrix
+        std::vector<uint32_t> join_stats;
+        float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
+        int d_sj;       // d(s, T_{l1/l2})
+        int middle_j;   // l1/l2.middle
+        int d_oj;       // d(o, T_{l1/l2})
+
+        // past join iterations
+        int T;      // |T_{r/l1/l2}|
+        int d_s;    // d(s, T_{r/l1/l2})
+        int d_o;    // d(o, T_{r/l1/l2})
+
+        if (q->s == "*") { // source: *
+            if (q->t =="*") { // source: *, target: *
+                relation_j = get_relation_info(path[0]);
+                std::cout << "\n    path_0: " << path[0] << "  relation_0: " << relation_j[0] << " " << relation_j[1] << std::endl;
+                if (relation_j[1] == 2) {
+                    std::cout << "TC FOUND" << std::endl;
+                }
+
+                T = histogram.total_relations[relation_j[0]];
+                // if (relation_j[0] == 0) {
+                //     d_oi = histogram.distinct_target_relations[relation_j[0]];
+                // } else {
+                //     d_oi = histogram.distinct_target_relations[relation_j[0]];
+                // }
+
+                for (int j = 1; j < path.size(); j++) {
+                    relation_i = relation_j;
+                    relation_j = get_relation_info(path[j]);
+                    std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+
+                    in = get_in(relation_i, histogram);
+                    std::cout << "        in: " << in << std::endl;
+
+                    join_stats = histogram.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
+                    T_j = join_stats[0];
+                    d_sj = join_stats[1];
+                    middle_j = join_stats[2];
+                    d_oj = join_stats[3];
+                    std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+                    join_stats = histogram.multidimensional_matrix[relation_j[0]][relation_i[0]][1-relation_j[1]][1-relation_i[1]];
+                    T_j = join_stats[0];
+                    d_sj = join_stats[1];
+                    middle_j = join_stats[2];
+                    d_oj = join_stats[3];
+                    std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+                    std::cout << "        T: " << T << "  d_oi: " << d_oi << std::endl;
+
+                    // calculations
+                    T_j = ((float)middle_j / (float)in) * (float)T * ((float)T_j / (float)d_sj);
+                    std::cout << "        results T_j: " << T_j << std::endl;
+                    
+                }
+            } else { // source: *, target: j
+                // should never happen -> reverse path
+            }
+        } else {
+            if (q->t =="*") { // source: i, target: *
+
+            } else { // source: i, target: j
+
+            }
+        }
+    }
+    
+
+    /// Cases of joins:
+    /// Order doesn't matter => s = "*" and t = "*"
+    /// Order right to left => s = "*" and t = 1
+    /// Order left to right => s = 1 and t = "*", so reverse
+    // if (q->s != "*") {
+    //     std::reverse(path.begin(), path.end());
+    // }
+    
         /// Source and target tuple/"Table" 
         int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
         int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
