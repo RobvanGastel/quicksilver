@@ -434,7 +434,7 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
         std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
             std::vector<std::vector<std::vector<uint32_t>>> (2,
                 std::vector<std::vector<uint32_t>> (2, 
-                    std::vector<uint32_t> (4, 0)))));
+                    std::vector<uint32_t> (4, 999)))));
     std::vector<std::vector<uint32_t>> x_pairs;
     std::vector<std::vector<uint32_t>> y_pairs;
     
@@ -446,46 +446,47 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                     else
                         x_pairs = reverse_relation_pairs[rel_x];
 
-                for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
-                    uint32_t tuples = 0;
-                    std::unordered_set<uint32_t> source_answers = {};
-                    std::unordered_set<uint32_t> middle_answers = {};
-                    std::unordered_set<uint32_t> final_answers = {};
+                // for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
+                uint32_t y_normal = 0;
+                uint32_t tuples = 0;
+                std::unordered_set<uint32_t> source_answers = {};
+                std::unordered_set<uint32_t> middle_answers = {};
+                std::unordered_set<uint32_t> final_answers = {};
 
-                    if (y_normal == (uint32_t)0)
-                        y_pairs = relation_pairs[rel_y];
-                    else
-                        y_pairs = reverse_relation_pairs[rel_y];
+                if (y_normal == (uint32_t)0)
+                    y_pairs = relation_pairs[rel_y];
+                else
+                    y_pairs = reverse_relation_pairs[rel_y];
 
-                    for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs.size(); source_x++) {
-                        for (uint32_t i = 0; i < x_pairs[source_x].size(); i++) {
-                            uint32_t x_target = x_pairs[source_x][i];
+                for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs.size(); source_x++) {
+                    for (uint32_t i = 0; i < x_pairs[source_x].size(); i++) {
+                        uint32_t x_target = x_pairs[source_x][i];
 
-                            if (y_pairs[x_target].size() > (uint32_t)0) {
-                                source_answers.insert(source_x);
-                                middle_answers.insert(x_target);
-                                final_answers.insert(y_pairs[x_target].begin(), y_pairs[x_target].end());
-                                tuples += y_pairs[x_target].size();
+                        if (y_pairs[x_target].size() > (uint32_t)0) {
+                            source_answers.insert(source_x);
+                            middle_answers.insert(x_target);
+                            final_answers.insert(y_pairs[x_target].begin(), y_pairs[x_target].end());
+                            tuples += y_pairs[x_target].size();
 
-                                // for (uint32_t source_y = 0; source_y < (uint32_t)y_pairs[x_target].size(); source_y++) {
-                                //     uint32_t final_target = y_pairs[x_target][source_y];
-                                //     final_answers.insert(final_target);
-                                //     tuples++;
-                                // }
-                            }
+                            // for (uint32_t source_y = 0; source_y < (uint32_t)y_pairs[x_target].size(); source_y++) {
+                            //     uint32_t final_target = y_pairs[x_target][source_y];
+                            //     final_answers.insert(final_target);
+                            //     tuples++;
+                            // }
                         }
                     }
-
-                    std::vector<uint32_t> result = {
-                        tuples,
-                        (uint32_t)source_answers.size(),
-                        (uint32_t)middle_answers.size(), 
-                        (uint32_t)final_answers.size()
-                    };
-
-                    multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = result;
-                    multidimensional_matrix[rel_y][rel_x][1-x_normal][1-y_normal] = result;
                 }
+
+                std::vector<uint32_t> result = {
+                    tuples,
+                    (uint32_t)source_answers.size(),
+                    (uint32_t)middle_answers.size(), 
+                    (uint32_t)final_answers.size()
+                };
+
+                multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = result;
+                multidimensional_matrix[rel_y][rel_x][1-x_normal][1-y_normal] = result;
+                // }                    
             }
         }
     }
