@@ -404,12 +404,6 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
     reverse_relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
         std::vector<std::vector<uint32_t>> (vertices,
             std::vector<uint32_t> ()));
-    // relation_pairs = std::vector<std::vector<std::vector<std::pair<uint32_t, uint32_t>>>> (labels,
-    //     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> (vertices,
-    //         std::vector<std::pair<uint32_t, uint32_t>> ()));
-    // reverse_relation_pairs = std::vector<std::vector<std::vector<std::pair<uint32_t, uint32_t>>>> (labels,
-    //     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> (vertices,
-    //         std::vector<std::pair<uint32_t, uint32_t>> ()));
     distinct_source_relations = std::vector<uint32_t> (labels);
     distinct_target_relations = std::vector<uint32_t> (labels);
 
@@ -422,10 +416,6 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
             total_relations[rel_type]++;
             relation_pairs[rel_type][rel_source].push_back(rel_target);
             reverse_relation_pairs[rel_type][rel_target].push_back(rel_source);
-            // relation_pairs[rel_type][rel_source].push_back(
-            //     std::make_pair(rel_source, rel_target));
-            // reverse_relation_pairs[rel_type][rel_target].push_back(
-            //     std::make_pair(rel_target, rel_source));
         }
     }
 
@@ -447,11 +437,6 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                     std::vector<uint32_t> (4, 0)))));
     std::vector<std::vector<uint32_t>> x_pairs;
     std::vector<std::vector<uint32_t>> y_pairs;
-    // std::vector<std::vector<std::pair<uint32_t, uint32_t>>> x_pairs;
-    // std::vector<std::vector<std::pair<uint32_t, uint32_t>>> y_pairs;
-    // uint32_t source_count;
-    // uint32_t middle_count;
-    // uint32_t final_count;
     
     for (uint32_t rel_x = 0; rel_x < labels; rel_x++) {
         for (uint32_t rel_y = 0; rel_y < labels; rel_y++) {
@@ -479,29 +464,27 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                             if (y_pairs[x_target].size() > (uint32_t)0) {
                                 source_answers.insert(source_x);
                                 middle_answers.insert(x_target);
-                                // final_answers.insert(y_pairs[x_target].begin(), y_pairs[x_target].end());
-                                // tuples += y_pairs[x_target].size();
+                                final_answers.insert(y_pairs[x_target].begin(), y_pairs[x_target].end());
+                                tuples += y_pairs[x_target].size();
 
-                                for (uint32_t source_y = 0; source_y < (uint32_t)y_pairs[x_target].size(); source_y++) {
-                                    uint32_t final_target = y_pairs[x_target][source_y];
-                                    final_answers.insert(final_target);
-                                    tuples++;
-                                }
+                                // for (uint32_t source_y = 0; source_y < (uint32_t)y_pairs[x_target].size(); source_y++) {
+                                //     uint32_t final_target = y_pairs[x_target][source_y];
+                                //     final_answers.insert(final_target);
+                                //     tuples++;
+                                // }
                             }
                         }
                     }
-                    // std::cout << rel_x << " " << rel_y << " " << x_normal << " " << y_normal << std::endl;
-                    // std::cout << tuples << std::endl;
-                    // std::cout << (uint32_t)source_answers.size() << std::endl;
-                    // std::cout << (uint32_t)middle_answers.size() << std::endl;
-                    // std::cout << (uint32_t)final_answers.size() << std::endl;
-                    // std::cout << "\n" << std::endl;
-                    multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {
+
+                    std::vector<uint32_t> result = {
                         tuples,
                         (uint32_t)source_answers.size(),
                         (uint32_t)middle_answers.size(), 
                         (uint32_t)final_answers.size()
                     };
+
+                    multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = result;
+                    multidimensional_matrix[rel_y][rel_x][1-x_normal][1-y_normal] = result;
                 }
             }
         }
@@ -514,64 +497,6 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
         "   s=" << multidimensional_matrix[3][2][1][1][1] <<
         "   m=" << multidimensional_matrix[3][2][1][1][2] <<
         "   o=" << multidimensional_matrix[3][2][1][1][3] << std::endl;
-
-    //////////////////////////////////////////////// LOW MEMORY IMPLEMENTATION //////////////////////////////////////////////////////////////
-    // std::vector<std::vector<std::vector<std::vector<uint32_t>>>> tuples = std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
-    //     std::vector<std::vector<std::vector<uint32_t>>> (labels,
-    //         std::vector<std::vector<uint32_t>> (2,
-    //             std::vector<uint32_t> (2, (uint32_t)0))));
-    // std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> source_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
-    //     std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
-    //         std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
-    //             std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
-    // std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> middle_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
-    //     std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
-    //         std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
-    //             std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
-    // std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> final_dist = std::vector<std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>>> (labels,
-    //     std::vector<std::vector<std::vector<std::unordered_set<uint32_t>>>> (labels,
-    //         std::vector<std::vector<std::unordered_set<uint32_t>>> (2,
-    //             std::vector<std::unordered_set<uint32_t>> (2, std::unordered_set<uint32_t> ()))));
-
-    // // matrix[rel_label_i][rel_label_j][rel_type_i][rel_type_j] = {tuples, source_dist, middle_dist, final_dist}
-    // multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> (labels,
-    //     std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
-    //         std::vector<std::vector<std::vector<uint32_t>>> (2,
-    //             std::vector<std::vector<uint32_t>> (2, 
-    //                 std::vector<uint32_t> (4, 0)))));
-
-    // for (uint32_t rel_1_source = 0; rel_1_source < adj.size(); rel_1_source++){
-    //     for (uint32_t i = 0; i < adj[rel_1_source].size(); i++) {
-    //         uint32_t rel_1_type = adj[rel_1_source][i].first;
-    //         uint32_t rel_1_target = adj[rel_1_source][i].second;
-
-    //         for (uint32_t rel_2_source = 0; rel_2_source < adj.size(); rel_2_source++){
-
-    //             for (uint32_t j = 0; j < adj[rel_2_source].size(); j++) {
-    //                 uint32_t rel_2_type = adj[rel_2_source][j].first;
-    //                 uint32_t rel_2_target = adj[rel_2_source][j].second;
-
-    //                 if (rel_1_target == rel_2_source) { // l1>/l2>   l2</l1<
-    //                     tuples[rel_1_type][rel_2_type][0][0]++;
-    //                 }
-    //                 if (rel_1_target == rel_2_target) { // l1>/l2<   l2</l1>
-    //                     tuples[rel_1_type][rel_2_type][0][1]++;
-
-    //                 }
-    //                 if (rel_1_source == rel_2_source) { // l1</l2>   l2>/l1<
-    //                     tuples[rel_1_type][rel_2_type][1][0]++;
-
-    //                 }
-    //                 if (rel_1_source == rel_2_target) { // l1</l2<   l2>/l1>
-    //                     tuples[rel_1_type][rel_2_type][1][2]++;
-
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    // std::cout << rel_source << "   " << rel_type << "   " << rel_target << std::endl;
 }
 
 
@@ -632,9 +557,9 @@ void SimpleEstimator::prepare() {
     int noVertices = graph->getNoVertices();
 
     /// Creation histograms
-    std::string histogram_type = "equiwidth";
-    histogram = Histogram(histogram_type, noLabels, noVertices);
-    histogram.create_histograms(graph->adj);
+    // std::string histogram_type = "equiwidth";
+    // histogram = Histogram(histogram_type, noLabels, noVertices);
+    // histogram.create_histograms(graph->adj);
     // histogram.print_histogram(0, 0);
     // std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
     stats = Stats(noLabels, noVertices);
