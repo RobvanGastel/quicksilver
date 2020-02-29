@@ -490,14 +490,14 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
             }
         }
     }
-    std::cout << "|T|=" << multidimensional_matrix[2][3][0][0][0] <<
-        "   s=" << multidimensional_matrix[2][3][0][0][1] <<
-        "   m=" << multidimensional_matrix[2][3][0][0][2] <<
-        "   o=" << multidimensional_matrix[2][3][0][0][3] << std::endl;
-    std::cout << "|T|=" << multidimensional_matrix[3][2][1][1][0] <<
-        "   s=" << multidimensional_matrix[3][2][1][1][1] <<
-        "   m=" << multidimensional_matrix[3][2][1][1][2] <<
-        "   o=" << multidimensional_matrix[3][2][1][1][3] << std::endl;
+    // std::cout << "|T|=" << multidimensional_matrix[2][3][0][0][0] <<
+    //     "   s=" << multidimensional_matrix[2][3][0][0][1] <<
+    //     "   m=" << multidimensional_matrix[2][3][0][0][2] <<
+    //     "   o=" << multidimensional_matrix[2][3][0][0][3] << std::endl;
+    // std::cout << "|T|=" << multidimensional_matrix[3][2][1][1][0] <<
+    //     "   s=" << multidimensional_matrix[3][2][1][1][1] <<
+    //     "   m=" << multidimensional_matrix[3][2][1][1][2] <<
+    //     "   o=" << multidimensional_matrix[3][2][1][1][3] << std::endl;
 }
 
 
@@ -558,9 +558,9 @@ void SimpleEstimator::prepare() {
     int noVertices = graph->getNoVertices();
 
     /// Creation histograms
-    // std::string histogram_type = "equiwidth";
-    // histogram = Histogram(histogram_type, noLabels, noVertices);
-    // histogram.create_histograms(graph->adj);
+    std::string histogram_type = "equiwidth";
+    histogram = Histogram(histogram_type, noLabels, noVertices);
+    histogram.create_histograms(graph->adj);
     // histogram.print_histogram(0, 0);
     // std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
     stats = Stats(noLabels, noVertices);
