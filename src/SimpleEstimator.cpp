@@ -550,18 +550,22 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         }
         /// - Source: *, Target: * (TC)
         else if(relation == "+") {
-            /// TODO: Paper to improve, uses GRIPP data structure: 
-            /// Estimating Result Size and Execution Times for Graph Queries
-            /// Silke Trißl and Ulf Leser
             
             float sample = 0.05;
             if (q->s == "*") { 
                 if (q->t =="*") { // - Source: *, Target: *
                     auto out = SampleTransitiveClosure(T, sample);
-                    noSources = histogram.distinct_source_relations[T];
+                    
+                    int count = 0;
+                    for (int i = 0; i < out->adj.size(); i++) {
+                        if(out->adj[i].size() > 0) {
+                            count += 1;
+                        }
+                    }
+                    noSources = count*1/sample;
                     // To retrieve 100% value estimate
                     noPaths = out->getNoDistinctEdges()*1/sample; 
-                    noTargets = histogram.distinct_source_relations[T];
+                    noTargets = count * 1/sample;
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
                     auto out = SampleTransitiveClosure(T, t_i, true);
@@ -668,51 +672,94 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
             if (q->s == "*") { 
                 if (q->t =="*") { // - Source: *, Target: *
-                    T = std::stoi(path[0].substr(0, path[0].size()-1));
-                    auto out = SampleTransitiveClosure(T, sample);
-                    for (int i = 1; i < path.size(); i++) {
-                        auto out = SampleTransitiveClosure(T, sample);
-                        int result = out->getNoDistinctEdges()*1/sample;
-                        card = card * (float)result/(float)graph->getNoVertices();
-                    }
-                    card = card * graph->getNoVertices();
+                    float result = 1;
+                    int count = 0;
 
-                    noSources = histogram.distinct_target_relations[T_s];
-                    noPaths = card;
-                    noTargets = histogram.distinct_source_relations[T_t];
+                    for (int i = 0; i < path.size(); i++) {
+                        T = std::stoi(path[i].substr(0, path[i].size()-1));
+                        auto out = SampleTransitiveClosure(T, sample);
+
+                        if(i == 0) {
+                            for (int i = 0; i < out->adj.size(); i++) {
+                               if(out->adj[i].size() > 0) {
+                                    count += 1;
+                                }
+                            }
+                        }
+
+                        result = out->getNoDistinctEdges()*1/sample;
+                        if(i != path.size()-1) {
+                            card = card * (float)result/(float)graph->getNoVertices();
+                        }
+                    }
+                    card = card * result;
+
+                    if(card != 0) {
+                        noSources = count*1/sample;
+                        noPaths = card;
+                        noTargets = card;
+                    } else {
+                        noSources = 0;
+                        noPaths = 0;
+                        noTargets = 0;
+                    }
                     
                 } else { // - Source: *, Target: i
-                    int t_i = std::stoi(q->t);
+                    int t_i = std::stoi(q->t);                    
+                    float result = 1;
+                    int count = 0;
 
                     for (int i = 0; i < path.size(); i++) {
                         T = std::stoi(path[i].substr(0, path[i].size()-1));
                         auto out =  SampleTransitiveClosure(T, t_i, true);
-                        int result = out->getNoDistinctEdges()*1/sample;
-                        card = card * (float)result/(float)graph->getNoVertices();
-                    }
-                    card = card * graph->getNoVertices();
+                        
+                        if(i == 0) {
+                            for (int i = 0; i < out->adj.size(); i++) {
+                               if(out->adj[i].size() > 0) {
+                                    count += 1;
+                                }
+                            }
+                        }
 
-                    noSources = card; 
+                        result = out->getNoDistinctEdges()*1/sample;
+                        if(i != path.size()-1) {
+                            card = card * (float)result/(float)graph->getNoVertices();
+                        }
+                    }
+                    card = card * result;
+
+                    noSources = count*1/sample; 
                     noPaths = card; 
                     noTargets = 1;    
                 }
             } else {
                 int s_i = std::stoi(q->s);
-                if (q->t =="*") { // - Source: i, Target: *
+                if (q->t =="*") { // - Source: i, Target: *             
+                    float result = 1;
+                    int count = 0;
 
                     for (int i = 0; i < path.size(); i++) {
                         T = std::stoi(path[i].substr(0, path[i].size()-1));
                         auto out =  SampleTransitiveClosure(T, s_i, false);
-                        int result = out->getNoDistinctEdges()*1/sample;
-                        card = card * (float)result/(float)graph->getNoVertices();
-                        std::cout << card << std::endl;
+                        
+                        if(i == 0) {
+                            for (int i = 0; i < out->adj.size(); i++) {
+                               if(out->adj[i].size() > 0) {
+                                    count += 1;
+                                }
+                            }
+                        }
 
+                        result = out->getNoDistinctEdges()*1/sample;
+                        if(i != path.size()-1) {
+                            card = card * (float)result/(float)graph->getNoVertices();
+                        }
                     }
-                    card = card * graph->getNoVertices();
+                    card = card * result;
 
                     noSources = 1; 
                     noPaths = card; 
-                    noTargets = card;    
+                    noTargets = count*1/sample;  
 
                 } else { // - Source: i, Target: j
                     /// TODO: Implement
