@@ -450,15 +450,15 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 d_oi = join_stats[3];
                 // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
 
-                in = get_in(relation_i);
+                // in = get_in(relation_i);
                 // calculations
-                part1 = middle_i / in;
+                // part1 = middle_i / in;
 //                 part1 = middle_i / d_oi;
                 // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
 //                d_si = d_si * part1;
                 // std::cout << "  " << middle_j << "  " << in << std::endl;
 //                T_i = T_i * part1 * (T_j / d_sj)/4;
-                T_i = T_i * part1;
+                // T_i = T_i ;
 //                d_oi = d_oi * d_oj / in;
 
                 for (int j = 2; j < path.size(); j++) {
@@ -470,7 +470,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
                     // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
 
-                    in = get_in(relation_i);
+                    // in = get_in(relation_i);
                     // std::cout << "        in: " << in << std::endl;
 
                     join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
