@@ -446,7 +446,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
                 T_i = join_stats[0];
                 d_si = join_stats[1];
-                middle_i = join_stats[2];
+//                middle_i = join_stats[2];
                 d_oi = join_stats[3];
                 // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
 
@@ -458,7 +458,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 //                d_si = d_si * part1;
                 // std::cout << "  " << middle_j << "  " << in << std::endl;
 //                T_i = T_i * part1 * (T_j / d_sj)/4;
-                // T_i = T_i ;
+//                 T_i = T_i * part1;
 //                d_oi = d_oi * d_oj / in;
 
                 for (int j = 2; j < path.size(); j++) {
@@ -470,7 +470,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
                     // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
 
-                    // in = get_in(relation_i);
+                     in = get_in(relation_i);
                     // std::cout << "        in: " << in << std::endl;
 
                     join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
@@ -480,14 +480,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     d_oj = join_stats[3];
 
                     // calculations
-//                    part1 = middle_j / in;
-                     part1 = middle_j / d_oi;
+                    part1 = middle_j / in;
+//                     part1 = middle_j / d_oi;
 //                    std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
 //                     std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
                     d_si = d_si * part1;
                     // std::cout << "  " << middle_j << "  " << in << std::endl;
                     T_i = T_i * part1 * (T_j / d_sj)/4;
-                    d_oi = d_oi * d_oj / d_oi;
+                    d_oi = d_oi * d_oj / in;
                 }
 
                 // middle_j = join_stats[2];
