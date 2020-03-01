@@ -5,7 +5,6 @@
 #include <cmath>
 #include <ctime>
 
-
 /////
 ///// Stats class
 /////
@@ -19,20 +18,21 @@ Stats::Stats(uint32_t noLabels, uint32_t noVertices) {
 }
 
 void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
-    total_relations = std::vector<uint32_t > (labels, 0);
-    source_relations_count = std::vector<std::vector<uint32_t >> (labels, std::vector<uint32_t > (vertices));
-    target_relations_count = std::vector<std::vector<uint32_t >> (labels, std::vector<uint32_t > (vertices));
-    relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
-                                                                      std::vector<std::vector<uint32_t>> (vertices,
-                                                                                                          std::vector<uint32_t> ()));
-    reverse_relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
-                                                                              std::vector<std::vector<uint32_t>> (vertices,
-                                                                                                                  std::vector<uint32_t> ()));
-    distinct_source_relations = std::vector<uint32_t > (labels);
-    distinct_target_relations = std::vector<uint32_t > (labels);
+    total_relations = std::vector<uint32_t>(labels, 0);
+    source_relations_count = std::vector<std::vector<uint32_t >>(labels, std::vector<uint32_t>(vertices));
+    target_relations_count = std::vector<std::vector<uint32_t >>(labels, std::vector<uint32_t>(vertices));
+    relation_pairs = std::vector<std::vector<std::vector<uint32_t>>>(labels,
+                                                                     std::vector<std::vector<uint32_t>>(vertices,
+                                                                                                        std::vector<uint32_t>()));
+    reverse_relation_pairs = std::vector<std::vector<std::vector<uint32_t>>>(labels,
+                                                                             std::vector<std::vector<uint32_t>>(
+                                                                                     vertices,
+                                                                                     std::vector<uint32_t>()));
+    distinct_source_relations = std::vector<uint32_t>(labels);
+    distinct_target_relations = std::vector<uint32_t>(labels);
 
-    for (uint32_t rel_source = 0; rel_source < adj.size(); rel_source++){
-        for (uint32_t i = 0; i < adj[rel_source].size() ; i++) {
+    for (uint32_t rel_source = 0; rel_source < adj.size(); rel_source++) {
+        for (uint32_t i = 0; i < adj[rel_source].size(); i++) {
             uint32_t rel_type = adj[rel_source][i].first;
             uint32_t rel_target = adj[rel_source][i].second;
             source_relations_count[rel_type][rel_source]++;
@@ -54,14 +54,19 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
     }
 
     // // matrix[rel_label_i][rel_label_j][rel_type_i][rel_type_j] = {tuples, source_dist, middle_dist, final_dist}
-    multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> (labels,
-        std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
-            std::vector<std::vector<std::vector<uint32_t>>> (2,
-                std::vector<std::vector<uint32_t>> (2,
-                    std::vector<uint32_t> (4, 0)))));
+    multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>>(labels,
+                                                                                                        std::vector<std::vector<std::vector<std::vector<uint32_t>>>>(
+                                                                                                                labels,
+                                                                                                                std::vector<std::vector<std::vector<uint32_t>>>(
+                                                                                                                        2,
+                                                                                                                        std::vector<std::vector<uint32_t>>(
+                                                                                                                                2,
+                                                                                                                                std::vector<uint32_t>(
+                                                                                                                                        4,
+                                                                                                                                        0)))));
 
-    std::vector<std::vector<uint32_t>> * x_pairs;
-    std::vector<std::vector<uint32_t>> * y_pairs;
+    std::vector<std::vector<uint32_t>> *x_pairs;
+    std::vector<std::vector<uint32_t>> *y_pairs;
     uint32_t tuples;
     std::unordered_set<uint32_t> source_answers;
     std::unordered_set<uint32_t> middle_answers;
@@ -74,119 +79,68 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
     std::vector<uint32_t> result;
 
     for (uint32_t rel_x = 0; rel_x < labels; rel_x++) {
-        for (uint32_t rel_y = 0; rel_y < rel_x+1; rel_y++) { // < labels
-            for (uint32_t x_normal = 0; x_normal < (uint32_t)2; x_normal++) {
-                if (x_normal == (uint32_t)0)
+        for (uint32_t rel_y = 0; rel_y < rel_x + 1; rel_y++) { // < labels
+            for (uint32_t x_normal = 0; x_normal < (uint32_t) 2; x_normal++) {
+                if (x_normal == (uint32_t) 0)
                     x_pairs = &relation_pairs[rel_x];
                 else
                     x_pairs = &reverse_relation_pairs[rel_x];
 
-                for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
-                    if ((rel_x == rel_y) && (x_normal == 1) && (y_normal == 1))
-                        break;
+                for (uint32_t y_normal = 0; y_normal < (uint32_t) 2; y_normal++) {
                     tuples = 0;
-                    source_answers = {};
-                    middle_answers = {};
-                    final_answers = {};
-                    if (y_normal == (uint32_t)0)
-                        y_pairs = &relation_pairs[rel_y];
-                    else
-                        y_pairs = &reverse_relation_pairs[rel_y];
 
-                    for (uint32_t source_x = 0; source_x < x_pairs->size(); source_x++) {
-                        for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
-                            x_target = x_pairs->at(source_x)[i];
+                    if ((rel_x == rel_y) && (x_normal != y_normal)) {
+                        if (x_normal == 0) {
+                            s = distinct_source_relations[rel_x];
+                            m = distinct_target_relations[rel_x];
 
-                            if (y_pairs->at(x_target).size() > (uint32_t)0) {
-                                source_answers.insert(source_x);
-                                middle_answers.insert(x_target);
-                                final_answers.insert(y_pairs->at(x_target).begin(), y_pairs->at(x_target).end());
-                                tuples += y_pairs->at(x_target).size();
+                            y_pairs = &reverse_relation_pairs[rel_y];
+
+                            for (uint32_t source_x = 0; source_x < x_pairs->size(); source_x++) {
+                                for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
+                                    x_target = x_pairs->at(source_x)[i];
+
+                                    if (y_pairs->at(x_target).size() > (uint32_t) 0) {
+                                        tuples += y_pairs->at(x_target).size();
+                                    }
+                                }
                             }
-                        }
-                    }
 
-                    s = source_answers.size();
-                    m = middle_answers.size();
-                    f = final_answers.size();
-
-                    multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {tuples, s, m, f};
-                    if (rel_x == rel_y) {
-                        if (x_normal == y_normal) {
-                            multidimensional_matrix[rel_x][rel_x][1][1] = {tuples, s, m, f};
+                            multidimensional_matrix[rel_x][rel_x][0][1] = {tuples, s, m, s};
+                            multidimensional_matrix[rel_x][rel_x][1][0] = {tuples, s, m, s};
                         }
                     } else {
-                        multidimensional_matrix[rel_y][rel_x][1-y_normal][1-x_normal] = {tuples, f, m, s};
+                        source_answers = {};
+                        middle_answers = {};
+                        final_answers = {};
+                        if (y_normal == (uint32_t) 0)
+                            y_pairs = &relation_pairs[rel_y];
+                        else
+                            y_pairs = &reverse_relation_pairs[rel_y];
+
+                        for (uint32_t source_x = 0; source_x < x_pairs->size(); source_x++) {
+                            for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
+                                x_target = x_pairs->at(source_x)[i];
+
+                                if (y_pairs->at(x_target).size() > (uint32_t) 0) {
+                                    source_answers.insert(source_x);
+                                    middle_answers.insert(x_target);
+                                    final_answers.insert(y_pairs->at(x_target).begin(), y_pairs->at(x_target).end());
+                                    tuples += y_pairs->at(x_target).size();
+                                }
+                            }
+                        }
+
+                        s = source_answers.size();
+                        m = middle_answers.size();
+                        f = final_answers.size();
+
+                        multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {tuples, s, m, f};
+                        multidimensional_matrix[rel_y][rel_x][1 - y_normal][1 - x_normal] = {tuples, f, m, s};
                     }
                 }
             }
         }
-
-        /// for rel_y == rel_x
-
-        /// rel_x 0 / rel_x 0 && rel_x 1 / rel_x 1
-        // tuples = 0;
-        // source_answers = {};
-        // middle_answers = {};
-        // final_answers = {};
-        // x_pairs = &relation_pairs[rel_x];
-        // for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs->size(); source_x++) {
-        //     for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
-        //         x_target = x_pairs->at(source_x)[i];
-
-        //         if (x_pairs->at(x_target).size() > (uint32_t)0) {
-        //             source_answers.insert(source_x);
-        //             middle_answers.insert(x_target);
-        //             tuples += x_pairs->at(x_target).size();
-        //         }
-        //     }
-        // }
-        // source_answers_size = source_answers.size();
-        // result = {
-        //         tuples,
-        //         source_answers_size,
-        //         (uint32_t)middle_answers.size(),
-        //         source_answers_size
-        // };
-        // multidimensional_matrix[rel_x][rel_x][0][0] = result;
-        // multidimensional_matrix[rel_x][rel_x][1][1] = result;
-
-        // // rel_x 0 / rel_x 1 && rel_x 1 / rel_x 0
-        // for (uint32_t x_normal = 0; x_normal < (uint32_t)2; x_normal++) {
-        //     if (x_normal == (uint32_t)0) {
-        //         x_pairs = &relation_pairs[rel_x];
-        //         y_pairs = &reverse_relation_pairs[rel_x];
-        //     }
-        //     else {
-        //         x_pairs = &reverse_relation_pairs[rel_x];
-        //         y_pairs = &relation_pairs[rel_x];
-        //     }
-
-        //     tuples = 0;
-        //     source_answers = {};
-        //     middle_answers = {};
-        //     final_answers = {};
-
-        //     for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs->size(); source_x++) {
-        //         for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
-        //             x_target = x_pairs->at(source_x)[i];
-
-        //             if (y_pairs->at(x_target).size() > (uint32_t)0) {
-        //                 source_answers.insert(source_x);
-        //                 middle_answers.insert(x_target);
-        //                 final_answers.insert(y_pairs->at(x_target).begin(), y_pairs->at(x_target).end());
-        //                 tuples += y_pairs->at(x_target).size();
-        //             }
-        //         }
-        //     }
-
-        //     multidimensional_matrix[rel_x][rel_x][x_normal][1-x_normal] = {
-        //             tuples,
-        //             (uint32_t)source_answers.size(),
-        //             (uint32_t)middle_answers.size(),
-        //             (uint32_t)final_answers.size()
-        //     };
-        // }
     }
 }
 
@@ -479,9 +433,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 float in;     // l1.in
                 float T_i;
                 float d_si;
-                // uint32_t middle_i;
+                float middle_i;
                 float d_oi;   // d(o, T_{r/l1})
-
                 float part1;
 
                 // multidimensional matrix
@@ -498,9 +451,20 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
                 T_i = join_stats[0];
                 d_si = join_stats[1];
-                // int middle_i = join_stats[2];
+                middle_i = join_stats[2];
                 d_oi = join_stats[3];
                 // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
+
+                in = get_in(relation_i);
+                // calculations
+                part1 = middle_i / in;
+//                 part1 = middle_i / d_oi;
+                // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
+//                d_si = d_si * part1;
+                // std::cout << "  " << middle_j << "  " << in << std::endl;
+//                T_i = T_i * part1 * (T_j / d_sj)/4;
+                T_i = T_i * part1;
+//                d_oi = d_oi * d_oj / in;
 
                 for (int j = 2; j < path.size(); j++) {
                     // std::cout << "\n        results d_si: " << d_si;
@@ -519,16 +483,16 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     d_sj = join_stats[1];
                     middle_j = join_stats[2];
                     d_oj = join_stats[3];
-                    // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
 
                     // calculations
-                    part1 = middle_j / in;
-                    // part1 = middle_j / d_oi;
-                    // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
+//                    part1 = middle_j / in;
+                     part1 = middle_j / d_oi;
+//                    std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+//                     std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
                     d_si = d_si * part1;
                     // std::cout << "  " << middle_j << "  " << in << std::endl;
                     T_i = T_i * part1 * (T_j / d_sj)/4;
-                    d_oi = d_oi * d_oj / in;
+                    d_oi = d_oi * d_oj / d_oi;
                 }
 
                 // middle_j = join_stats[2];
@@ -643,7 +607,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
                 relation_i = get_relation_info(path[0]);
                 source = std::stoi(q->t);
-                std::cout << "Source: " << source << std::endl;
                 if (relation_i[1] == 0)
                     T_i = stats.source_relations_count[relation_i[0]][source];
                 else
@@ -660,7 +623,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
                 for (int j = 1; j < path.size(); j++) {
                     d_oi = T_i;
-                    std::cout << "Ti: " << T_i << std::endl;
+//                    std::cout << "Ti: " << T_i << std::endl;
                     // std::cout << "\n        results d_si: " << d_si;
                     // std::cout << "        results T_i: " << T_i;
                     // std::cout << "        results d_oi: " << d_oi << std::endl;
@@ -690,11 +653,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 //                    std::cout << "        T_j: " << T_j << "  d_oi: " << d_oi  <<  "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << "  in: " << in << std::endl;
                 }
 
-                std::cout << "Ti: " << T_i << "    doi " << d_oi << std::endl;
+//                std::cout << "Ti: " << T_i << "    doi " << d_oi << std::endl;
                 if (d_oi > 0) {
                     noPaths = T_i/d_oi;
                     noSources = 1;
-                    noTargets = 1;
+                    noTargets = noPaths;
                 }
                 else {
                     noPaths = 0;
