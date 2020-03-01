@@ -742,7 +742,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t rel_type = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
 
-    /// Defaults to 1, unless we know there are no relations.
+    /// Defaults to 1, unless we know there are no tuples.
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
@@ -757,6 +757,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             if (q->s == "*") {
                 if (q->t =="*") { // source: *, target: *
                     noSources = histogram.distinct_source_relations[rel_type];
+                    std::cout << path[0][0] << std::endl;
+                    std::cout << rel_type << std::endl;
                     noPaths = histogram.total_relations[rel_type];
                     noTargets = histogram.distinct_target_relations[rel_type];
                 } else { // source: *, target: i
