@@ -662,25 +662,26 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
                     in = get_in(relation_i);
                     // std::cout << "        in: " << in << std::endl;
+                    if(relation_i[0] == 2) {
+                        join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
+                        T_j = join_stats[0];
+                        d_sj = join_stats[1];
+                        middle_j = join_stats[2];
+                        d_oj = join_stats[3];
+                        // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
 
-                    join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-                    T_j = join_stats[0];
-                    d_sj = join_stats[1];
-                    middle_j = join_stats[2];
-                    d_oj = join_stats[3];
-                    // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
-
-                    // calculations
-                    part1 = middle_j / in;
-//                    d_si = d_si * part1;
-                    // std::cout << "  " << middle_j << "  " << in << std::endl;
-                    T_i = T_i * part1 * (T_j / d_sj);
-                    d_oi = d_oi * d_oj / in;
+                        // calculations
+                        part1 = middle_j / in;
+    //                    d_si = d_si * part1;
+                        // std::cout << "  " << middle_j << "  " << in << std::endl;
+                        T_i = T_i * part1 * (T_j / d_sj);
+                        d_oi = d_oi * d_oj / in;
 
 
-                    relation_i = relation_j;
-                    T_i = (T_i+d_oi)/2;
-                    d_oi = T_i;
+                        relation_i = relation_j;
+                        T_i = (T_i+d_oi)/2;
+                        d_oi = T_i;
+                    }
                 }
 
                 // middle_j = join_stats[2];
