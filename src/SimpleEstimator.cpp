@@ -596,7 +596,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                         // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
                         d_si = d_si * part1;
                         // std::cout << "  " << middle_j << "  " << in << std::endl;
-                        T_i = T_i * part1 * (T_j / d_sj)/4;
+                        T_i = T_i * part1 * (T_j / d_sj);///4;
                         d_oi = d_oi * d_oj / in;
                     }
 
@@ -607,9 +607,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
                     // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
 
-                    noSources = d_si;
+                    noSources = std::max((float)(T_i>1), d_si);
                     noPaths = T_i;
-                    noTargets = d_oi;
+                    noTargets = std::max((float)(T_i>1), d_oi);
                 }
             }
             // else { // source: *, target: j
