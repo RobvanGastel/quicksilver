@@ -4,363 +4,6 @@
 #include <set>
 #include <cmath>
 #include <cfloat>
-#include <ctime>
-
-/////
-///// Histogram class
-/////
-Histogram::Histogram(std::string &type_of_histogram, uint32_t noLabels,
-                     uint32_t noVertices) {
-    labels = noLabels;
-    vertices = noVertices;
-    total_memory = 1000000;
-    bucket_memory = 3 * 32;
-    noBuckets = 200;
-
-    if (type_of_histogram == "equidepth")
-        histogram_type = 0;
-    else if (type_of_histogram == "equiwidth")
-        histogram_type = 1;
-    else if (type_of_histogram == "voptimal")
-        histogram_type = 2;
-    else {
-        exit (EXIT_FAILURE);
-    }
-    source_buckets.push_back({});
-    total_relations.push_back({});
-    distinct_source_relations.push_back({});
-    distinct_target_relations.push_back({});
-}
-
-Histogram::~Histogram() {
-//    TODO: Free all memory
-}
-
-void Histogram::create_histograms(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
-    create_frequency_vectors(adj);
-    // if (histogram_type == 0)
-    //     create_equidepth_histograms();
-    // else if (histogram_type == 1)
-    //     create_equiwidth_histograms();
-    // else if (histogram_type == 2)
-    //     create_voptimal_histograms();
-}
-
-void Histogram::create_equidepth_histograms() {
-    for (int i = 0; i < labels; i++) {
-        depth = total_relations[i]/ noBuckets;
-        uint32_t n = 0;
-        source_buckets.push_back({});
-        source_buckets[i].push_back({});
-        for (int j = 0; j < source_relations_count[i].size(); j++) {
-            uint32_t start = j;
-            uint32_t end = j;
-            uint32_t sum = 0;
-            while (sum < depth) {
-                if ((sum > 0) && (source_relations_count[i][j] > depth)) {
-                    break;
-                } else if (j == source_relations_count[i].size()) {
-                    break;
-                } else {
-                    sum += source_relations_count[i][j];
-                    end = j;
-                    j++;
-                }
-            }
-            source_buckets[i][n].push_back(start);
-            source_buckets[i][n].push_back(end);
-            source_buckets[i][n].push_back(sum);
-            n++;
-            if (j < source_relations_count[i].size()) {
-                source_buckets[i].push_back({});
-                j--;
-            }
-        }
-        n = 0;
-        target_buckets.push_back({});
-        target_buckets[i].push_back({});
-        for (int j = 0; j < target_relations_count[i].size(); j++) {
-            uint32_t start = j;
-            uint32_t end = j;
-            uint32_t sum = 0;
-            while (sum < depth) {
-                if ((sum > 0) && (target_relations_count[i][j] > depth)) {
-                    break;
-                } else if (j == target_relations_count[i].size()) {
-                    break;
-                } else {
-                    sum += target_relations_count[i][j];
-                    end = j;
-                    j++;
-                }
-            }
-            target_buckets[i][n].push_back(start);
-            target_buckets[i][n].push_back(end);
-            target_buckets[i][n].push_back(sum);
-            n++;
-            if (j < target_relations_count[i].size()) {
-                target_buckets[i].push_back({});
-                j--;
-            }
-        }
-    }
-}
-
-void Histogram::create_equiwidth_histograms() {
-    for (int i = 0; i < labels; i++) {
-        width_size = source_relations_count[i].size()/ noBuckets;
-        uint32_t n = 0;
-        source_buckets.push_back({});
-        source_buckets[i].push_back({});
-        for (int j = 0; j < source_relations_count[i].size(); j++) {
-            uint32_t count_it = 0;
-            uint32_t start = j;
-            uint32_t sum = 0;
-            while (count_it < width_size) {
-                if (j == source_relations_count[i].size()) {
-                    break;
-                } else {
-                    sum += source_relations_count[i][j];
-                    j++;
-                    count_it++;
-                }
-            }
-            source_buckets[i][n].push_back(start);
-            source_buckets[i][n].push_back(j - 1);
-            source_buckets[i][n].push_back(sum);
-            n++;
-            if (j < source_relations_count[i].size()) {
-                source_buckets[i].push_back({});
-                j--;
-            }
-        }
-        n = 0;
-        target_buckets.push_back({});
-        target_buckets[i].push_back({});
-        for (int j = 0; j < target_relations_count[i].size(); j++) {
-            uint32_t count_it = 0;
-            uint32_t start = j;
-            uint32_t sum = 0;
-            while (count_it < width_size) {
-                count_it++;
-                if (j == target_relations_count[i].size()) {
-                    break;
-                } else {
-                    sum += target_relations_count[i][j];
-                    j++;
-                }
-            }
-            target_buckets[i][n].push_back(start);
-            target_buckets[i][n].push_back(j - 1);
-            target_buckets[i][n].push_back(sum);
-            n++;
-            if (j < target_relations_count[i].size()) {
-                target_buckets[i].push_back({});
-                j--;
-            }
-        }
-    }
-}
-
-void Histogram::create_voptimal_histograms() {
-    // std::cout << "Creating V-Optimal Histogram" << std::endl;
-    for (int i = 0; i < labels; i++) {
-        // std::cout << "Relation " << i << std::endl;
-        uint32_t n = 0;
-        source_buckets.push_back({});
-        for (uint32_t j = 0; j < source_relations_count[i].size(); j++) {
-            source_buckets[i].push_back({j, j, source_relations_count[i][j]});
-            n++;
-        }
-        uint32_t v_error = 0;
-        while (source_buckets[i].size() > noBuckets) {
-            double_t min = DBL_MAX;
-            uint32_t k = 0;
-            for (uint32_t j = 0; j < source_buckets[i].size() - 1; j++) {
-                std::vector<uint32_t> temp_bucket = {source_buckets[i][j][0], source_buckets[i][j+1][1], source_buckets[i][j][2] + source_buckets[i][j+1][2]};
-                double_t error1 = source_buckets[i][j][2] * ((double_t)(source_buckets[i][j][1] - source_buckets[i][j][0]) / 12);
-                double_t error2 = source_buckets[i][j+1][2] * ((double_t)(source_buckets[i][j+1][1] - source_buckets[i][j+1][0]) / 12);
-                double_t error3 = temp_bucket[2] * ((double_t)(temp_bucket[1] - temp_bucket[0]) / 12);
-                double_t new_error = v_error - error1 - error2 + error3;
-                if (new_error < min) {
-                    min = new_error;
-                    k = j;
-                }
-            }
-            source_buckets[i][k][2] += source_buckets[i][k+1][2];
-            source_buckets[i][k][1] = source_buckets[i][k+1][1];
-            source_buckets[i].erase(source_buckets[i].begin() + k + 1);
-            v_error = min;
-        }
-        n = 0;
-        target_buckets.push_back({});
-        for (uint32_t j = 0; j < target_relations_count[i].size(); j++) {
-            target_buckets[i].push_back({j, j, target_relations_count[i][j]});
-            n++;
-        }
-        v_error = 0;
-        while (target_buckets[i].size() > noBuckets) {
-            double_t min = DBL_MAX;
-            uint32_t k = 0;
-            for (uint32_t j = 0; j < target_buckets[i].size() - 1; j++) {
-                std::vector<uint32_t> temp_bucket = {target_buckets[i][j][0], target_buckets[i][j+1][1], target_buckets[i][j][2] + target_buckets[i][j+1][2]};
-                double_t error1 = target_buckets[i][j][2] * ((double_t)(target_buckets[i][j][1] - target_buckets[i][j][0]) / 12);
-                double_t error2 = target_buckets[i][j+1][2] * ((double_t)(target_buckets[i][j+1][1] - target_buckets[i][j+1][0]) / 12);
-                double_t error3 = temp_bucket[2] * ((double_t)(temp_bucket[1] - temp_bucket[0]) / 12);
-                double_t new_error = v_error - error1 - error2 + error3;
-                if (new_error < min) {
-                    min = new_error;
-                    k = j;
-                }
-            }
-            target_buckets[i][k][2] += target_buckets[i][k+1][2];
-            target_buckets[i][k][1] = target_buckets[i][k+1][1];
-            target_buckets[i].erase(target_buckets[i].begin() + k + 1);
-            v_error = min;
-        }
-    }
-}
-
-void Histogram::create_frequency_vectors(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
-    for (int i = 0; i < labels; i++) {
-        relation_pairs.push_back({});
-        reverse_relation_pairs.push_back({});
-        total_relations.push_back({0});
-        source_relations_count.push_back({});
-        target_relations_count.push_back({});
-        distinct_source_relations.push_back({0});
-        distinct_target_relations.push_back({0});
-        for (int k = 0; k < vertices; k++) {
-            relation_pairs[i].push_back({});
-            reverse_relation_pairs[i].push_back({});
-            source_relations_count[i].push_back({0});
-            target_relations_count[i].push_back({0});
-        }
-    }
-
-    for (uint32_t i = 0; i < adj.size(); i++){
-        for (uint32_t j = 0; j < adj[i].size() ; j++) {
-            uint32_t rel_type = adj[i][j].first;
-            uint32_t rel_target = adj[i][j].second;
-            source_relations_count[rel_type][i]++;
-            target_relations_count[rel_type][rel_target]++;
-            total_relations[rel_type]++;
-            relation_pairs[rel_type][i].push_back(std::make_pair(i, rel_target));
-            reverse_relation_pairs[rel_type][rel_target].push_back(std::make_pair(rel_target, i));
-        }
-    }
-    for (int rel = 0; rel < labels; rel++) {
-        for (int i = 0; i < vertices; i++) {
-            if (source_relations_count[rel][i] > 0) {
-                distinct_source_relations[rel] += 1;
-            }
-            if (target_relations_count[rel][i] > 0)
-                distinct_target_relations[rel] += 1;
-        }
-    }
-
-    multidimensional_matrix.push_back({});
-    for (int rel_x = 0; rel_x < labels; rel_x++) {
-        multidimensional_matrix.push_back({});
-        for (int rel_y = 0; rel_y < labels; rel_y++) {
-            multidimensional_matrix[rel_x].push_back({});
-            for (int x_normal = 0; x_normal < 2; x_normal++) {
-                multidimensional_matrix[rel_x][rel_y].push_back({});
-                std::vector<std::vector<std::pair<uint32_t, uint32_t>>> x_pairs;
-                if (x_normal == 0)
-                    x_pairs = relation_pairs[rel_x];
-                else
-                    x_pairs = reverse_relation_pairs[rel_x];
-
-                for (int y_normal = 0; y_normal < 2; y_normal++) {
-                    multidimensional_matrix[rel_x][rel_y][x_normal].push_back({});
-                    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> y_pairs;
-                    if (y_normal == 0)
-                        y_pairs = relation_pairs[rel_y];
-                    else
-                        y_pairs = reverse_relation_pairs[rel_y];
-                    uint32_t tuples = 0;
-                    std::vector<uint32_t> source_answers = {};
-                    std::vector<uint32_t> middle_answers = {};
-                    std::vector<uint32_t> final_answers = {};
-                    for (int source_x = 0; source_x < x_pairs.size(); source_x++) {
-                        for (int k = 0; k < x_pairs[source_x].size(); k++) {
-                            uint32_t target = x_pairs[source_x][k].second;
-                            if (y_pairs[target].size() > 0) {
-                                source_answers.push_back(source_x);
-                                middle_answers.push_back(target);
-                            }
-                            for (int source_y = 0; source_y < y_pairs[target].size(); source_y++) {
-                                uint32_t final_target = y_pairs[target][source_y].second;
-                                final_answers.push_back(final_target);
-                                tuples += 1;
-                            }
-                        }
-                    }
-                    uint32_t source_count = std::distance(source_answers.begin(),
-                                                          std::unique(source_answers.begin(), source_answers.end()));
-                    uint32_t middle_count = std::distance(middle_answers.begin(),
-                                                          std::unique(middle_answers.begin(), middle_answers.end()));
-                    uint32_t final_count = std::distance(final_answers.begin(),
-                                                         std::unique(final_answers.begin(), final_answers.end()));
-
-                    multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {tuples, source_count, middle_count, final_count};
-                    //            if (final_count > 0 ){
-                    //                std::cout << std::endl;
-                    //                std::cout << "For " << rel_x << " and " << rel_y << std::endl;
-                    //                std::cout << tuples << std::endl;
-                    //                std::cout << middle_count << std::endl;
-                    //                std::cout << final_count << std::endl;
-                    //            }
-                }
-            }
-        }
-    }
-}
-
-void Histogram::print_histogram(uint32_t query_var, uint32_t relation) {
-    std::cout << "Histogram " << histogram_type << " for " << query_var << " relation " << relation << std::endl;
-    if (query_var == 0) {
-        for (int i = 0; i < source_buckets[relation].size(); i++) {
-            std::cout << source_buckets[relation][i][0] << "\t" << source_buckets[relation][i][1] << "\t"
-                      << source_buckets[relation][i][2] << std::endl;
-        }
-    }
-    else if (query_var == 1) {
-        for (int i = 0; i < target_buckets[relation].size(); i++) {
-            std::cout << target_buckets[relation][i][0] << "\t" << target_buckets[relation][i][1] << "\t"
-                      << target_buckets[relation][i][2] << std::endl;
-        }
-    }
-    std::cout << std::endl;
-}
-
-uint32_t Histogram::get_query_results(uint32_t nodeID, uint32_t query_var, uint32_t relation) {
-    if (nodeID > vertices)
-        return -1;
-    int i = 0;
-    if (query_var == 0) {
-        int noBuckets = source_buckets[relation].size();
-        while (nodeID > source_buckets[relation][i][1]) {
-            i++;
-            if (i == noBuckets)
-                return -1;
-        }
-        return source_buckets[relation][i][2];
-    }
-    else if (query_var == 1) {
-        int noBuckets = target_buckets[relation].size();
-        while (nodeID > target_buckets[relation][i][1]) {
-            i++;
-            if (i == noBuckets)
-                return -1;
-        }
-        return target_buckets[relation][i][2]/(target_buckets[relation][i][1]-target_buckets[relation][i][0]);
-    }
-    else
-        return -1;
-}
-
 
 /////
 ///// Stats class
@@ -372,10 +15,6 @@ Stats::Stats(uint32_t noLabels, uint32_t noVertices) {
     total_relations.push_back({});
     distinct_source_relations.push_back({});
     distinct_target_relations.push_back({});
-}
-
-Stats::~Stats() {
-    // TODO: Free all memory
 }
 
 void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
@@ -452,13 +91,6 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                             }
                         }
                     }
-                    // std::cout << rel_x << "  " <<
-                    //     rel_y << "  " <<
-                    //     x_normal << "  " <<
-                    //     tuples << "  " <<
-                    //     source_answers.size() << "  " <<
-                    //     middle_answers.size() << "  " <<
-                    //     final_answers.size() << std::endl;
 
                     multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {
                             tuples,
@@ -542,33 +174,7 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
             };
         }
     }
-    // std::cout << "|T|=" << multidimensional_matrix[3][2][1][0][0] <<
-    //     "   s=" << multidimensional_matrix[3][2][1][0][1] <<
-    //     "   m=" << multidimensional_matrix[3][2][1][0][2] <<
-    //     "   o=" << multidimensional_matrix[3][2][1][0][3] << std::endl;
-    // std::cout << "|T|=" << multidimensional_matrix[2][3][1][0][0] <<
-    //     "   s=" << multidimensional_matrix[2][3][1][0][1] <<
-    //     "   m=" << multidimensional_matrix[2][3][1][0][2] <<
-    //     "   o=" << multidimensional_matrix[2][3][1][0][3] << std::endl;
-    // std::cout << "|T|=" << multidimensional_matrix[1][1][1][0][0] <<
-    //     "   s=" << multidimensional_matrix[1][1][1][0][1] <<
-    //     "   m=" << multidimensional_matrix[1][1][1][0][2] <<
-    //     "   o=" << multidimensional_matrix[1][1][1][0][3] << std::endl;
-    // std::cout << "|T|=" << multidimensional_matrix[1][1][0][1][0] <<
-    //     "   s=" << multidimensional_matrix[1][1][0][1][1] <<
-    //     "   m=" << multidimensional_matrix[1][1][0][1][2] <<
-    //     "   o=" << multidimensional_matrix[1][1][0][1][3] << std::endl;
-    // std::cout << "|T|=" << multidimensional_matrix[2][2][0][0][0] <<
-    //     "   s=" << multidimensional_matrix[2][2][0][0][1] <<
-    //     "   m=" << multidimensional_matrix[2][2][0][0][2] <<
-    //     "   o=" << multidimensional_matrix[2][2][0][0][3] << std::endl;
-    // std::cout << "|T|=" << multidimensional_matrix[2][2][1][1][0] <<
-    //     "   s=" << multidimensional_matrix[2][2][1][1][1] <<
-    //     "   m=" << multidimensional_matrix[2][2][1][1][2] <<
-    //     "   o=" << multidimensional_matrix[2][2][1][1][3] << std::endl;
-
 }
-
 
 std::vector<uint32_t> get_relation_info(std::string relation) { // path[0]
     std::vector<uint32_t> relation_info;
@@ -583,7 +189,6 @@ std::vector<uint32_t> get_relation_info(std::string relation) { // path[0]
 
     return relation_info;
 }
-
 
 uint32_t get_in(std::vector<uint32_t> relation_info, Stats stats) {
     if (relation_info[1] == 0) {
@@ -606,7 +211,6 @@ std::vector<std::string> reverse_path(std::vector<std::string> path) {
     return newPath;
 }
 
-
 /////
 ///// SimpleEstimator class
 /////
@@ -620,15 +224,8 @@ void SimpleEstimator::prepare() {
     int noLabels = graph->getNoLabels();
     int noVertices = graph->getNoVertices();
 
-    /// Creation histograms
-    // std::string histogram_type = "equidepth";
-    // histogram = Histogram(histogram_type, noLabels, noVertices);
-    // histogram.create_histograms(graph->adj);
-    // histogram.print_histogram(0, 0);
-    // std::cout << histogram.get_query_results(985, 0, 0) << std::endl;
     stats = Stats(noLabels, noVertices);
     stats.create_stats(graph->adj);
-
 }
 
 
@@ -758,8 +355,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             if (q->s == "*") {
                 if (q->t =="*") { // source: *, target: *
                     noSources = stats.distinct_source_relations[rel_type];
-                    std::cout << path[0][0] << std::endl;
-                    std::cout << rel_type << std::endl;
                     noPaths = stats.total_relations[rel_type];
                     noTargets = stats.distinct_target_relations[rel_type];
                 } else { // source: *, target: i
@@ -819,7 +414,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         }
         else if(relation == "+") { // Transitive Closure relation
 
-            clock_t begin = clock();
             // The sample size for sampling on the entire graph
             float sample = 0.05;
 
@@ -828,19 +422,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noSources = stats.distinct_source_relations[rel_type];
                     noTargets = stats.distinct_target_relations[rel_type];
                     noPaths = stats.total_relations[rel_type] + stats.multidimensional_matrix[rel_type][rel_type][0][0][0];
-                    // auto out = SampleTransitiveClosure(rel_type, sample);
-
-                    // int count = 0;
-                    // for (int i = 0; i < out->adj.size(); i++) {
-                    //     if(out->adj[i].size() > 0) {
-                    //         count += 1;
-                    //     }
-                    // }
-                    // noSources = count*1/sample;
-                    // // To retrieve 100% value estimate
-                    // noPaths = out->getNoDistinctEdges()*1/sample;
-                    // noTargets = count*1/sample;
-
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
                     auto out = SampleTransitiveClosure(rel_type, t_i, true);
@@ -863,9 +444,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     int t_j = std::stoi(q->t);
                 }
             }
-            clock_t stop = clock();
-            double elapsed_secs = double(stop - begin) / CLOCKS_PER_SEC;
-            std::cout << "For TC: " << elapsed_secs << std::endl;
         }
     } else if(path.size() > 1) {
         /// There is atleast 1 join in the query,
@@ -880,7 +458,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
         if ((q->s == "*") && (q->t == "*")) { // source: *
             if (q->t == "*") { // source: *, target: *
-                clock_t begin = clock();
                 std::vector<uint32_t> relation_i;
                 std::vector<uint32_t> relation_j;
 
@@ -900,23 +477,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 float middle_j;   // l1/l2.middle
                 float d_oj;       // d(o, T_{l1/l2})
 
-                // past join iterations
-                // uint32_t T;      // |T_{r/l1/l2}|
-                // uint32_t d_s;    // d(s, T_{r/l1/l2})
-                // uint32_t d_o;    // d(o, T_{r/l1/l2})
-
                 relation_i = get_relation_info(path[0]);
                 relation_j = get_relation_info(path[1]);
                 // std::cout << "\n    path_0: " << path[0] << "  relation_0: " << relation_i[0] << " " << relation_i[1] << std::endl;
-                if ((relation_i[1] == 2) || (relation_j[1] == 2))
-                    std::cout << "TC FOUND!" << std::endl;
-
-                // T = stats.total_relations[relation_i[0]];
-                // if (relation_j[0] == 0) {
-                //     d_oi = histogram.distinct_target_relations[relation_j[0]];
-                // } else {
-                //     d_oi = histogram.distinct_target_relations[relation_j[0]];
-                // }
 
                 join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
                 T_i = join_stats[0];
@@ -964,16 +527,13 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 noSources = d_si;
                 noPaths = T_i;
                 noTargets = d_oi;
-                clock_t stop = clock();
-                double elapsed_secs = double(stop - begin) / CLOCKS_PER_SEC;
-                std::cout << "For join on 2 stars: " << elapsed_secs << std::endl;
-            } else { // source: *, target: j
-                // should never happen -> reverse path
-                std::cout << "WRONG: source: *, target: j" << std::endl;
             }
+            // else { // source: *, target: j
+            //     // should never happen -> reverse path
+            //     std::cout << "WRONG: source: *, target: j" << std::endl;
+            // }
         } else {
             if (q->t == "*" || q->s == "*") { // source: i, target: *
-                clock_t begin = clock();
                 // std::cout << "source: i, target: *" << std::endl;
                 uint32_t source;
                 // basic info
@@ -997,16 +557,13 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 else
                     T_i = stats.target_relations_count[relation_i[0]][source];
 
+
                 // multidimensional matrix
                 std::vector<uint32_t> join_stats;
                 float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
                 float d_sj;       // d(s, T_{l1/l2})
                 float middle_j;   // l1/l2.middle
                 float d_oj;       // d(o, T_{l1/l2})
-
-
-                if (relation_i[1] == 2)
-                    std::cout << "TC FOUND!" << std::endl;
 
                 d_oi = T_i;
                 // std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
@@ -1023,7 +580,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     // std::cout << "        in: " << in << std::endl;
 
                     join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-
                     T_j = join_stats[0];
                     d_sj = join_stats[1];
                     middle_j = join_stats[2];
@@ -1041,9 +597,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     relation_i = relation_j;
                     T_i = (T_i+d_oi)/2;
                     d_oi = T_i;
-                    clock_t stop = clock();
-                    double elapsed_secs = double(stop - begin) / CLOCKS_PER_SEC;
-                    std::cout << "For join on 1 star: " << elapsed_secs << std::endl;
                 }
 
                 // middle_j = join_stats[2];
@@ -1062,79 +615,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noSources = d_oi;
                     noTargets = T_i > 0;
                 }
-                clock_t stop = clock();
-                double elapsed_secs = double(stop - begin) / CLOCKS_PER_SEC;
-                std::cout << "For join on 1 star: " << elapsed_secs << std::endl;
+
             } else { // source: i, target: j
-                clock_t begin = clock();
-                // std::cout << "source: i, target: *" << std::endl;
-                uint32_t source;
-                // basic info
-                float in;     // l1.in
-                float T_i;
-                float d_si;
-                // uint32_t middle_i;
-                float d_oi;   // d(o, T_{r/l1})
 
-                std::vector<uint32_t> relation_i;
-                std::vector<uint32_t> relation_j;
-                float part1;
-
-                relation_i = get_relation_info(path[0]);
-                source = std::stoi(q->s);
-                if (relation_i[1] == 0)
-                    T_i = stats.source_relations_count[relation_i[0]][source];
-                else
-                    T_i = stats.target_relations_count[relation_i[0]][source];
-
-
-                // multidimensional matrix
-                std::vector<uint32_t> join_stats;
-                float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
-                float d_sj;       // d(s, T_{l1/l2})
-                float middle_j;   // l1/l2.middle
-                float d_oj;       // d(o, T_{l1/l2})
-
-
-                if (relation_i[1] == 2)
-                    std::cout << "TC FOUND!" << std::endl;
-
-                d_oi = T_i;
-                // std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
-
-                for (int j = 1; j < path.size(); j++) {
-                    // std::cout << "\n        results d_si: " << d_si;
-                    // std::cout << "        results T_i: " << T_i;
-                    // std::cout << "        results d_oi: " << d_oi << std::endl;
-                    relation_j = get_relation_info(path[j]);
-                    // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
-                    // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
-
-                    in = get_in(relation_i, stats);
-                    // std::cout << "        in: " << in << std::endl;
-
-                    join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-                    T_j = join_stats[0];
-                    d_sj = join_stats[1];
-                    middle_j = join_stats[2];
-                    d_oj = join_stats[3];
-
-                    // calculations
-                    part1 = middle_j / in;
-                    d_si = d_si * part1;
-                    T_i = T_i * part1 * (T_j / d_sj);
-                    d_oi = d_oi * d_oj / in;
-
-                    relation_i = relation_j;
-                    T_i = (T_i+d_oi)/2;
-                    d_oi = T_i;
-                }
-                noPaths = T_i;
-                noSources = d_oi;
-                noTargets = T_i > 0;
-                clock_t stop = clock();
-                double elapsed_secs = double(stop - begin) / CLOCKS_PER_SEC;
-                std::cout << "For join on no star: " << elapsed_secs << std::endl;
             }
         }
 
@@ -1306,14 +789,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         //             }
         //             card = card * result;
 
-        //             noSources = 1;
-        //             noPaths = card;
-        //             noTargets = count*1/sample;
+        //             noSources = 1; 
+        //             noPaths = card; 
+        //             noTargets = count*1/sample;  
 
         //         } else { // - Source: i, Target: j
         //             int t_j = std::stoi(q->t);
         //         }
-        //     }
+        //     }  
         // }
     }
 
