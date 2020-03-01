@@ -11,7 +11,7 @@
 Stats::Stats(uint32_t noLabels, uint32_t noVertices) {
     labels = noLabels;
     vertices = noVertices;
-    
+
     total_relations.push_back({});
     distinct_source_relations.push_back({});
     distinct_target_relations.push_back({});
@@ -22,11 +22,11 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
     source_relations_count = std::vector<std::vector<uint32_t>> (labels, std::vector<uint32_t> (vertices));
     target_relations_count = std::vector<std::vector<uint32_t>> (labels, std::vector<uint32_t> (vertices));
     relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
-        std::vector<std::vector<uint32_t>> (vertices,
-            std::vector<uint32_t> ()));
+                                                                      std::vector<std::vector<uint32_t>> (vertices,
+                                                                                                          std::vector<uint32_t> ()));
     reverse_relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
-        std::vector<std::vector<uint32_t>> (vertices,
-            std::vector<uint32_t> ()));
+                                                                              std::vector<std::vector<uint32_t>> (vertices,
+                                                                                                                  std::vector<uint32_t> ()));
     distinct_source_relations = std::vector<uint32_t> (labels);
     distinct_target_relations = std::vector<uint32_t> (labels);
 
@@ -44,10 +44,10 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
 
     for (uint32_t rel_type = 0; rel_type < labels; rel_type++) {
         for (uint32_t vertice = 0; vertice < vertices; vertice++) {
-             if (source_relations_count[rel_type][vertice] > 0) {
-                 distinct_source_relations[rel_type]++;
-             }
-             if (target_relations_count[rel_type][vertice] > 0)
+            if (source_relations_count[rel_type][vertice] > 0) {
+                distinct_source_relations[rel_type]++;
+            }
+            if (target_relations_count[rel_type][vertice] > 0)
                 distinct_target_relations[rel_type]++;
         }
     }
@@ -56,11 +56,11 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
     multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> (labels,
         std::vector<std::vector<std::vector<std::vector<uint32_t>>>> (labels,
             std::vector<std::vector<std::vector<uint32_t>>> (2,
-                std::vector<std::vector<uint32_t>> (2, 
+                std::vector<std::vector<uint32_t>> (2,
                     std::vector<uint32_t> (4, 0)))));
     std::vector<std::vector<uint32_t>> x_pairs;
     std::vector<std::vector<uint32_t>> y_pairs;
-    
+
     for (uint32_t rel_x = 0; rel_x < labels; rel_x++) {
         for (uint32_t rel_y = 0; rel_y < rel_x; rel_y++) { // < labels
             for (uint32_t x_normal = 0; x_normal < (uint32_t)2; x_normal++) {
@@ -68,7 +68,7 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                     x_pairs = relation_pairs[rel_x];
                 else
                     x_pairs = reverse_relation_pairs[rel_x];
-                
+
                 for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
                     uint32_t tuples = 0;
                     std::unordered_set<uint32_t> source_answers = {};
@@ -93,18 +93,18 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                     }
 
                     multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {
-                        tuples,
-                        (uint32_t)source_answers.size(),
-                        (uint32_t)middle_answers.size(), 
-                        (uint32_t)final_answers.size()
+                            tuples,
+                            (uint32_t)source_answers.size(),
+                            (uint32_t)middle_answers.size(),
+                            (uint32_t)final_answers.size()
                     };
                     multidimensional_matrix[rel_y][rel_x][1-y_normal][1-x_normal] = {
-                        tuples,
-                        (uint32_t)final_answers.size(),
-                        (uint32_t)middle_answers.size(),
-                        (uint32_t)source_answers.size()
-                    };     
-                }              
+                            tuples,
+                            (uint32_t)final_answers.size(),
+                            (uint32_t)middle_answers.size(),
+                            (uint32_t)source_answers.size()
+                    };
+                }
             }
         }
 
@@ -129,10 +129,10 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
         }
         uint32_t source_answers_size = source_answers.size();
         std::vector<uint32_t> result = {
-            tuples,
-            source_answers_size,
-            (uint32_t)middle_answers.size(), 
-            source_answers_size
+                tuples,
+                source_answers_size,
+                (uint32_t)middle_answers.size(),
+                source_answers_size
         };
         multidimensional_matrix[rel_x][rel_x][0][0] = result;
         multidimensional_matrix[rel_x][rel_x][1][1] = result;
@@ -147,7 +147,7 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                 x_pairs = reverse_relation_pairs[rel_x];
                 y_pairs = relation_pairs[rel_x];
             }
-            
+
             uint32_t tuples = 0;
             std::unordered_set<uint32_t> source_answers = {};
             std::unordered_set<uint32_t> middle_answers = {};
@@ -167,13 +167,13 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
             }
 
             multidimensional_matrix[rel_x][rel_x][x_normal][1-x_normal] = {
-                tuples,
-                (uint32_t)source_answers.size(),
-                (uint32_t)middle_answers.size(), 
-                (uint32_t)final_answers.size()
+                    tuples,
+                    (uint32_t)source_answers.size(),
+                    (uint32_t)middle_answers.size(),
+                    (uint32_t)final_answers.size()
             };
         }
-    }    
+    }
 }
 
 std::vector<uint32_t> get_relation_info(std::string relation) { // path[0]
@@ -233,7 +233,7 @@ void SimpleEstimator::prepare() {
 
 /// Parse tree to Vector of queries
 void inorderParse(PathTree *node,
-        std::vector<std::string> *query) {
+                  std::vector<std::string> *query) {
     if (node == nullptr) {
         return;
     }
@@ -260,7 +260,7 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
 /// Sample transitive closure queries
 std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, float sample) {
     auto se = SimpleEvaluator(graph);
-    
+
     int sampleSize = ceil(sample * graph->getNoVertices());
     int numNewAdded = 1;
 
@@ -268,7 +268,7 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, flo
     // Use max upperbound for labels
     auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
     sampleGraph->setNoLabels(sampleSize);
-    
+
     // Use max upperbound for labels
     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
     base->setNoLabels(sampleSize);
@@ -302,16 +302,16 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, flo
 
 /// Sample transitive closure for 1 source or target
 std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int node, bool reverse) {
-    auto se = SimpleEvaluator(graph);    
+    auto se = SimpleEvaluator(graph);
     int numNewAdded = 1;
 
     /// Create sample graph (TC)
     auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    sampleGraph->setNoLabels(1); 
+    sampleGraph->setNoLabels(1);
 
     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
     base->setNoLabels(1);
-    
+
     if (reverse) {
         for (auto labelTarget : graph->reverse_adj[node]) {
 
@@ -327,7 +327,7 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int
             auto target = labelTarget.second;
             sampleGraph->addEdge(0, target, 0);
             base->addEdge(0, target, 0);
-        }    
+        }
     }
 
     while (numNewAdded) {
@@ -347,12 +347,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
 
-    /// Either there are no joins (e.g. just 1 relation/table) 
+    /// Either there are no joins (e.g. just 1 relation/table)
     /// or it's a transitive closure (TC).
     if (path.size() == 1) {
         rel_type = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
-        
+
         if (relation == ">") { // forward relation, (s,t) such that (s, l, t)
             if (q->s == "*") {
                 if (q->t =="*") { // source: *, target: *
@@ -364,7 +364,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     int result = stats.target_relations_count[rel_type][t_i];
                     noSources = result;
                     noPaths = result;
-                    noTargets = 1;                   
+                    noTargets = 1;
                 }
             } else {
                 int s_i = std::stoi(q->s);
@@ -376,8 +376,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noTargets = result;
                 } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
-                    int result = std::min(stats.target_relations_count[rel_type][t_i], 
-                        stats.source_relations_count[rel_type][s_i]);
+                    int result = std::min(stats.target_relations_count[rel_type][t_i],
+                                          stats.source_relations_count[rel_type][s_i]);
                     noSources = result;
                     noPaths = result;
                     noTargets = result;
@@ -392,9 +392,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 } else { // source: *, target: j
                     int t_i = std::stoi(q->t);
                     int result = stats.source_relations_count[rel_type][t_i];
-                    noSources = result; 
-                    noPaths = result; 
-                    noTargets = 1;                  
+                    noSources = result;
+                    noPaths = result;
+                    noTargets = 1;
                 }
             } else {
                 int s_i = std::stoi(q->s);
@@ -406,8 +406,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noTargets = result;
                 } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
-                    int result = std::min(stats.source_relations_count[rel_type][t_i], 
-                        stats.target_relations_count[rel_type][s_i]);
+                    int result = std::min(stats.source_relations_count[rel_type][t_i],
+                                          stats.target_relations_count[rel_type][s_i]);
                     noSources = result;
                     noPaths = result;
                     noTargets = result;
@@ -428,8 +428,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     int t_i = std::stoi(q->t);
                     auto out = SampleTransitiveClosure(rel_type, t_i, true);
 
-                    noSources = out->getNoDistinctEdges(); 
-                    noPaths = out->getNoDistinctEdges(); 
+                    noSources = out->getNoDistinctEdges();
+                    noPaths = out->getNoDistinctEdges();
                     noTargets = 1;
                 }
             } else {
@@ -439,11 +439,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     auto out = SampleTransitiveClosure(rel_type, s_i, false);
 
                     noSources = 1;
-                    noPaths = out->getNoDistinctEdges(); 
+                    noPaths = out->getNoDistinctEdges();
                     noTargets = out->getNoDistinctEdges();
                 } else { // - Source: i, Target: j
                 }
-            }  
+            }
         }
     } else if(path.size() > 1) {
         /// There is atleast 1 join in the query,
@@ -453,7 +453,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         /// Order left to right => s = 1 and t = "*", so reverse
         if (q->t != "*") {
             path = reverse_path(path);
-        }        
+        }
 
 
         if ((q->s == "*") && (q->t == "*")) { // source: *
@@ -487,7 +487,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 // int middle_i = join_stats[2];
                 d_oi = join_stats[3];
                 // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
-                
+
                 for (int j = 2; j < path.size(); j++) {
                     // std::cout << "\n        results d_si: " << d_si;
                     // std::cout << "        results T_i: " << T_i;
@@ -527,7 +527,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 noSources = d_si;
                 noPaths = T_i;
                 noTargets = d_oi;
-            } 
+            }
             // else { // source: *, target: j
             //     // should never happen -> reverse path
             //     std::cout << "WRONG: source: *, target: j" << std::endl;
@@ -548,20 +548,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 float part1;
 
                 relation_i = get_relation_info(path[0]);
-                if ((q->t == "*")) {
+                if ((q->t == "*"))
                     source = std::stoi(q->s);
-                    if (relation_i[0] == 0)
-                        T_i = stats.source_relations_count[relation_i[0]][source];
-                    else
-                        T_i = stats.target_relations_count[relation_i[0]][source];
-                }
-                else {
+                else
                     source = std::stoi(q->t);
-                    if (relation_i[0] == 0)
-                        T_i = stats.source_relations_count[relation_i[0]][source];
-                    else
-                        T_i = stats.target_relations_count[relation_i[0]][source];
-                }
+                if (relation_i[1] == 0)
+                    T_i = stats.source_relations_count[relation_i[0]][source];
+                else
+                    T_i = stats.target_relations_count[relation_i[0]][source];
 
                 // multidimensional matrix
                 std::vector<uint32_t> join_stats;
@@ -569,10 +563,10 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 float d_sj;       // d(s, T_{l1/l2})
                 float middle_j;   // l1/l2.middle
                 float d_oj;       // d(o, T_{l1/l2})
-                
+
                 d_oi = T_i;
                 // std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
-                
+
                 for (int j = 1; j < path.size(); j++) {
                     // std::cout << "\n        results d_si: " << d_si;
                     // std::cout << "        results T_i: " << T_i;
@@ -602,7 +596,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     relation_i = relation_j;
                     T_i = (T_i+d_oi)/2;
                     d_oi = T_i;
-                } 
+                }
 
                 // middle_j = join_stats[2];
                 // part1 = (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
@@ -610,7 +604,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 // T_i = (float)stats.total_relations[relation_i[0]] * (float)part1 * ((float)stats.total_relations[relation_j[0]]/(float)stats.distinct_source_relations[relation_j[1]]);
                 // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
                 // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
-                
+
                 noPaths = T_i;
                 if (q->t == "*") {
                     noSources = T_i > 0;
@@ -626,6 +620,8 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }
         }
 
+
+
         /// Cases of joins:
         /// Order doesn't matter => s = "*" and t = "*"
         /// Order right to left => s = "*" and t = 1
@@ -634,7 +630,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         //     std::reverse(path.begin(), path.end());
         // }
 
-        /// Source and target tuple/"Table" 
+        /// Source and target tuple/"Table"
         // int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
         // int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
         // float card = 1;
@@ -659,11 +655,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         //                 card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
         //             }
         //             card = card * graph->getNoVertices();
-                    
+
         //             noSources = histogram.distinct_target_relations[T_s];
         //             noPaths = card;
         //             noTargets = histogram.distinct_source_relations[T_t];
-                
+
         //         } else { // - Source: *, Target: i
         //             int t_i = std::stoi(q->t);
 
@@ -674,9 +670,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         //             }
         //             card = card * graph->getNoVertices();
 
-        //             noSources = card; 
-        //             noPaths = card; 
-        //             noTargets = 1;                  
+        //             noSources = card;
+        //             noPaths = card;
+        //             noTargets = 1;
         //         }
         //     } else {
         //         int s_i = std::stoi(q->s);
@@ -688,14 +684,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         //             }
         //             card = card * graph->getNoVertices();
 
-        //             noSources = 1; 
-        //             noPaths = card; 
+        //             noSources = 1;
+        //             noPaths = card;
         //             noTargets = card;
 
         //         } else { // - Source: i, Target: j
         //             /// TODO: Implement
         //             int t_i = std::stoi(q->t);
-        //             int result = std::min(histogram.source_relations_count[T_s][t_i], 
+        //             int result = std::min(histogram.source_relations_count[T_s][t_i],
         //                 histogram.target_relations_count[T_t][s_i]);
         //             noSources = result;
         //             noPaths = result;
@@ -705,7 +701,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         // } else { /// The path contains TC
         //     float sample = 0.05;
 
-        //     if (q->s == "*") { 
+        //     if (q->s == "*") {
         //         if (q->t =="*") { // - Source: *, Target: *
         //             float result = 1;
         //             int count = 0;
@@ -738,16 +734,16 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         //                 noPaths = 0;
         //                 noTargets = 0;
         //             }
-                    
+
         //         } else { // - Source: *, Target: i
-        //             int t_i = std::stoi(q->t);                    
+        //             int t_i = std::stoi(q->t);
         //             float result = 1;
         //             int count = 0;
 
         //             for (int i = 0; i < path.size(); i++) {
         //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
         //                 auto out =  SampleTransitiveClosure(T, t_i, true);
-                        
+
         //                 if(i == 0) {
         //                     for (int i = 0; i < out->adj.size(); i++) {
         //                        if(out->adj[i].size() > 0) {
@@ -763,20 +759,20 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         //             }
         //             card = card * result;
 
-        //             noSources = count*1/sample; 
-        //             noPaths = card; 
-        //             noTargets = 1;    
+        //             noSources = count*1/sample;
+        //             noPaths = card;
+        //             noTargets = 1;
         //         }
         //     } else { // - Source: i
         //         int s_i = std::stoi(q->s);
-        //         if (q->t =="*") { // - Source: i, Target: *             
+        //         if (q->t =="*") { // - Source: i, Target: *
         //             float result = 1;
         //             int count = 0;
 
         //             for (int i = 0; i < path.size(); i++) {
         //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
         //                 auto out =  SampleTransitiveClosure(T, s_i, false);
-                        
+
         //                 if(i == 0) {
         //                     for (int i = 0; i < out->adj.size(); i++) {
         //                        if(out->adj[i].size() > 0) {
