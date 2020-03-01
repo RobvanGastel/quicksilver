@@ -114,69 +114,69 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
 
         /// for rel_y == rel_x
 
-        // /// rel_x 0 / rel_x 0 && rel_x 1 / rel_x 1
-        // tuples = 0;
-        // source_answers = {};
-        // middle_answers = {};
-        // final_answers = {};
-        // x_pairs = relation_pairs[rel_x];
-        // for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs.size(); source_x++) {
-        //     for (uint32_t i = 0; i < x_pairs[source_x].size(); i++) {
-        //         x_target = x_pairs[source_x][i];
+        /// rel_x 0 / rel_x 0 && rel_x 1 / rel_x 1
+        tuples = 0;
+        source_answers = {};
+        middle_answers = {};
+        final_answers = {};
+        x_pairs = &relation_pairs[rel_x];
+        for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs->size(); source_x++) {
+            for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
+                x_target = x_pairs->at(source_x)[i];
 
-        //         if (x_pairs[x_target].size() > (uint32_t)0) {
-        //             source_answers.insert(source_x);
-        //             middle_answers.insert(x_target);
-        //             tuples += x_pairs[x_target].size();
-        //         }
-        //     }
-        // }
-        // source_answers_size = source_answers.size();
-        // result = {
-        //         tuples,
-        //         source_answers_size,
-        //         (uint32_t)middle_answers.size(),
-        //         source_answers_size
-        // };
-        // multidimensional_matrix[rel_x][rel_x][0][0] = result;
-        // multidimensional_matrix[rel_x][rel_x][1][1] = result;
+                if (x_pairs->at(x_target).size() > (uint32_t)0) {
+                    source_answers.insert(source_x);
+                    middle_answers.insert(x_target);
+                    tuples += x_pairs->at(x_target).size();
+                }
+            }
+        }
+        source_answers_size = source_answers.size();
+        result = {
+                tuples,
+                source_answers_size,
+                (uint32_t)middle_answers.size(),
+                source_answers_size
+        };
+        multidimensional_matrix[rel_x][rel_x][0][0] = result;
+        multidimensional_matrix[rel_x][rel_x][1][1] = result;
 
-        // // rel_x 0 / rel_x 1 && rel_x 1 / rel_x 0
-        // for (uint32_t x_normal = 0; x_normal < (uint32_t)2; x_normal++) {
-        //     if (x_normal == (uint32_t)0) {
-        //         x_pairs = relation_pairs[rel_x];
-        //         y_pairs = reverse_relation_pairs[rel_x];
-        //     }
-        //     else {
-        //         x_pairs = reverse_relation_pairs[rel_x];
-        //         y_pairs = relation_pairs[rel_x];
-        //     }
+        // rel_x 0 / rel_x 1 && rel_x 1 / rel_x 0
+        for (uint32_t x_normal = 0; x_normal < (uint32_t)2; x_normal++) {
+            if (x_normal == (uint32_t)0) {
+                x_pairs = &relation_pairs[rel_x];
+                y_pairs = &reverse_relation_pairs[rel_x];
+            }
+            else {
+                x_pairs = &reverse_relation_pairs[rel_x];
+                y_pairs = &relation_pairs[rel_x];
+            }
 
-        //     tuples = 0;
-        //     source_answers = {};
-        //     middle_answers = {};
-        //     final_answers = {};
+            tuples = 0;
+            source_answers = {};
+            middle_answers = {};
+            final_answers = {};
 
-        //     for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs.size(); source_x++) {
-        //         for (uint32_t i = 0; i < x_pairs[source_x].size(); i++) {
-        //             x_target = x_pairs[source_x][i];
+            for (uint32_t source_x = 0; source_x < (uint32_t)x_pairs->size(); source_x++) {
+                for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
+                    x_target = x_pairs->at(source_x)[i];
 
-        //             if (y_pairs[x_target].size() > (uint32_t)0) {
-        //                 source_answers.insert(source_x);
-        //                 middle_answers.insert(x_target);
-        //                 final_answers.insert(y_pairs[x_target].begin(), y_pairs[x_target].end());
-        //                 tuples += y_pairs[x_target].size();
-        //             }
-        //         }
-        //     }
+                    if (y_pairs->at(x_target).size() > (uint32_t)0) {
+                        source_answers.insert(source_x);
+                        middle_answers.insert(x_target);
+                        final_answers.insert(y_pairs->at(x_target).begin(), y_pairs->at(x_target).end());
+                        tuples += y_pairs->at(x_target).size();
+                    }
+                }
+            }
 
-        //     multidimensional_matrix[rel_x][rel_x][x_normal][1-x_normal] = {
-        //             tuples,
-        //             (uint32_t)source_answers.size(),
-        //             (uint32_t)middle_answers.size(),
-        //             (uint32_t)final_answers.size()
-        //     };
-        // }
+            multidimensional_matrix[rel_x][rel_x][x_normal][1-x_normal] = {
+                    tuples,
+                    (uint32_t)source_answers.size(),
+                    (uint32_t)middle_answers.size(),
+                    (uint32_t)final_answers.size()
+            };
+        }
     }
 }
 
