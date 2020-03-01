@@ -594,13 +594,13 @@ uint32_t get_in(std::vector<uint32_t> relation_info, Stats stats) {
     }
 }
 
-std::vector<std::__cxx11::string> reverse_path(std::vector<std::__cxx11::string> path) {
-    std::vector<std::__cxx11::string> newPath;
+std::vector<std::string> reverse_path(std::vector<std::string> path) {
+    std::vector<std::string> newPath;
     for (int i = path.size()-1; i >= 0 ; i--) {
         if (path[i].substr(1, 2) == ">")
-            newPath.push_back(path[i].substr(0, 1)+(std::__cxx11::string)"<");
+            newPath.push_back(path[i].substr(0, 1)+(std::string)"<");
         else
-            newPath.push_back(path[i].substr(0, 1)+(std::__cxx11::string)">");
+            newPath.push_back(path[i].substr(0, 1)+(std::string)">");
     }
     return newPath;
 }
@@ -957,7 +957,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 std::cout << "WRONG: source: *, target: j" << std::endl;
             }
         } else {
-            if ((q->t == "*") || q->s == "*") { // source: i, target: *
+            if (q->t == "*" || q->s == "*") { // source: i, target: *
                 std::cout << "source: i, target: *" << std::endl;
                 uint32_t source;
                 // basic info
@@ -996,7 +996,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 float d_oj;       // d(o, T_{l1/l2})
                 
                 
-                if ((relation_i[1] == 2))
+                if (relation_i[1] == 2)
                     std::cout << "TC FOUND!" << std::endl;
                 
                 d_oi = T_i;
@@ -1041,7 +1041,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
                 
                 noPaths = T_i;
-                if ((q->t == "*")) {
+                if (q->t == "*") {
                     noSources = T_i > 0;
                     noTargets = d_oi;
                 }
