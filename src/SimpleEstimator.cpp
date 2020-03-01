@@ -80,40 +80,55 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                     x_pairs = &reverse_relation_pairs[rel_x];
 
                 for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
-                    if ((rel_x == rel_y) && (x_normal == 1) && (y_normal == 1))
-                        break;
                     tuples = 0;
-                    source_answers = {};
-                    middle_answers = {};
-                    final_answers = {};
-                    if (y_normal == (uint32_t)0)
-                        y_pairs = &relation_pairs[rel_y];
-                    else
-                        y_pairs = &reverse_relation_pairs[rel_y];
+                    
+                    if ((rel_x == rel_y) && (x_normal != y_normal)) {
+                        if (x_normal == 0){
+                            s = distinct_source_relations[rel_x];
+                            m = distinct_target_relations[rel_x];
 
-                    for (uint32_t source_x = 0; source_x < x_pairs->size(); source_x++) {
-                        for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
-                            x_target = x_pairs->at(source_x)[i];
+                            y_pairs = &reverse_relation_pairs[rel_y];
 
-                            if (y_pairs->at(x_target).size() > (uint32_t)0) {
-                                source_answers.insert(source_x);
-                                middle_answers.insert(x_target);
-                                final_answers.insert(y_pairs->at(x_target).begin(), y_pairs->at(x_target).end());
-                                tuples += y_pairs->at(x_target).size();
+                            for (uint32_t source_x = 0; source_x < x_pairs->size(); source_x++) {
+                                for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
+                                    x_target = x_pairs->at(source_x)[i];
+
+                                    if (y_pairs->at(x_target).size() > (uint32_t)0) {
+                                        tuples += y_pairs->at(x_target).size();
+                                    }
+                                }
                             }
-                        }
-                    }
 
-                    s = source_answers.size();
-                    m = middle_answers.size();
-                    f = final_answers.size();
-
-                    multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {tuples, s, m, f};
-                    if (rel_x == rel_y) {
-                        if (x_normal == y_normal) {
-                            multidimensional_matrix[rel_x][rel_x][1][1] = {tuples, s, m, f};
+                            multidimensional_matrix[rel_x][rel_x][0][1] = {tuples, s, m, s};
+                            multidimensional_matrix[rel_x][rel_x][1][0] = {tuples, s, m, s};
                         }
                     } else {
+                        source_answers = {};
+                        middle_answers = {};
+                        final_answers = {};
+                        if (y_normal == (uint32_t)0)
+                            y_pairs = &relation_pairs[rel_y];
+                        else
+                            y_pairs = &reverse_relation_pairs[rel_y];
+
+                        for (uint32_t source_x = 0; source_x < x_pairs->size(); source_x++) {
+                            for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
+                                x_target = x_pairs->at(source_x)[i];
+
+                                if (y_pairs->at(x_target).size() > (uint32_t)0) {
+                                    source_answers.insert(source_x);
+                                    middle_answers.insert(x_target);
+                                    final_answers.insert(y_pairs->at(x_target).begin(), y_pairs->at(x_target).end());
+                                    tuples += y_pairs->at(x_target).size();
+                                }
+                            }
+                        }
+
+                        s = source_answers.size();
+                        m = middle_answers.size();
+                        f = final_answers.size();
+
+                        multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {tuples, s, m, f};
                         multidimensional_matrix[rel_y][rel_x][1-y_normal][1-x_normal] = {tuples, f, m, s};
                     }
                 }
