@@ -190,7 +190,7 @@ std::vector<uint32_t> get_relation_info(std::string relation) { // path[0]
     return relation_info;
 }
 
-uint32_t get_in(std::vector<uint32_t> relation_info, Stats stats) {
+uint32_t SimpleEstimator::get_in(std::vector<uint32_t> relation_info) {
     if (relation_info[1] == 0) {
         return stats.distinct_target_relations[relation_info[0]];
     } else if (relation_info[1] == 1) {
@@ -205,8 +205,10 @@ std::vector<std::string> reverse_path(std::vector<std::string> path) {
     for (int i = path.size()-1; i >= 0 ; i--) {
         if (path[i].substr(1, 2) == ">")
             newPath.push_back(path[i].substr(0, 1)+(std::string)"<");
-        else
+        else if (path[i].substr(1, 2) == "<")
             newPath.push_back(path[i].substr(0, 1)+(std::string)">");
+        else
+            newPath.push_back(path[i]);
     }
     return newPath;
 }
@@ -440,8 +442,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noPaths = out->getNoDistinctEdges(); 
                     noTargets = out->getNoDistinctEdges();
                 } else { // - Source: i, Target: j
-                    /// TODO: Implement or ignore?
-                    int t_j = std::stoi(q->t);
                 }
             }  
         }
@@ -497,7 +497,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
                     // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
 
-                    in = get_in(relation_i, stats);
+                    in = get_in(relation_i);
                     // std::cout << "        in: " << in << std::endl;
 
                     join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
@@ -563,7 +563,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                         T_i = stats.target_relations_count[relation_i[0]][source];
                 }
 
-
                 // multidimensional matrix
                 std::vector<uint32_t> join_stats;
                 float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
@@ -582,7 +581,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
                     // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
 
-                    in = get_in(relation_i, stats);
+                    in = get_in(relation_i);
                     // std::cout << "        in: " << in << std::endl;
 
                     join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
@@ -626,8 +625,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
             }
         }
-    
-    
 
         /// Cases of joins:
         /// Order doesn't matter => s = "*" and t = "*"

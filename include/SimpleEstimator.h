@@ -39,6 +39,7 @@ class SimpleEstimator : public Estimator {
     Stats stats;
     std::shared_ptr<SimpleGraph> SampleTransitiveClosure(int T, float sample);
     std::shared_ptr<SimpleGraph> SampleTransitiveClosure(int T, int source, bool reverse);
+    uint32_t get_in(std::vector<uint32_t> relation_info);
     // Data structure to store vector of tuples for each relation
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> relation_vector;
 
