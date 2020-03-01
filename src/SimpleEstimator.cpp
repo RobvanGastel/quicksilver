@@ -55,15 +55,10 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
 
     // // matrix[rel_label_i][rel_label_j][rel_type_i][rel_type_j] = {tuples, source_dist, middle_dist, final_dist}
     multidimensional_matrix = std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>>(labels,
-                                                                                                        std::vector<std::vector<std::vector<std::vector<uint32_t>>>>(
-                                                                                                                labels,
-                                                                                                                std::vector<std::vector<std::vector<uint32_t>>>(
-                                                                                                                        2,
-                                                                                                                        std::vector<std::vector<uint32_t>>(
-                                                                                                                                2,
-                                                                                                                                std::vector<uint32_t>(
-                                                                                                                                        4,
-                                                                                                                                        0)))));
+            std::vector<std::vector<std::vector<std::vector<uint32_t>>>>(labels,
+                    std::vector<std::vector<std::vector<uint32_t>>>(2,
+                            std::vector<std::vector<uint32_t>>(2,
+                                    std::vector<uint32_t>(4,0)))));
 
     std::vector<std::vector<uint32_t>> *x_pairs;
     std::vector<std::vector<uint32_t>> *y_pairs;
@@ -86,11 +81,11 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                 else
                     x_pairs = &reverse_relation_pairs[rel_x];
 
-                for (uint32_t y_normal = 0; y_normal < (uint32_t) 2; y_normal++) {
+                for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
                     tuples = 0;
-
+                    
                     if ((rel_x == rel_y) && (x_normal != y_normal)) {
-                        if (x_normal == 0) {
+                        if (x_normal == 0){
                             s = distinct_source_relations[rel_x];
                             m = distinct_target_relations[rel_x];
 
@@ -100,7 +95,7 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                                 for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
                                     x_target = x_pairs->at(source_x)[i];
 
-                                    if (y_pairs->at(x_target).size() > (uint32_t) 0) {
+                                    if (y_pairs->at(x_target).size() > (uint32_t)0) {
                                         tuples += y_pairs->at(x_target).size();
                                     }
                                 }
@@ -113,7 +108,11 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                         source_answers = {};
                         middle_answers = {};
                         final_answers = {};
+<<<<<<< HEAD
                         if (y_normal == (uint32_t) 0)
+=======
+                        if (y_normal == (uint32_t)0)
+>>>>>>> f9a7f5c86b615ffbf4f94743efae1783c0466ef6
                             y_pairs = &relation_pairs[rel_y];
                         else
                             y_pairs = &reverse_relation_pairs[rel_y];
@@ -122,7 +121,11 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                             for (uint32_t i = 0; i < x_pairs->at(source_x).size(); i++) {
                                 x_target = x_pairs->at(source_x)[i];
 
+<<<<<<< HEAD
                                 if (y_pairs->at(x_target).size() > (uint32_t) 0) {
+=======
+                                if (y_pairs->at(x_target).size() > (uint32_t)0) {
+>>>>>>> f9a7f5c86b615ffbf4f94743efae1783c0466ef6
                                     source_answers.insert(source_x);
                                     middle_answers.insert(x_target);
                                     final_answers.insert(y_pairs->at(x_target).begin(), y_pairs->at(x_target).end());
@@ -136,7 +139,11 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                         f = final_answers.size();
 
                         multidimensional_matrix[rel_x][rel_y][x_normal][y_normal] = {tuples, s, m, f};
+<<<<<<< HEAD
                         multidimensional_matrix[rel_y][rel_x][1 - y_normal][1 - x_normal] = {tuples, f, m, s};
+=======
+                        multidimensional_matrix[rel_y][rel_x][1-y_normal][1-x_normal] = {tuples, f, m, s};
+>>>>>>> f9a7f5c86b615ffbf4f94743efae1783c0466ef6
                     }
                 }
             }
