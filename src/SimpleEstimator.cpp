@@ -742,18 +742,18 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t rel_type = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
 
+    /// Defaults to 1, unless we know there are no relations.
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
     uint32_t noTargets = 1;
-    // std::cout << "\n\npath size: " << path.size() << std::endl;
 
-    // Either there are no joins (e.g. just 1 relation/table) 
-    // or it's a transitive closure (TC).
+    /// Either there are no joins (e.g. just 1 relation/table) 
+    /// or it's a transitive closure (TC).
     if (path.size() == 1) {
         rel_type = std::stoi(path[0].substr(0, path[0].size()-1));
         std::string relation = path[0].substr(path[0].size()-1, 1);
         
-        if (relation == ">") { // (s,t) such that (s, l, t)
+        if (relation == ">") { // forward relation, (s,t) such that (s, l, t)
             if (q->s == "*") {
                 if (q->t =="*") { // source: *, target: *
                     noSources = histogram.distinct_source_relations[rel_type];
@@ -776,18 +776,19 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noTargets = result;
                 } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
-                    int result = std::min(histogram.target_relations_count[rel_type][t_i], histogram.source_relations_count[rel_type][s_i]);
+                    int result = std::min(histogram.target_relations_count[rel_type][t_i], 
+                        histogram.source_relations_count[rel_type][s_i]);
                     noSources = result;
                     noPaths = result;
                     noTargets = result;
                 }
             }
-        } else if(relation == "<") { // (s,t) such that (t, l, s)
+        } else if(relation == "<") { // backward relation, (s,t) such that (t, l, s)
             if (q->s == "*") {
                 if (q->t =="*") { // source: *, target: *
-                noSources = histogram.distinct_target_relations[rel_type];
-                noPaths = histogram.total_relations[rel_type];
-                noTargets = histogram.distinct_source_relations[rel_type];
+                    noSources = histogram.distinct_target_relations[rel_type];
+                    noPaths = histogram.total_relations[rel_type];
+                    noTargets = histogram.distinct_source_relations[rel_type];
                 } else { // source: *, target: j
                     int t_i = std::stoi(q->t);
                     int result = histogram.source_relations_count[rel_type][t_i];
@@ -805,18 +806,20 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noTargets = result;
                 } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
-                    int result = std::min(histogram.source_relations_count[rel_type][t_i], histogram.target_relations_count[rel_type][s_i]);
+                    int result = std::min(histogram.source_relations_count[rel_type][t_i], 
+                        histogram.target_relations_count[rel_type][s_i]);
                     noSources = result;
                     noPaths = result;
                     noTargets = result;
                 }
             }
         }
-            // - Source: *, Target: * (TC)
-        else if(relation == "+") {
-            
+        else if(relation == "+") { // Transitive Closure relation
+
+            // The sample size for sampling on the entire graph
             float sample = 0.05;
-            if (q->s == "*") { 
+
+            if (q->s == "*") { // - Source: *
                 if (q->t =="*") { // - Source: *, Target: *
                     noSources = stats.distinct_source_relations[rel_type];
                     noTargets = stats.distinct_target_relations[rel_type];
@@ -833,6 +836,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     // // To retrieve 100% value estimate
                     // noPaths = out->getNoDistinctEdges()*1/sample; 
                     // noTargets = count*1/sample;
+
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
                     auto out = SampleTransitiveClosure(rel_type, t_i, true);
@@ -843,6 +847,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             } else {
                 int s_i = std::stoi(q->s);
+
                 if (q->t =="*") { // - Source: i, Target: *
                     auto out = SampleTransitiveClosure(rel_type, s_i, false);
 
@@ -850,19 +855,18 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noPaths = out->getNoDistinctEdges(); 
                     noTargets = out->getNoDistinctEdges();
                 } else { // - Source: i, Target: j
-                    /// TODO: Implement
+                    /// TODO: Implement or ignore?
                     int t_j = std::stoi(q->t);
                 }
             }  
         }
     } else if(path.size() > 1) {
-
+        /// There is atleast 1 join in the query,
         /// Cases of joins:
         /// Order doesn't matter => s = "*" and t = "*"
         /// Order right to left => s = "*" and t = 1
         /// Order left to right => s = 1 and t = "*", so reverse
         if (q->t != "*") {
-            // std::reverse(path.begin(), path.end());
             path = reverse_path(path);
         }        
 
