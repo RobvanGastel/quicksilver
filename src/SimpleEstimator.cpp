@@ -3,7 +3,8 @@
 #include "SimpleEvaluator.h"
 #include <set>
 #include <cmath>
-#include <cfloat>
+#include <ctime>
+
 
 /////
 ///// Stats class
@@ -18,17 +19,17 @@ Stats::Stats(uint32_t noLabels, uint32_t noVertices) {
 }
 
 void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>> adj) {
-    total_relations = std::vector<uint32_t> (labels, 0);
-    source_relations_count = std::vector<std::vector<uint32_t>> (labels, std::vector<uint32_t> (vertices));
-    target_relations_count = std::vector<std::vector<uint32_t>> (labels, std::vector<uint32_t> (vertices));
+    total_relations = std::vector<uint32_t > (labels, 0);
+    source_relations_count = std::vector<std::vector<uint32_t >> (labels, std::vector<uint32_t > (vertices));
+    target_relations_count = std::vector<std::vector<uint32_t >> (labels, std::vector<uint32_t > (vertices));
     relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
                                                                       std::vector<std::vector<uint32_t>> (vertices,
                                                                                                           std::vector<uint32_t> ()));
     reverse_relation_pairs = std::vector<std::vector<std::vector<uint32_t>>> (labels,
                                                                               std::vector<std::vector<uint32_t>> (vertices,
                                                                                                                   std::vector<uint32_t> ()));
-    distinct_source_relations = std::vector<uint32_t> (labels);
-    distinct_target_relations = std::vector<uint32_t> (labels);
+    distinct_source_relations = std::vector<uint32_t > (labels);
+    distinct_target_relations = std::vector<uint32_t > (labels);
 
     for (uint32_t rel_source = 0; rel_source < adj.size(); rel_source++){
         for (uint32_t i = 0; i < adj[rel_source].size() ; i++) {
@@ -58,6 +59,7 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
             std::vector<std::vector<std::vector<uint32_t>>> (2,
                 std::vector<std::vector<uint32_t>> (2,
                     std::vector<uint32_t> (4, 0)))));
+
     std::vector<std::vector<uint32_t>> * x_pairs;
     std::vector<std::vector<uint32_t>> * y_pairs;
     uint32_t tuples;
@@ -614,7 +616,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
 
                     // calculations
                     part1 = middle_j / in;
-                    d_si = d_si * part1;
+//                    d_si = d_si * part1;
                     // std::cout << "  " << middle_j << "  " << in << std::endl;
                     T_i = T_i * part1 * (T_j / d_sj);
                     d_oi = d_oi * d_oj / in;
@@ -641,9 +643,79 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noSources = d_oi;
                     noTargets = T_i > 0;
                 }
-
             } else { // source: i, target: j
+                uint32_t source;
+                // basic info
+                float in;     // l1.in
+                float T_i;
+                float d_si;
+                // uint32_t middle_i;
+                float d_oi;   // d(o, T_{r/l1})
 
+                std::vector<uint32_t> relation_i;
+                std::vector<uint32_t> relation_j;
+                float part1;
+
+                relation_i = get_relation_info(path[0]);
+                source = std::stoi(q->t);
+                std::cout << "Source: " << source << std::endl;
+                if (relation_i[1] == 0)
+                    T_i = stats.source_relations_count[relation_i[0]][source];
+                else
+                    T_i = stats.target_relations_count[relation_i[0]][source];
+
+                // multidimensional matrix
+                std::vector<uint32_t> join_stats;
+                float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
+                float d_sj;       // d(s, T_{l1/l2})
+                float middle_j;   // l1/l2.middle
+                float d_oj;       // d(o, T_{l1/l2})
+
+                // std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
+
+                for (int j = 1; j < path.size(); j++) {
+                    d_oi = T_i;
+                    std::cout << "Ti: " << T_i << std::endl;
+                    // std::cout << "\n        results d_si: " << d_si;
+                    // std::cout << "        results T_i: " << T_i;
+                    // std::cout << "        results d_oi: " << d_oi << std::endl;
+                    relation_j = get_relation_info(path[j]);
+                    // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+                    // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+
+                    in = get_in(relation_i);
+                    // std::cout << "        in: " << in << std::endl;
+
+                    join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
+                    T_j = join_stats[0];
+                    d_sj = join_stats[1];
+                    middle_j = join_stats[2];
+                    d_oj = join_stats[3];
+
+                    // calculations
+                    part1 = middle_j / in;
+//                    d_si = d_si * part1;
+                    // std::cout << "  " << middle_j << "  " << in << std::endl;
+                    T_i = T_i * part1 * (T_j / d_sj);
+                    d_oi = d_oi * d_oj / in;
+
+
+                    relation_i = relation_j;
+                    T_i = (T_i+d_oi)/2;
+//                    std::cout << "        T_j: " << T_j << "  d_oi: " << d_oi  <<  "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << "  in: " << in << std::endl;
+                }
+
+                std::cout << "Ti: " << T_i << "    doi " << d_oi << std::endl;
+                if (d_oi > 0) {
+                    noPaths = T_i/d_oi;
+                    noSources = 1;
+                    noTargets = 1;
+                }
+                else {
+                    noPaths = 0;
+                    noSources = 0;
+                    noTargets = 0;
+                }
             }
         }
 
