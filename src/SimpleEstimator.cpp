@@ -80,7 +80,7 @@ void Stats::create_stats(std::vector<std::vector<std::pair<uint32_t, uint32_t>>>
                     x_pairs = &reverse_relation_pairs[rel_x];
 
                 for (uint32_t y_normal = 0; y_normal < (uint32_t)2; y_normal++) {
-                    if ((rel_x == rel_y) && (x_normal == 0) && (y_normal == 0))
+                    if ((rel_x == rel_y) && (x_normal == 1) && (y_normal == 1))
                         break;
                     tuples = 0;
                     source_answers = {};
