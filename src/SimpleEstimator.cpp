@@ -756,14 +756,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         if (relation == ">") { // forward relation, (s,t) such that (s, l, t)
             if (q->s == "*") {
                 if (q->t =="*") { // source: *, target: *
-                    noSources = histogram.distinct_source_relations[rel_type];
+                    noSources = stats.distinct_source_relations[rel_type];
                     std::cout << path[0][0] << std::endl;
                     std::cout << rel_type << std::endl;
-                    noPaths = histogram.total_relations[rel_type];
-                    noTargets = histogram.distinct_target_relations[rel_type];
+                    noPaths = stats.total_relations[rel_type];
+                    noTargets = stats.distinct_target_relations[rel_type];
                 } else { // source: *, target: i
                     int t_i = std::stoi(q->t);
-                    int result = histogram.target_relations_count[rel_type][t_i];
+                    int result = stats.target_relations_count[rel_type][t_i];
                     noSources = result;
                     noPaths = result;
                     noTargets = 1;                   
@@ -772,14 +772,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 int s_i = std::stoi(q->s);
 
                 if (q->t =="*") { // source: i, target: *
-                    int result = histogram.source_relations_count[rel_type][s_i];
+                    int result = stats.source_relations_count[rel_type][s_i];
                     noSources = 1;
                     noPaths = result;
                     noTargets = result;
                 } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
-                    int result = std::min(histogram.target_relations_count[rel_type][t_i], 
-                        histogram.source_relations_count[rel_type][s_i]);
+                    int result = std::min(stats.target_relations_count[rel_type][t_i], 
+                        stats.source_relations_count[rel_type][s_i]);
                     noSources = result;
                     noPaths = result;
                     noTargets = result;
@@ -788,12 +788,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
         } else if(relation == "<") { // backward relation, (s,t) such that (t, l, s)
             if (q->s == "*") {
                 if (q->t =="*") { // source: *, target: *
-                    noSources = histogram.distinct_target_relations[rel_type];
-                    noPaths = histogram.total_relations[rel_type];
-                    noTargets = histogram.distinct_source_relations[rel_type];
+                    noSources = stats.distinct_target_relations[rel_type];
+                    noPaths = stats.total_relations[rel_type];
+                    noTargets = stats.distinct_source_relations[rel_type];
                 } else { // source: *, target: j
                     int t_i = std::stoi(q->t);
-                    int result = histogram.source_relations_count[rel_type][t_i];
+                    int result = stats.source_relations_count[rel_type][t_i];
                     noSources = result; 
                     noPaths = result; 
                     noTargets = 1;                  
@@ -802,14 +802,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 int s_i = std::stoi(q->s);
 
                 if (q->t =="*") { // source: i, target: *
-                    int result = histogram.target_relations_count[rel_type][s_i];
+                    int result = stats.target_relations_count[rel_type][s_i];
                     noSources = 1;
                     noPaths = result;
                     noTargets = result;
                 } else { // source: i, target: j
                     int t_i = std::stoi(q->t);
-                    int result = std::min(histogram.source_relations_count[rel_type][t_i], 
-                        histogram.target_relations_count[rel_type][s_i]);
+                    int result = std::min(stats.source_relations_count[rel_type][t_i], 
+                        stats.target_relations_count[rel_type][s_i]);
                     noSources = result;
                     noPaths = result;
                     noTargets = result;
@@ -920,9 +920,9 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
                 
                 for (int j = 2; j < path.size(); j++) {
-                    std::cout << "\n        results d_si: " << d_si;
-                    std::cout << "        results T_i: " << T_i;
-                    std::cout << "        results d_oi: " << d_oi << std::endl;
+                    // std::cout << "\n        results d_si: " << d_si;
+                    // std::cout << "        results T_i: " << T_i;
+                    // std::cout << "        results d_oi: " << d_oi << std::endl;
                     relation_i = relation_j;
                     relation_j = get_relation_info(path[j]);
                     // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
@@ -936,14 +936,14 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     d_sj = join_stats[1];
                     middle_j = join_stats[2];
                     d_oj = join_stats[3];
-                    std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+                    // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
 
                     // calculations
                     part1 = middle_j / in;
                     // part1 = middle_j / d_oi;
-                    std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
+                    // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
                     d_si = d_si * part1;
-                    std::cout << "  " << middle_j << "  " << in << std::endl;
+                    // std::cout << "  " << middle_j << "  " << in << std::endl;
                     T_i = T_i * part1 * (T_j / d_sj)/4;
                     d_oi = d_oi * d_oj / in;
                 }
@@ -964,7 +964,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }
         } else {
             if (q->t == "*" || q->s == "*") { // source: i, target: *
-                std::cout << "source: i, target: *" << std::endl;
+                // std::cout << "source: i, target: *" << std::endl;
                 uint32_t source;
                 // basic info
                 float in;     // l1.in
@@ -1006,7 +1006,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     std::cout << "TC FOUND!" << std::endl;
                 
                 d_oi = T_i;
-                std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
+                // std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
                 
                 for (int j = 1; j < path.size(); j++) {
                     // std::cout << "\n        results d_si: " << d_si;
@@ -1024,12 +1024,12 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     d_sj = join_stats[1];
                     middle_j = join_stats[2];
                     d_oj = join_stats[3];
-                    std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+                    // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
 
                     // calculations
                     part1 = middle_j / in;
                     d_si = d_si * part1;
-                    std::cout << "  " << middle_j << "  " << in << std::endl;
+                    // std::cout << "  " << middle_j << "  " << in << std::endl;
                     T_i = T_i * part1 * (T_j / d_sj);
                     d_oi = d_oi * d_oj / in;
 
