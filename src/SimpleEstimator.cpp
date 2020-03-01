@@ -214,7 +214,7 @@ std::vector<uint32_t> get_relation_info(std::string relation) { // path[0]
 
     // relation direction
     std::string dir = relation.substr(relation.size()-1, 1);
-    relation_info.push_back(uint32_t(dir != ">") + uint32_t(dir == "+")); // 0:>; 1:<; 2:+;
+    relation_info.push_back(uint32_t(dir != ">") + uint32_t(dir == "*")); // 0:>; 1:<; 2:+;
 
     return relation_info;
 }
@@ -489,128 +489,73 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             if (q->t == "*") { // source: *, target: *
                 std::vector<uint32_t> relation_i;
                 std::vector<uint32_t> relation_j;
-                relation_i = get_relation_info(path[0]);
+
+                // basic info
+                float in;     // l1.in
                 float T_i;
                 float d_si;
                 // uint32_t middle_i;
                 float d_oi;   // d(o, T_{r/l1})
 
+                float part1;
+
+                // multidimensional matrix
                 std::vector<uint32_t> join_stats;
                 float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
                 float d_sj;       // d(s, T_{l1/l2})
                 float middle_j;   // l1/l2.middle
                 float d_oj;       // d(o, T_{l1/l2})
 
-                if (relation_i[1] == 2) {
-                    float tuples_i;
-                    float tuples_j;
-                    float tuples_ix;
-                    float tuples_jx;
-                    float tuples;
-                    float d_s;
-                    float d_m;
-                    float d_o;
+                relation_i = get_relation_info(path[0]);
+                relation_j = get_relation_info(path[1]);
+                // std::cout << "\n    path_0: " << path[0] << "  relation_0: " << relation_i[0] << " " << relation_i[1] << std::endl;
 
-                    // calc
-                    float perc;
+                join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
+                T_i = join_stats[0];
+                d_si = join_stats[1];
+                // int middle_i = join_stats[2];
+                d_oi = join_stats[3];
+                // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
 
-                    d_si = stats.distinct_source_relations[relation_i[0]];
-                    d_oi = stats.distinct_target_relations[relation_i[0]];
-                    tuples_i = stats.total_relations[relation_i[0]] + stats.multidimensional_matrix[relation_i[0]][relation_i[0]][0][0][0];
-                    tuples_ix = tuples_i / stats.total_relations[relation_i[0]];                  
+                for (int j = 2; j < path.size(); j++) {
+                    // std::cout << "\n        results d_si: " << d_si;
+                    // std::cout << "        results T_i: " << T_i;
+                    // std::cout << "        results d_oi: " << d_oi << std::endl;
+                    relation_i = relation_j;
+                    relation_j = get_relation_info(path[j]);
+                    // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+                    // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
 
-                    // first join
-                    for (uint32_t j = 1; j < path.size(); j++) {
-                        relation_j = get_relation_info(path[j]);
-
-                        d_sj = stats.distinct_source_relations[relation_j[0]];
-                        d_oj = stats.distinct_target_relations[relation_j[0]];
-                        tuples_j = stats.total_relations[relation_j[0]] + stats.multidimensional_matrix[relation_j[0]][relation_j[0]][0][0][0];
-                        tuples_jx = tuples_j / stats.total_relations[relation_j[0]]; 
-
-                        join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][0][0];
-                        tuples = join_stats[0];
-                        d_s = join_stats[1];
-                        d_m = join_stats[2];
-                        d_o = join_stats[3];
-
-                        // perc = d_m / d_oi;
-                        tuples_i = tuples_ix  * tuples * tuples_jx; // * perc
-                        tuples_ix = tuples_i / stats.total_relations[relation_j[0]]; // std::abs(tuples_i - tuples_j);
-                        d_si = d_si * (d_s / stats.distinct_source_relations[relation_i[0]]) * tuples_jx;
-                        d_oi = d_oj * (d_o / stats.distinct_target_relations[relation_j[0]]);
-
-                        relation_i = relation_j;
-                    }
-
-                    noSources = d_si;
-                    noPaths = tuples_i;
-                    noTargets = d_oi;
-
-                    // for (int j = 2; j < path.size(); j++) {
-                    //     std::cout << "\n        results d_si: " << d_si;
-                    //     std::cout << "        results T_i: " << T_i;
-                    //     std::cout << "        results d_oi: " << d_oi << std::endl;
-                    //     relation_i = relation_j;
-                    //     relation_j = get_relation_info(path[j]);
-
-                    // noSources = 
-                    // noTargets = 
-                    // noPaths = 
-
-                } else {
-                    relation_j = get_relation_info(path[1]);
-                    // basic info
-                    float in;     // l1.in
-                    float part1;
+                    in = get_in(relation_i);
+                    // std::cout << "        in: " << in << std::endl;
 
                     join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-                    T_i = join_stats[0];
-                    d_si = join_stats[1];
-                    // int middle_i = join_stats[2];
-                    d_oi = join_stats[3];
-                    // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
+                    T_j = join_stats[0];
+                    d_sj = join_stats[1];
+                    middle_j = join_stats[2];
+                    d_oj = join_stats[3];
+                    // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
 
-                    for (int j = 2; j < path.size(); j++) {
-                        // std::cout << "\n        results d_si: " << d_si;
-                        // std::cout << "        results T_i: " << T_i;
-                        // std::cout << "        results d_oi: " << d_oi << std::endl;
-                        relation_i = relation_j;
-                        relation_j = get_relation_info(path[j]);
-                        // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
-                        // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
-
-                        in = get_in(relation_i);
-                        // std::cout << "        in: " << in << std::endl;
-
-                        join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-                        T_j = join_stats[0];
-                        d_sj = join_stats[1];
-                        middle_j = join_stats[2];
-                        d_oj = join_stats[3];
-                        // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
-
-                        // calculations
-                        part1 = middle_j / in;
-                        // part1 = middle_j / d_oi;
-                        // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
-                        d_si = d_si * part1;
-                        // std::cout << "  " << middle_j << "  " << in << std::endl;
-                        T_i = T_i * part1 * (T_j / d_sj);///4;
-                        d_oi = d_oi * d_oj / in;
-                    }
-
-                    // middle_j = join_stats[2];
-                    // part1 = (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
-                    // d_si = (float)stats.distinct_target_relations[relation_i[0]] * part1;
-                    // T_i = (float)stats.total_relations[relation_i[0]] * (float)part1 * ((float)stats.total_relations[relation_j[0]]/(float)stats.distinct_source_relations[relation_j[1]]);
-                    // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
-                    // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
-
-                    noSources = std::max((float)(T_i>1), d_si);
-                    noPaths = T_i;
-                    noTargets = std::max((float)(T_i>1), d_oi);
+                    // calculations
+                    part1 = middle_j / in;
+                    // part1 = middle_j / d_oi;
+                    // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
+                    d_si = d_si * part1;
+                    // std::cout << "  " << middle_j << "  " << in << std::endl;
+                    T_i = T_i * part1 * (T_j / d_sj)/4;
+                    d_oi = d_oi * d_oj / in;
                 }
+
+                // middle_j = join_stats[2];
+                // part1 = (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
+                // d_si = (float)stats.distinct_target_relations[relation_i[0]] * part1;
+                // T_i = (float)stats.total_relations[relation_i[0]] * (float)part1 * ((float)stats.total_relations[relation_j[0]]/(float)stats.distinct_source_relations[relation_j[1]]);
+                // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
+                // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
+
+                noSources = d_si;
+                noPaths = T_i;
+                noTargets = d_oi;
             }
             // else { // source: *, target: j
             //     // should never happen -> reverse path
@@ -618,7 +563,6 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             // }
         } else {
             if (q->t == "*" || q->s == "*") { // source: i, target: *
-
                 // std::cout << "source: i, target: *" << std::endl;
                 uint32_t source;
                 // basic info
@@ -637,74 +581,67 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     source = std::stoi(q->s);
                 else
                     source = std::stoi(q->t);
+                if (relation_i[1] == 0)
+                    T_i = stats.source_relations_count[relation_i[0]][source];
+                else
+                    T_i = stats.target_relations_count[relation_i[0]][source];
 
-                
-                if (relation_i[1] == 2) {
+                // multidimensional matrix
+                std::vector<uint32_t> join_stats;
+                float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
+                float d_sj;       // d(s, T_{l1/l2})
+                float middle_j;   // l1/l2.middle
+                float d_oj;       // d(o, T_{l1/l2})
 
-                } else {
-                    if (relation_i[1] == 0)
-                        T_i = stats.source_relations_count[relation_i[0]][source];
-                    else
-                        T_i = stats.target_relations_count[relation_i[0]][source];
+                d_oi = T_i;
+                // std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
 
-                    // multidimensional matrix
-                    std::vector<uint32_t> join_stats;
-                    float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
-                    float d_sj;       // d(s, T_{l1/l2})
-                    float middle_j;   // l1/l2.middle
-                    float d_oj;       // d(o, T_{l1/l2})
+                for (int j = 1; j < path.size(); j++) {
+                    // std::cout << "\n        results d_si: " << d_si;
+                    // std::cout << "        results T_i: " << T_i;
+                    // std::cout << "        results d_oi: " << d_oi << std::endl;
+                    relation_j = get_relation_info(path[j]);
+                    // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+                    // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
 
+                    in = get_in(relation_i);
+                    // std::cout << "        in: " << in << std::endl;
+
+                    join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
+                    T_j = join_stats[0];
+                    d_sj = join_stats[1];
+                    middle_j = join_stats[2];
+                    d_oj = join_stats[3];
+                    // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+
+                    // calculations
+                    part1 = middle_j / in;
+//                    d_si = d_si * part1;
+                    // std::cout << "  " << middle_j << "  " << in << std::endl;
+                    T_i = T_i * part1 * (T_j / d_sj);
+                    d_oi = d_oi * d_oj / in;
+
+
+                    relation_i = relation_j;
+                    T_i = (T_i+d_oi)/2;
                     d_oi = T_i;
-                    // std::cout << "    source:" << source << " T_i:" << T_i << std::endl;
+                }
 
-                    for (int j = 1; j < path.size(); j++) {
-                        // std::cout << "\n        results d_si: " << d_si;
-                        // std::cout << "        results T_i: " << T_i;
-                        // std::cout << "        results d_oi: " << d_oi << std::endl;
-                        relation_j = get_relation_info(path[j]);
-                        // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
-                        // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+                // middle_j = join_stats[2];
+                // part1 = (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
+                // d_si = (float)stats.distinct_target_relations[relation_i[0]] * part1;
+                // T_i = (float)stats.total_relations[relation_i[0]] * (float)part1 * ((float)stats.total_relations[relation_j[0]]/(float)stats.distinct_source_relations[relation_j[1]]);
+                // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
+                // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
 
-                        in = get_in(relation_i);
-                        // std::cout << "        in: " << in << std::endl;
-                        if(relation_i[0] == 2) {
-                            join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-                            T_j = join_stats[0];
-                            d_sj = join_stats[1];
-                            middle_j = join_stats[2];
-                            d_oj = join_stats[3];
-                            // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
-
-                            // calculations
-                            part1 = middle_j / in;
-        //                    d_si = d_si * part1;
-                            // std::cout << "  " << middle_j << "  " << in << std::endl;
-                            T_i = T_i * part1 * (T_j / d_sj);
-                            d_oi = d_oi * d_oj / in;
-
-
-                            relation_i = relation_j;
-                            T_i = (T_i+d_oi)/2;
-                            d_oi = T_i;
-                        }
-                    }
-
-                    // middle_j = join_stats[2];
-                    // part1 = (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
-                    // d_si = (float)stats.distinct_target_relations[relation_i[0]] * part1;
-                    // T_i = (float)stats.total_relations[relation_i[0]] * (float)part1 * ((float)stats.total_relations[relation_j[0]]/(float)stats.distinct_source_relations[relation_j[1]]);
-                    // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
-                    // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
-
-                    noPaths = T_i;
-                    if (q->t == "*") {
-                        noSources = T_i > 0;
-                        noTargets = d_oi;
-                    }
-                    else {
-                        noSources = d_oi;
-                        noTargets = T_i > 0;
-                    }
+                noPaths = T_i;
+                if (q->t == "*") {
+                    noSources = T_i > 0;
+                    noTargets = d_oi;
+                }
+                else {
+                    noSources = d_oi;
+                    noTargets = T_i > 0;
                 }
             } else { // source: i, target: j
                 uint32_t source;
@@ -781,6 +718,184 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 }
             }
         }
+
+
+
+        /// Cases of joins:
+        /// Order doesn't matter => s = "*" and t = "*"
+        /// Order right to left => s = "*" and t = 1
+        /// Order left to right => s = 1 and t = "*", so reverse
+        // if (q->s != "*") {
+        //     std::reverse(path.begin(), path.end());
+        // }
+
+        /// Source and target tuple/"Table"
+        // int T_s = std::stoi(path[0].substr(0, path[0].size()-1));
+        // int T_t = std::stoi(path[path.size()-1].substr(0, path[0].size()-1));
+        // float card = 1;
+
+        // bool containsTC = false;
+        // for(int i = 0; i < path.size(); i++) {
+        //     std::string relation = path[i].substr(path[i].size()-1, 1);
+        //     if(relation == "+") {
+        //         containsTC = true;
+        //         break;
+        //     }
+        // }
+
+        // if (!containsTC) {
+        //     if (q->s == "*") {
+        //         if (q->t =="*") { // - Source: *, Target: *
+        //             /// Basic approach to joins from the characteristic set paper,
+        //             /// Of a star join.
+        //             int T = 0;
+        //             for (int i = 0; i < path.size(); i++) {
+        //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
+        //                 card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+        //             }
+        //             card = card * graph->getNoVertices();
+
+        //             noSources = histogram.distinct_target_relations[T_s];
+        //             noPaths = card;
+        //             noTargets = histogram.distinct_source_relations[T_t];
+
+        //         } else { // - Source: *, Target: i
+        //             int t_i = std::stoi(q->t);
+
+        //             int T = 0;
+        //             for (int i = 0; i < path.size(); i++) {
+        //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
+        //                 card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+        //             }
+        //             card = card * graph->getNoVertices();
+
+        //             noSources = card;
+        //             noPaths = card;
+        //             noTargets = 1;
+        //         }
+        //     } else {
+        //         int s_i = std::stoi(q->s);
+        //         if (q->t =="*") { // - Source: i, Target: *
+        //             int T = 0;
+        //             for (int i = 0; i < path.size(); i++) {
+        //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
+        //                 card = card * (float)histogram.total_relations[T]/(float)graph->getNoVertices();
+        //             }
+        //             card = card * graph->getNoVertices();
+
+        //             noSources = 1;
+        //             noPaths = card;
+        //             noTargets = card;
+
+        //         } else { // - Source: i, Target: j
+        //             /// TODO: Implement
+        //             int t_i = std::stoi(q->t);
+        //             int result = std::min(histogram.source_relations_count[T_s][t_i],
+        //                 histogram.target_relations_count[T_t][s_i]);
+        //             noSources = result;
+        //             noPaths = result;
+        //             noTargets = result;
+        //         }
+        //     }
+        // } else { /// The path contains TC
+        //     float sample = 0.05;
+
+        //     if (q->s == "*") {
+        //         if (q->t =="*") { // - Source: *, Target: *
+        //             float result = 1;
+        //             int count = 0;
+
+        //             for (int i = 0; i < path.size(); i++) {
+        //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
+        //                 auto out = SampleTransitiveClosure(T, sample);
+
+        //                 if(i == 0) {
+        //                     for (int i = 0; i < out->adj.size(); i++) {
+        //                        if(out->adj[i].size() > 0) {
+        //                             count += 1;
+        //                         }
+        //                     }
+        //                 }
+
+        //                 result = out->getNoDistinctEdges()*1/sample;
+        //                 if(i != path.size()-1) {
+        //                     card = card * (float)result/(float)graph->getNoVertices();
+        //                 }
+        //             }
+        //             card = card * result;
+
+        //             if(card != 0) {
+        //                 noSources = count*1/sample;
+        //                 noPaths = card;
+        //                 noTargets = card;
+        //             } else {
+        //                 noSources = 0;
+        //                 noPaths = 0;
+        //                 noTargets = 0;
+        //             }
+
+        //         } else { // - Source: *, Target: i
+        //             int t_i = std::stoi(q->t);
+        //             float result = 1;
+        //             int count = 0;
+
+        //             for (int i = 0; i < path.size(); i++) {
+        //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
+        //                 auto out =  SampleTransitiveClosure(T, t_i, true);
+
+        //                 if(i == 0) {
+        //                     for (int i = 0; i < out->adj.size(); i++) {
+        //                        if(out->adj[i].size() > 0) {
+        //                             count += 1;
+        //                         }
+        //                     }
+        //                 }
+
+        //                 result = out->getNoDistinctEdges()*1/sample;
+        //                 if(i != path.size()-1) {
+        //                     card = card * (float)result/(float)graph->getNoVertices();
+        //                 }
+        //             }
+        //             card = card * result;
+
+        //             noSources = count*1/sample;
+        //             noPaths = card;
+        //             noTargets = 1;
+        //         }
+        //     } else { // - Source: i
+        //         int s_i = std::stoi(q->s);
+        //         if (q->t =="*") { // - Source: i, Target: *
+        //             float result = 1;
+        //             int count = 0;
+
+        //             for (int i = 0; i < path.size(); i++) {
+        //                 T = std::stoi(path[i].substr(0, path[i].size()-1));
+        //                 auto out =  SampleTransitiveClosure(T, s_i, false);
+
+        //                 if(i == 0) {
+        //                     for (int i = 0; i < out->adj.size(); i++) {
+        //                        if(out->adj[i].size() > 0) {
+        //                             count += 1;
+        //                         }
+        //                     }
+        //                 }
+
+        //                 result = out->getNoDistinctEdges()*1/sample;
+        //                 if(i != path.size()-1) {
+        //                     card = card * (float)result/(float)graph->getNoVertices();
+        //                 }
+        //             }
+        //             card = card * result;
+
+        //             noSources = 1; 
+        //             noPaths = card; 
+        //             noTargets = count*1/sample;  
+
+        //         } else { // - Source: i, Target: j
+        //             int t_j = std::stoi(q->t);
+        //         }
+        //     }  
+        // }
     }
 
     return cardStat {noSources, noPaths, noTargets};
