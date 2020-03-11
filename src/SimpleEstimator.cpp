@@ -490,72 +490,126 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                 std::vector<uint32_t> relation_i;
                 std::vector<uint32_t> relation_j;
 
-                // basic info
-                float in;     // l1.in
-                float T_i;
-                float d_si;
-                // uint32_t middle_i;
-                float d_oi;   // d(o, T_{r/l1})
-
-                float part1;
-
-                // multidimensional matrix
-                std::vector<uint32_t> join_stats;
-                float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
-                float d_sj;       // d(s, T_{l1/l2})
-                float middle_j;   // l1/l2.middle
-                float d_oj;       // d(o, T_{l1/l2})
-
                 relation_i = get_relation_info(path[0]);
                 relation_j = get_relation_info(path[1]);
-                // std::cout << "\n    path_0: " << path[0] << "  relation_0: " << relation_i[0] << " " << relation_i[1] << std::endl;
+                
+                std::string relation = path[0].substr(path[0].size()-1, 1);
 
-                join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-                T_i = join_stats[0];
-                d_si = join_stats[1];
-                // int middle_i = join_stats[2];
-                d_oi = join_stats[3];
-                // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
+                if (relation == "+") { // forward relation, (s,t) such that (s, l, t)
+                    float tuples_i;
+                    float tuples_j;
+                    float tuples_ix;
+                    float tuples_jx;
+                    float tuples;
+                    float d_s;
+                    float d_m;
+                    float d_o;
+                    float d_si;
+                    float d_oi;
+                    float d_sj;
+                    float d_oj;
+                    std::vector<uint32_t> join_stats;
 
-                for (int j = 2; j < path.size(); j++) {
-                    // std::cout << "\n        results d_si: " << d_si;
-                    // std::cout << "        results T_i: " << T_i;
-                    // std::cout << "        results d_oi: " << d_oi << std::endl;
-                    relation_i = relation_j;
-                    relation_j = get_relation_info(path[j]);
-                    // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
-                    // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+                    // calc
+                    float perc;
 
-                    in = get_in(relation_i);
-                    // std::cout << "        in: " << in << std::endl;
+                    d_si = stats.distinct_source_relations[relation_i[0]];
+                    d_oi = stats.distinct_target_relations[relation_i[0]];
+                    tuples_i = stats.total_relations[relation_i[0]] + stats.multidimensional_matrix[relation_i[0]][relation_i[0]][0][0][0];
+                    tuples_ix = tuples_i / stats.total_relations[relation_i[0]];                  
+
+                    // first join
+                    for (uint32_t j = 1; j < path.size(); j++) {
+                        relation_j = get_relation_info(path[j]);
+
+                        d_sj = stats.distinct_source_relations[relation_j[0]];
+                        d_oj = stats.distinct_target_relations[relation_j[0]];
+                        tuples_j = stats.total_relations[relation_j[0]] + stats.multidimensional_matrix[relation_j[0]][relation_j[0]][0][0][0];
+                        tuples_jx = tuples_j / stats.total_relations[relation_j[0]]; 
+
+                        join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][0][0];
+                        tuples = join_stats[0];
+                        d_s = join_stats[1];
+                        d_m = join_stats[2];
+                        d_o = join_stats[3];
+
+                        // perc = d_m / d_oi;
+                        tuples_i = tuples_ix  * tuples * tuples_jx; // * perc
+                        tuples_ix = tuples_i / stats.total_relations[relation_j[0]]; // std::abs(tuples_i - tuples_j);
+                        d_si = d_si * (d_s / stats.distinct_source_relations[relation_i[0]]) * tuples_jx;
+                        d_oi = d_oj * (d_o / stats.distinct_target_relations[relation_j[0]]);
+
+                        relation_i = relation_j;
+                    }
+
+                    noSources = d_si;
+                    noPaths = tuples_i;
+                    noTargets = d_oi;
+                } else {
+                    // basic info
+                    float in;     // l1.in
+                    float T_i;
+                    float d_si;
+                    // uint32_t middle_i;
+                    float d_oi;   // d(o, T_{r/l1})
+
+                    float part1;
+
+                    // multidimensional matrix
+                    std::vector<uint32_t> join_stats;
+                    float T_j;        // |T_{l1/l2}| -> |T_{j-1/j}|
+                    float d_sj;       // d(s, T_{l1/l2})
+                    float middle_j;   // l1/l2.middle
+                    float d_oj;       // d(o, T_{l1/l2})
+                    // std::cout << "\n    path_0: " << path[0] << "  relation_0: " << relation_i[0] << " " << relation_i[1] << std::endl;
 
                     join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
-                    T_j = join_stats[0];
-                    d_sj = join_stats[1];
-                    middle_j = join_stats[2];
-                    d_oj = join_stats[3];
-                    // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+                    T_i = join_stats[0];
+                    d_si = join_stats[1];
+                    // int middle_i = join_stats[2];
+                    d_oi = join_stats[3];
+                    // std::cout << "        T_i: " << T_i << "  d_si: " << d_si << "  middle_i: " << middle_i << "  d_oi: " << d_oi << std::endl;
 
-                    // calculations
-                    part1 = middle_j / in;
-                    // part1 = middle_j / d_oi;
-                    // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
-                    d_si = d_si * part1;
-                    // std::cout << "  " << middle_j << "  " << in << std::endl;
-                    T_i = T_i * part1 * (T_j / d_sj)/4;
-                    d_oi = d_oi * d_oj / in;
+                    for (int j = 2; j < path.size(); j++) {
+                        // std::cout << "\n        results d_si: " << d_si;
+                        // std::cout << "        results T_i: " << T_i;
+                        // std::cout << "        results d_oi: " << d_oi << std::endl;
+                        relation_i = relation_j;
+                        relation_j = get_relation_info(path[j]);
+                        // std::cout << "    relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+                        // std::cout << "    path_j: " << path[j] << "  relation_j: " << relation_j[0] << " " << relation_j[1] << std::endl;
+
+                        in = get_in(relation_i);
+                        // std::cout << "        in: " << in << std::endl;
+
+                        join_stats = stats.multidimensional_matrix[relation_i[0]][relation_j[0]][relation_i[1]][relation_j[1]];
+                        T_j = join_stats[0];
+                        d_sj = join_stats[1];
+                        middle_j = join_stats[2];
+                        d_oj = join_stats[3];
+                        // std::cout << "        T_j: " << T_j << "  d_sj: " << d_sj << "  middle_j: " << middle_j << "  d_oj: " << d_oj << std::endl;
+
+                        // calculations
+                        part1 = middle_j / in;
+                        // part1 = middle_j / d_oi;
+                        // std::cout << "        results part1: " << part1 << "  " << in << "  " << d_oi;
+                        d_si = d_si * part1;
+                        // std::cout << "  " << middle_j << "  " << in << std::endl;
+                        T_i = T_i * part1 * (T_j / d_sj)/4;
+                        d_oi = d_oi * d_oj / in;
+                    }
+
+                    // middle_j = join_stats[2];
+                    // part1 = (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
+                    // d_si = (float)stats.distinct_target_relations[relation_i[0]] * part1;
+                    // T_i = (float)stats.total_relations[relation_i[0]] * (float)part1 * ((float)stats.total_relations[relation_j[0]]/(float)stats.distinct_source_relations[relation_j[1]]);
+                    // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
+                    // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
+
+                    noSources = d_si;
+                    noPaths = T_i;
+                    noTargets = d_oi;
                 }
-
-                // middle_j = join_stats[2];
-                // part1 = (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
-                // d_si = (float)stats.distinct_target_relations[relation_i[0]] * part1;
-                // T_i = (float)stats.total_relations[relation_i[0]] * (float)part1 * ((float)stats.total_relations[relation_j[0]]/(float)stats.distinct_source_relations[relation_j[1]]);
-                // d_oi = (float)stats.distinct_source_relations[relation_j[0]] * (float)middle_j / (float)stats.distinct_target_relations[relation_i[0]];
-                // std::cout << "        " << part1 << "  T_i: " << T_i << "  d_si: " << d_si << "  d_oi: " << d_oi << std::endl;
-
-                noSources = d_si;
-                noPaths = T_i;
-                noTargets = d_oi;
             }
             // else { // source: *, target: j
             //     // should never happen -> reverse path
