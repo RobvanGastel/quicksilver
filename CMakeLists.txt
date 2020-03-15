@@ -15,7 +15,7 @@ include_directories(include)
 include_directories(include/student)
 
 find_package(Threads REQUIRED)
-find_package(Filesystem REQUIRED)
+find_package(Filesystem)
 
 set(HEADER_FILES
         include/PathTree.h
@@ -42,6 +42,9 @@ file(GLOB_RECURSE STUDENT_HEADER_FILES CONFIGURE_DEPENDS include/student/*.h)
 file(GLOB_RECURSE STUDENT_SOURCE_FILES CONFIGURE_DEPENDS src/student/*.cpp)
 
 add_executable(quicksilver src/main.cpp ${SOURCE_FILES} ${HEADER_FILES} ${STUDENT_SOURCE_FILES} ${STUDENT_HEADER_FILES})
-add_executable(benchmarker src/benchmarker.cpp ${SOURCE_FILES} ${HEADER_FILES} ${STUDENT_SOURCE_FILES} ${STUDENT_HEADER_FILES})
 target_link_libraries(quicksilver Threads::Threads)
-target_link_libraries(benchmarker Threads::Threads std::filesystem)
+
+if (CXX_FILESYSTEM_HAVE_FS)
+    add_executable(benchmarker src/benchmarker.cpp ${SOURCE_FILES} ${HEADER_FILES} ${STUDENT_SOURCE_FILES} ${STUDENT_HEADER_FILES})
+    target_link_libraries(benchmarker Threads::Threads std::filesystem)
+endif()
