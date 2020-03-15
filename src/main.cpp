@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Total prep time: " << result.prepTime << " ms" << std::endl;
     std::cout << "Total eval time: " << result.evalTime << " ms" << std::endl;
     double memoryUsage = double(getPeakRSS()) / 1024.0 / 1024.0;
-    std::cout << "Peak memory usage: " << memoryUsage << " MiB" << std::endl;
+    std::cout << "Peak memory usage (for all workloads): " << memoryUsage << " MiB" << std::endl;
     
     
     return 0;
