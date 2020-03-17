@@ -20,6 +20,7 @@ public:
     ~SimpleEvaluator() = default;
 
     void prepare() override ;
+    void findBestPlan(PathQuery *query);
     cardStat evaluate(PathQuery *query) override ;
 
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);

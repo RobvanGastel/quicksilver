@@ -248,12 +248,20 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
     return out;
 }
 
+void SimpleEvaluator::findBestPlan(PathQuery *query) {
+    
+}
+
 /**
  * Evaluate a path query. Produce a cardinality of the answer graph.
  * @param query Query to evaluate.
  * @return A cardinality statistics of the answer graph.
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
+
+    /// Find best plan
+    findBestPlan(query);
+
     auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);
