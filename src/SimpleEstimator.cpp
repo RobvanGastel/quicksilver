@@ -252,11 +252,11 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 }
 
 void SimpleEstimator::prepare() {
-    int noLabels = graph->getNoLabels();
-    int noVertices = graph->getNoVertices();
+    // int noLabels = graph->getNoLabels();
+    // int noVertices = graph->getNoVertices();
 
-    stats = Stats(noLabels, noVertices);
-    stats.create_stats(graph->adj);
+    // stats = Stats(noLabels, noVertices);
+    // stats.create_stats(graph->adj);
 }
 
 
