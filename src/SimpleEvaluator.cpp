@@ -1,5 +1,6 @@
 #include "SimpleEstimator.h"
 #include "SimpleEvaluator.h"
+// #include <bits/stdc++.h>
 
 SimpleEvaluator::SimpleEvaluator(std::shared_ptr<SimpleGraph> &g) {
 
@@ -248,8 +249,133 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
     return out;
 }
 
-void SimpleEvaluator::findBestPlan(PathQuery *query) {
-    
+/// FindBestPlan
+struct BestPlan {
+    uint32_t cost;
+    PathQuery plan;
+
+    public:
+    BestPlan(uint32_t c, PathQuery p) {
+        cost = c;
+        plan = p;
+    }
+};
+
+void inorderParse(PathTree *node,
+                  std::vector<int> *query) {
+    if (node == nullptr) {
+        return;
+    }
+    inorderParse(node->left, query);
+
+    if (node->data != "/") {
+        query->push_back(std::stoi(node->data));
+    }
+
+    inorderParse(node->right, query);
+}
+
+std::vector<int> parsePathToTree(PathTree *tree) {
+    std::vector<int> query;
+
+    if (!tree->isLeaf()) {
+        inorderParse(tree, &query);
+    } else {
+        query.push_back(std::stoi(tree->data));
+    }
+    return query;
+}
+
+void combinationUtil(std::vector<int> vec, std::vector<std::pair<int, int>> *combi, int r, 
+					int index, int data[], int i); 
+
+void combinationUtil(std::vector<int> vec, std::vector<std::pair<int, int>> *combi, int r, 
+					int index, int data[], int i)  {
+	if (index == r) { 
+	    std::vector<int> set;
+		for (int j = 0; j < r; j++) {
+		    set.push_back(data[j]);
+		}
+		// Update combinations
+		combi->push_back(std::make_pair(set[0], set[1]));
+		return;
+	}
+
+	if (i >= vec.size()) // n 
+		return; 
+
+	data[index] = arr[i]; 
+	combinationUtil(vec, combi, r, index+1, data, i+1); 
+	combinationUtil(vec, combi, r, index, data, i+1);
+} 
+
+std::vector<PathQuery> CreateSubsetJoins(PathQuery *q) 
+{
+    // Parse path of tree to temporary vector<int>
+    std::vector<int> path = parsePathToTree(q->path);
+
+    // All possible combinations, nCr
+    int r = 2;
+	int data[r];
+	std::vector<std::pair<int, int>> combinations;
+	combinationUtil(path, &combinations, r, 0, data, 0);
+
+    std::vector<PathQuery> trees;
+    for(auto pair : combinations) {
+        PathTree tree;
+        tree.data = "/";
+
+        PathTree left;
+        PathTree right;
+        left.data = pair.first
+        right.data = pair.second;
+        tree.left = left;
+        tree.right = right;
+
+        PathQuery pq;
+        pq.path = tree;
+        // TODO: Make sure source target are correct
+        // Currently not implemented
+        pq.s = "*";
+        pq.t = "*";
+
+        trees.push_back(pq);
+    }
+    return trees;
+} 
+
+void ContainsOneRelation(BestPlan S) {
+    return S.plan.left.isLeaf();
+}
+
+// TODO: Extend to join with TC
+void SimpleEvaluator::findBestPlan(BestPlan S) {
+    if (S.cost != INT_MAX) {
+        return S
+    }
+    if (ContainsOneRelation(S)) {
+        // Based on the best way of assessing S
+        S.cost = est.estimate(S.plan).noOut
+        S.plan = S.plan
+    }
+    else {
+        // All possible join combinations
+	    auto combinations = CreateSubsetJoins(query);
+        // for each non-empty subset S1 of S such that S1 != S
+        for (PathQuery pair : combinations) {
+            auto P1 = FindBestPlan(S1);
+            
+            // P2 = FindBestPlan(S-S1)
+
+            // $A=$ best algorithm for joining results of $P 1$ and $P 2$ 
+            // cost = P1.cost + P2.cost + cost of A
+            if (cost < S.cost) {
+                S.cost = cost
+                // S.plan = execute P1. plan; execute P2. plan; join results of $P 1$ and $P 2$ using A
+            }
+        }
+    }
+    return S
 }
 
 /**
@@ -258,9 +384,10 @@ void SimpleEvaluator::findBestPlan(PathQuery *query) {
  * @return A cardinality statistics of the answer graph.
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
-
     /// Find best plan
-    findBestPlan(query);
+    // auto S = BestPlan()
+
+    findBestPlan(query, INT_MAX);
 
     auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
