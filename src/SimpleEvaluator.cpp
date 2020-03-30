@@ -291,56 +291,68 @@ std::vector<std::pair<PathQuery, std::pair<int, int>>> createSubsetJoins(PathQue
 {
     // Parse path of tree to temporary vector<int>
     std::vector<int> path = parsePathToTree(q->path);
+    std::cout << "Parsed tree to vector of int" << std::endl;
 
     // All possible pairs
 	std::vector<std::pair<int, int>> combinations;
     for(int i = 1; i < path.size(); i++) {
         combinations.push_back(std::make_pair(path[i-1], path[i]));
     }
+    std::cout << "Created combinations: " << combinations.size() << std::endl;
 
     std::vector<std::pair<PathQuery, std::pair<int, int>>> trees;
     for(auto pair : combinations) {
         std::string first = std::to_string(pair.first);
         PathTree left = PathTree(first, nullptr, nullptr);
+        std::cout << "left" << std::endl;
 
         std::string second = std::to_string(pair.second);
         PathTree right = PathTree(second, nullptr, nullptr);
+        std::cout << "right" << std::endl;
+
         std::string join = "/";
         PathTree tree = PathTree(join, &left, &right);
+        std::cout << "tree" << std::endl;
 
         std::string asterisk = "*";
         // TODO: Make sure source target are correct
         // Currently not implemented
         PathQuery pq = PathQuery(asterisk, &tree, asterisk);
+        std::cout << "pathQuery" << std::endl;
 
         auto treepair = std::make_pair(pq, pair);
+        std::cout << "pair" << std::endl;
         trees.push_back(treepair);
+        std::cout << "push" << std::endl;
     }
+    std::cout << "Created trees" << std::endl;
     return trees;
 } 
 
-void inorderWalkRemove(PathTree *node, int remove) {
+void inorderWalkRemove(PathTree *node, std::string remove) {
     if (node == nullptr) {
         return;
     }
     inorderWalkRemove(node->left, remove);
 
     if (node->data != "/") {
-        if (node->data == std::to_string(remove)) {
+        if (node->data == remove) {
             node = nullptr;
+            return;
         }
     }
 
     inorderWalkRemove(node->right, remove);
 }
 
-void setDifference(BestPlan S, int S1) {
-
+BestPlan setDifference(BestPlan S, std::string S1) {
+    inorderWalkRemove(S.plan->path, S1);
+    return S;
 }
 
 bool containsOneRelation(BestPlan S) {
     // return S.plan.left.isLeaf();
-    std::cout << (parsePathToTree(S.plan->path).size() == 2) << std::endl;
+    std::cout << "# joins: " << (parsePathToTree(S.plan->path).size() == 2) << std::endl;
     return parsePathToTree(S.plan->path).size() == 2;
 }
 
@@ -357,14 +369,15 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
     else {
         // All possible join combinations
 	    auto queries = createSubsetJoins(S.plan);
+        std::cout << "Subsets created" << std::endl;
         // for each non-empty subset S1 of S such that S1 != S
         for (std::pair<PathQuery, std::pair<int, int>> q : queries) {
             auto S1 = BestPlan(INT_MAX, &q.first);
             auto P1 = findBestPlan(S1);
-            // P2 = FindBestPlan(S-S1)
-            
 
-            // P2 = FindBestPlan(S-S1)
+            std::string first = std::to_string(q.second.first);
+            auto SMinusS1 = setDifference(S, first);
+            auto P2 = findBestPlan(SMinusS1);
 
             // $A=$ best algorithm for joining results of $P 1$ and $P 2$ 
             // cost = P1.cost + P2.cost + cost of A
@@ -385,8 +398,9 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     /// Find best plan
+    std::cout << std::endl;
     auto S = BestPlan(INT_MAX, query);
-    std::cout << "S created" << std::endl;
+    std::cout << "BestPlan S created" << std::endl;
     findBestPlan(S);
 
     auto res = evaluatePath(query->path);
