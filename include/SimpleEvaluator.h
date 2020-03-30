@@ -14,7 +14,7 @@ struct BestPlan {
     PathQuery plan;
 
     public:
-    BestPlan();
+    // BestPlan();
     BestPlan(int c, PathQuery p) : plan(p), cost(0) {};
 };
 
@@ -29,7 +29,7 @@ public:
     ~SimpleEvaluator() = default;
 
     void prepare() override ;
-    BestPlan findBestPlan(BestPlan *query);
+    BestPlan findBestPlan(BestPlan S);
     cardStat evaluate(PathQuery *query) override ;
 
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);

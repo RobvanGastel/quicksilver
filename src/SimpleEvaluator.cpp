@@ -287,7 +287,7 @@ std::vector<int> parsePathToTree(PathTree *tree) {
     return query;
 }
 
-std::vector<std::pair<PathQuery, std::pair<int, int>>> CreateSubsetJoins(PathQuery *q) 
+std::vector<std::pair<PathQuery, std::pair<int, int>>> createSubsetJoins(PathQuery *q) 
 {
     // Parse path of tree to temporary vector<int>
     std::vector<int> path = parsePathToTree(q->path);
@@ -323,15 +323,15 @@ void inorderWalkRemove(PathTree *node,
     if (node == nullptr) {
         return;
     }
-    inorderParse(node->left, remove);
+    inorderWalkRemove(node->left, remove);
 
     if (node->data != "/") {
-        if (node->data == std::ios(remove)) {
+        if (node->data == std::to_string(remove)) {
             node = nullptr;
         }
     }
 
-    inorderParse(node->right, remove);
+    inorderWalkRemove(node->right, remove);
 }
 
 void setDifference(BestPlan S, int S1) {
@@ -340,7 +340,7 @@ void setDifference(BestPlan S, int S1) {
 
 bool containsOneRelation(BestPlan S) {
     // return S.plan.left.isLeaf();
-    return parsePathToTree(&S.plan).size() = 2;
+    return parsePathToTree(S.plan.path).size() == 2;
 }
 
 // TODO: Extend to join with TC
@@ -355,10 +355,11 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
     }
     else {
         // All possible join combinations
-	    auto queries = CreateSubsetJoins(&S);
+	    auto queries = createSubsetJoins(&S.plan);
         // for each non-empty subset S1 of S such that S1 != S
-        for (PathQuery q : queries) {
-            auto P1 = FindBestPlan(q);
+        for (std::pair<PathQuery, std::pair<int, int>> q : queries) {
+            auto S1 = BestPlan(INT_MAX, q.first);
+            auto P1 = findBestPlan(S1);
             // P2 = FindBestPlan(S-S1)
             
 
@@ -385,7 +386,7 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     /// Find best plan
     // auto S = BestPlan()
 
-    findBestPlan(query, INT_MAX);
+    findBestPlan(BestPlan(INT_MAX, query));
 
     auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
