@@ -9,6 +9,15 @@
 #include "Evaluator.h"
 #include "Graph.h"
 
+struct BestPlan {
+    int cost;
+    PathQuery plan;
+
+    public:
+    BestPlan();
+    BestPlan(int c, PathQuery p) : plan(p), cost(0) {};
+};
+
 class SimpleEvaluator : public Evaluator {
 
     std::shared_ptr<SimpleGraph> graph;
@@ -20,7 +29,7 @@ public:
     ~SimpleEvaluator() = default;
 
     void prepare() override ;
-    void findBestPlan(PathQuery *query);
+    BestPlan findBestPlan(BestPlan *query);
     cardStat evaluate(PathQuery *query) override ;
 
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);

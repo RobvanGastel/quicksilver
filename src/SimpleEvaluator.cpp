@@ -249,17 +249,18 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
     return out;
 }
 
+///
 /// FindBestPlan
-struct BestPlan {
-    uint32_t cost;
-    PathQuery plan;
-
-    public:
-    BestPlan(uint32_t c, PathQuery p) {
-        cost = c;
-        plan = p;
-    }
-};
+///
+// struct BestPlan {
+//     uint32_t cost;
+//     PathQuery plan;
+//     public:
+//     BestPlan(uint32_t c, PathQuery p) {
+//         cost = c;
+//         plan = p;
+//     }
+// };
 
 void inorderParse(PathTree *node,
                   std::vector<int> *query) {
@@ -286,51 +287,23 @@ std::vector<int> parsePathToTree(PathTree *tree) {
     return query;
 }
 
-void combinationUtil(std::vector<int> vec, std::vector<std::pair<int, int>> *combi, int r, 
-					int index, int data[], int i); 
-
-void combinationUtil(std::vector<int> vec, std::vector<std::pair<int, int>> *combi, int r, 
-					int index, int data[], int i)  {
-	if (index == r) { 
-	    std::vector<int> set;
-		for (int j = 0; j < r; j++) {
-		    set.push_back(data[j]);
-		}
-		// Update combinations
-		combi->push_back(std::make_pair(set[0], set[1]));
-		return;
-	}
-
-	if (i >= vec.size()) // n 
-		return; 
-
-	data[index] = arr[i]; 
-	combinationUtil(vec, combi, r, index+1, data, i+1); 
-	combinationUtil(vec, combi, r, index, data, i+1);
-} 
-
-std::vector<PathQuery> CreateSubsetJoins(PathQuery *q) 
+std::vector<std::pair<PathQuery, std::pair<int, int>>> CreateSubsetJoins(PathQuery *q) 
 {
     // Parse path of tree to temporary vector<int>
     std::vector<int> path = parsePathToTree(q->path);
 
-    // All possible combinations, nCr
-    int r = 2;
-	int data[r];
+    // All possible pairs
 	std::vector<std::pair<int, int>> combinations;
-	combinationUtil(path, &combinations, r, 0, data, 0);
+    for(int i = 1; i < path.size(); i++) {
+        combinations.push_back(std::make_pair(path[i-1], path[i]));
+    }
 
-    std::vector<PathQuery> trees;
+    std::vector<std::pair<PathQuery, std::pair<int, int>>> trees;
     for(auto pair : combinations) {
-        PathTree tree;
-        tree.data = "/";
-
-        PathTree left;
-        PathTree right;
-        left.data = pair.first
-        right.data = pair.second;
-        tree.left = left;
-        tree.right = right;
+        PathTree a = NULL;
+        PathTree left = PathTree(std::to_string(pair.first), a, a);
+        PathTree right = PathTree(std::to_string(pair.second), a, a);
+        PathTree tree = PathTree("/", left, right);
 
         PathQuery pq;
         pq.path = tree;
@@ -339,43 +312,68 @@ std::vector<PathQuery> CreateSubsetJoins(PathQuery *q)
         pq.s = "*";
         pq.t = "*";
 
-        trees.push_back(pq);
+        auto treepair = std::make_pair(pq, pair);
+        trees.push_back(treepair);
     }
     return trees;
 } 
 
-void ContainsOneRelation(BestPlan S) {
-    return S.plan.left.isLeaf();
+void inorderWalkRemove(PathTree *node,
+                  int remove) {
+    if (node == nullptr) {
+        return;
+    }
+    inorderParse(node->left, remove);
+
+    if (node->data != "/") {
+        if (node->data == std::ios(remove)) {
+            node = nullptr;
+        }
+    }
+
+    inorderParse(node->right, remove);
+}
+
+void setDifference(BestPlan S, int S1) {
+
+}
+
+bool containsOneRelation(BestPlan S) {
+    // return S.plan.left.isLeaf();
+    return parsePathToTree(&S.plan).size() = 2;
 }
 
 // TODO: Extend to join with TC
-void SimpleEvaluator::findBestPlan(BestPlan S) {
+BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
     if (S.cost != INT_MAX) {
-        return S
+        return S;
     }
-    if (ContainsOneRelation(S)) {
+    if (containsOneRelation(S)) {
         // Based on the best way of assessing S
-        S.cost = est.estimate(S.plan).noOut
-        S.plan = S.plan
+        S.cost = est->estimate(&S.plan).noOut;
+        S.plan = S.plan;
     }
     else {
         // All possible join combinations
-	    auto combinations = CreateSubsetJoins(query);
+	    auto queries = CreateSubsetJoins(&S);
         // for each non-empty subset S1 of S such that S1 != S
-        for (PathQuery pair : combinations) {
-            auto P1 = FindBestPlan(S1);
+        for (PathQuery q : queries) {
+            auto P1 = FindBestPlan(q);
+            // P2 = FindBestPlan(S-S1)
             
+
             // P2 = FindBestPlan(S-S1)
 
             // $A=$ best algorithm for joining results of $P 1$ and $P 2$ 
             // cost = P1.cost + P2.cost + cost of A
+            int cost = INT_MAX;
             if (cost < S.cost) {
-                S.cost = cost
+                S.cost = cost;
                 // S.plan = execute P1. plan; execute P2. plan; join results of $P 1$ and $P 2$ using A
             }
         }
     }
-    return S
+    return S;
 }
 
 /**
