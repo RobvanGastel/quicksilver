@@ -11,11 +11,11 @@
 
 struct BestPlan {
     int cost;
-    PathQuery plan;
+    PathQuery* plan;
 
     public:
     // BestPlan();
-    BestPlan(int c, PathQuery p) : plan(p), cost(0) {};
+    BestPlan(int c, PathQuery* p) : plan(p), cost(c) {};
 };
 
 class SimpleEvaluator : public Evaluator {

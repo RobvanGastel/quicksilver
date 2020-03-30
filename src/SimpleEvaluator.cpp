@@ -300,17 +300,18 @@ std::vector<std::pair<PathQuery, std::pair<int, int>>> createSubsetJoins(PathQue
 
     std::vector<std::pair<PathQuery, std::pair<int, int>>> trees;
     for(auto pair : combinations) {
-        PathTree a = NULL;
-        PathTree left = PathTree(std::to_string(pair.first), a, a);
-        PathTree right = PathTree(std::to_string(pair.second), a, a);
-        PathTree tree = PathTree("/", left, right);
+        std::string first = std::to_string(pair.first);
+        PathTree left = PathTree(first, nullptr, nullptr);
 
-        PathQuery pq;
-        pq.path = tree;
+        std::string second = std::to_string(pair.second);
+        PathTree right = PathTree(second, nullptr, nullptr);
+        std::string join = "/";
+        PathTree tree = PathTree(join, &left, &right);
+
+        std::string asterisk = "*";
         // TODO: Make sure source target are correct
         // Currently not implemented
-        pq.s = "*";
-        pq.t = "*";
+        PathQuery pq = PathQuery(asterisk, &tree, asterisk);
 
         auto treepair = std::make_pair(pq, pair);
         trees.push_back(treepair);
@@ -318,8 +319,7 @@ std::vector<std::pair<PathQuery, std::pair<int, int>>> createSubsetJoins(PathQue
     return trees;
 } 
 
-void inorderWalkRemove(PathTree *node,
-                  int remove) {
+void inorderWalkRemove(PathTree *node, int remove) {
     if (node == nullptr) {
         return;
     }
@@ -340,7 +340,8 @@ void setDifference(BestPlan S, int S1) {
 
 bool containsOneRelation(BestPlan S) {
     // return S.plan.left.isLeaf();
-    return parsePathToTree(S.plan.path).size() == 2;
+    std::cout << (parsePathToTree(S.plan->path).size() == 2) << std::endl;
+    return parsePathToTree(S.plan->path).size() == 2;
 }
 
 // TODO: Extend to join with TC
@@ -350,15 +351,15 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
     }
     if (containsOneRelation(S)) {
         // Based on the best way of assessing S
-        S.cost = est->estimate(&S.plan).noOut;
+        S.cost = est->estimate(S.plan).noOut;
         S.plan = S.plan;
     }
     else {
         // All possible join combinations
-	    auto queries = createSubsetJoins(&S.plan);
+	    auto queries = createSubsetJoins(S.plan);
         // for each non-empty subset S1 of S such that S1 != S
         for (std::pair<PathQuery, std::pair<int, int>> q : queries) {
-            auto S1 = BestPlan(INT_MAX, q.first);
+            auto S1 = BestPlan(INT_MAX, &q.first);
             auto P1 = findBestPlan(S1);
             // P2 = FindBestPlan(S-S1)
             
@@ -384,9 +385,9 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     /// Find best plan
-    // auto S = BestPlan()
-
-    findBestPlan(BestPlan(INT_MAX, query));
+    auto S = BestPlan(INT_MAX, query);
+    std::cout << "S created" << std::endl;
+    findBestPlan(S);
 
     auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
