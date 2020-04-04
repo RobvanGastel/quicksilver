@@ -257,7 +257,7 @@ void inorderPrint(PathTree *node) {
         return;
     }
     inorderPrint(node->left);
-    std::cout << node->data << std::endl;
+    // std::cout << node->data << std::endl;
     inorderPrint(node->right);
 }
 
@@ -290,7 +290,6 @@ std::vector<std::pair<PathQuery*, std::pair<std::string, std::string>>> createSu
 {
     // Parse path of tree to temporary vector<int>
     std::vector<std::string> path = parsePathToTree(q->path);
-    std::cout << "Parsed tree to vector of int" << std::endl;
 
     // All possible pairs
 	std::vector<std::pair<std::string, std::string>> combinations;
@@ -325,26 +324,21 @@ void inorderWalkRemove(PathTree *node, std::string remove) {
     if (node == nullptr) {
         return;
     }
-
-    if (node->left->data == remove) {
-        std::cout << "remove left " << remove << std::endl;
-        std::cout << node->left->data << std::endl;
-        node->left = NULL;
-    } else {
-        std::cout << "dont remove left " << remove <<  std::endl;
-        std::cout << node->left->data << std::endl;
-        inorderWalkRemove(node->left, remove);
+    if(node->left != nullptr) {
+        if (node->left->data == remove) {
+            node->left = NULL;
+        } else {
+            inorderWalkRemove(node->left, remove);
+        }
     }
-    
-    if (node->right->data == remove) {
-        std::cout << "remove right " << remove << std::endl;
-        std::cout << node->right->data << std::endl;
-        node->right = NULL;
-    } else {
-        std::cout << "dont remove right " << remove << std::endl;
-        std::cout << node->right->data << std::endl;
-        inorderWalkRemove(node->right, remove);
-    }    
+
+    if(node->right != nullptr) {
+        if (node->right->data == remove) {
+            node->right = NULL;
+        } else {
+            inorderWalkRemove(node->right, remove);
+        }
+    }
 }
 
 void setDifference(BestPlan *S, std::string S1) {
@@ -355,6 +349,37 @@ bool containsOneRelation(BestPlan S) {
     // return S.plan.left.isLeaf();
     std::cout << "One join: " << (parsePathToTree(S.plan->path).size() <= 2) << std::endl;
     return parsePathToTree(S.plan->path).size() <= 2;
+}
+
+PathQuery* constructNewTree(BestPlan S, BestPlan P1, std::pair<std::string, std::string> combination) {
+    auto path = parsePathToTree(S.plan->path);
+
+    // TODO: Make sure source target are correct
+    // Currently not implemented
+    std::string asterisk = "*";
+    std::string join = "/";
+
+    PathTree* left;
+    PathTree* right;
+    for(int i = 0; i < path.size(); i++) {
+
+        // Right node
+        if(i % 2 == 1) {
+            if(path[i] == combination.first) {
+                right = P1.plan->path;
+            }
+            right = new PathTree(path[i], nullptr, nullptr);
+        }
+
+        // Left node
+        if (i % 2 == 0) {
+            if(path[i] == combination.first) {
+                left = P1.plan->path;
+            }
+            left = new PathTree(path[i], left, right);
+        }
+    }
+    return new PathQuery(asterisk, left, asterisk);
 }
 
 // TODO: Extend to join with TC
@@ -376,27 +401,21 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
             auto S1 = BestPlan(INT_MAX, q.first);
             auto P1 = findBestPlan(S1);
 
-            auto SMinusS1 = S.clone();
             // The corresponding left side of the join
+            auto SMinusS1 = S.clone();
             setDifference(SMinusS1, q.second.first);
-            // std::cout << "dsadasd"<< std::endl;
             setDifference(SMinusS1, q.second.second);
-            
-            // std::cout << "q: " << q.second.first << ", " << q.second.second << std::endl;
-            // inorderPrint(SMinusS1->plan->path);
-            std::cout << "dadasd" << std::endl;
-            inorderPrint(S.plan->path);
 
             auto P2 = findBestPlan(*SMinusS1);
 
-            // TODO: Estimate the join of P1 and P2 "Naive"?
-            // $A=$ best algorithm for joining results of $P1$ and $P2$
-            int cost = P1.cost + P2.cost; // + cost of A
+            auto P = constructNewTree(S, P1, q.second);
+            int A = est->estimate(P).noPaths;
+
+            int cost = P1.cost + P2.cost + A; 
+            std::cout << "new cost: " << cost << " previous cost: " << S.cost << std::endl;
             if (cost < S.cost) {
-                // TODO: Set the new cost if its lower and create the tree
                 S.cost = cost;
-                std::cout << "cost: " << cost << std::endl;
-                // S.plan = execute P1. plan; execute P2. plan; join results of $P1$ and $P2$ using A
+                S.plan = P;
             }
         }
         std::cout << "end for loop combinations" << std::endl;
@@ -413,11 +432,11 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     /// Find best plan
     std::cout << std::endl;
     auto S = BestPlan(INT_MAX, query);
-    std::cout << "BestPlan S created" << std::endl;
-    findBestPlan(S);
+    auto SPlan = findBestPlan(S);
 
-    auto res = evaluatePath(query->path);
-    if(query->s != "*") res = selectSource(query->s, res);
-    else if(query->t != "*") res = selectTarget(query->t, res);
+    PathQuery* planQuery = SPlan.plan;
+    auto res = evaluatePath(planQuery->path);
+    if(query->s != "*") res = selectSource(planQuery->s, res);
+    else if(query->t != "*") res = selectTarget(planQuery->t, res);
     return SimpleEvaluator::computeStats(res);
 }
