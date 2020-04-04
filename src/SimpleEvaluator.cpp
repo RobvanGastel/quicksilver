@@ -367,6 +367,7 @@ PathQuery* constructNewTree(BestPlan S, BestPlan P1, std::pair<std::string, std:
         if(i % 2 == 1) {
             if(path[i] == combination.first) {
                 right = P1.plan->path;
+                continue;
             }
             right = new PathTree(path[i], nullptr, nullptr);
         }
@@ -375,6 +376,7 @@ PathQuery* constructNewTree(BestPlan S, BestPlan P1, std::pair<std::string, std:
         if (i % 2 == 0) {
             if(path[i] == combination.first) {
                 left = P1.plan->path;
+                continue;
             }
             left = new PathTree(path[i], left, right);
         }
@@ -405,10 +407,16 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
             auto SMinusS1 = S.clone();
             setDifference(SMinusS1, q.second.first);
             setDifference(SMinusS1, q.second.second);
-
             auto P2 = findBestPlan(*SMinusS1);
 
+            std::cout << "break after this line" << std::endl;
             auto P = constructNewTree(S, P1, q.second);
+
+            auto a = parsePathToTree(P->path);
+            for(int i = 0; i < a.size(); i++) {
+                std::cout << a[i] << ", " << std::endl;
+            }
+            std::cout << "12321312" << std::endl;
             int A = est->estimate(P).noPaths;
 
             int cost = P1.cost + P2.cost + A; 
