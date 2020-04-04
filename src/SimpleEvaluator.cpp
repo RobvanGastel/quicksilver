@@ -290,39 +290,32 @@ std::vector<std::pair<PathQuery*, std::pair<std::string, std::string>>> createSu
 {
     // Parse path of tree to temporary vector<int>
     std::vector<std::string> path = parsePathToTree(q->path);
-    // std::cout << "Parsed tree to vector of int" << std::endl;
+    std::cout << "Parsed tree to vector of int" << std::endl;
 
     // All possible pairs
 	std::vector<std::pair<std::string, std::string>> combinations;
     for(int i = 1; i < path.size(); i++) {
         combinations.push_back(std::make_pair(path[i-1], path[i]));
     }
-    // std::cout << "Created combinations: " << combinations.size() << std::endl;
 
     std::vector<std::pair<PathQuery*, std::pair<std::string, std::string>>> trees;
     for(auto pair : combinations) {
         std::string first = pair.first;
         PathTree* left = new PathTree(first, nullptr, nullptr);
-        // std::cout << "left" << std::endl;
 
         std::string second = pair.second;
         PathTree* right = new PathTree(second, nullptr, nullptr);
-        // std::cout << "right" << std::endl;
 
         std::string join = "/";
         PathTree* tree = new PathTree(join, left, right);
-        // std::cout << "tree" << std::endl;
 
         std::string asterisk = "*";
         // TODO: Make sure source target are correct
         // Currently not implemented
         PathQuery* pq = new PathQuery(asterisk, tree, asterisk);
-        // std::cout << "pathQuery" << std::endl;
 
         auto treepair = std::make_pair(pq, pair);
-        // std::cout << "pair" << std::endl;
         trees.push_back(treepair);
-        // std::cout << "push" << std::endl;
     }
     std::cout << "Created trees: " << trees.size() << std::endl;
     return trees;
@@ -333,24 +326,29 @@ void inorderWalkRemove(PathTree *node, std::string remove) {
         return;
     }
 
-    if (node->left->data != remove) {
-        inorderWalkRemove(node->left, remove);
+    if (node->left->data == remove) {
+        std::cout << "remove left " << remove << std::endl;
+        std::cout << node->left->data << std::endl;
+        node->left = NULL;
     } else {
-        node->left = nullptr;
+        std::cout << "dont remove left " << remove <<  std::endl;
+        std::cout << node->left->data << std::endl;
+        inorderWalkRemove(node->left, remove);
     }
     
-    if (node->right->data != remove) {
-        inorderWalkRemove(node->right, remove);
+    if (node->right->data == remove) {
+        std::cout << "remove right " << remove << std::endl;
+        std::cout << node->right->data << std::endl;
+        node->right = NULL;
     } else {
-        node->right = nullptr;
+        std::cout << "dont remove right " << remove << std::endl;
+        std::cout << node->right->data << std::endl;
+        inorderWalkRemove(node->right, remove);
     }    
 }
 
 void setDifference(BestPlan *S, std::string S1) {
     inorderWalkRemove(S->plan->path, S1);
-
-    // inorderPrint(S->plan->path);
-    // return S;
 }
 
 bool containsOneRelation(BestPlan S) {
@@ -365,8 +363,6 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
         return S;
     }
     if (containsOneRelation(S)) {
-        inorderPrint(S.plan->path);
-
         // Based on the best way of assessing S
         S.cost = est->estimate(S.plan).noPaths;
         S.plan = S.plan;
@@ -383,10 +379,13 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
             auto SMinusS1 = S.clone();
             // The corresponding left side of the join
             setDifference(SMinusS1, q.second.first);
+            // std::cout << "dsadasd"<< std::endl;
             setDifference(SMinusS1, q.second.second);
             
-            std::cout << "q: " << q.second.first << ", " << q.second.second << std::endl;
+            // std::cout << "q: " << q.second.first << ", " << q.second.second << std::endl;
             // inorderPrint(SMinusS1->plan->path);
+            std::cout << "dadasd" << std::endl;
+            inorderPrint(S.plan->path);
 
             auto P2 = findBestPlan(*SMinusS1);
 
