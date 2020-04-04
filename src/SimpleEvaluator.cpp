@@ -290,6 +290,7 @@ std::vector<std::pair<PathQuery*, std::pair<std::string, std::string>>> createSu
 {
     // Parse path of tree to temporary vector<int>
     std::vector<std::string> path = parsePathToTree(q->path);
+    // TODO keep joined tuples
 
     // All possible pairs
 	std::vector<std::pair<std::string, std::string>> combinations;
@@ -384,6 +385,10 @@ PathQuery* constructNewTree(BestPlan S, BestPlan P1, std::pair<std::string, std:
     return new PathQuery(asterisk, left, asterisk);
 }
 
+void determineOrder() {
+
+}
+
 // TODO: Extend to join with TC
 BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
     if (S.cost != INT_MAX) {
@@ -403,30 +408,75 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
             auto S1 = BestPlan(INT_MAX, q.first);
             auto P1 = findBestPlan(S1);
 
+            // locate the query path in overall tree 
+            // move one up and one down
+            std::string joinDown;
+            std::string joinUp;
+            std::vector<std::string> path = parsePathToTree(S.plan->path);
+            for(int i = 0; i < path.size(); i++) {
+                // Carefull it only works for combinations of two
+                if(path[i] == q.second.first && path[i+1] == q.second.second) {
+                    // Found the combination pair first element
+                    if (i > 0) {
+                        joinDown = path[i - 1];
+                    }
+                }
+                if(path[i] == q.second.second && path[i-1] == q.second.first) {
+                    if (i < path.size() - 1) {
+                        joinUp = path[i + 1];
+                    }
+                    std::cout << "combination: " << q.second.first << ", " << q.second.second << "\n";
+                    std::cout << "down: " << joinDown << ", up: " << joinUp<< "\n";
+                    break;
+                }
+            }
+
+            std::string join = "/";
+            std::string asterisk = "*";
+
+            // TODO: Check if joinDown or joinUp != ""
+            // JoinDown tree
+            PathTree* joinLeaf = new PathTree(joinDown, nullptr, nullptr);
+            PathTree* joinDownTree = new PathTree(join, joinLeaf, q.first->path);
+            PathQuery* queryDown = new PathQuery(asterisk, joinDownTree, asterisk);
+            std::cout << *queryDown->path << "\n";
+
+            // JoinUp tree
+            joinLeaf = new PathTree(joinUp, nullptr, nullptr);
+            PathTree* joinUpTree = new PathTree(join, q.first->path, joinLeaf);
+            PathQuery* queryUp = new PathQuery(asterisk, joinUpTree, asterisk);
+            std::cout << *queryDown->path << "\n";
+
+
+
+
+            // if(PU.cost < PD.cost)
+            // BestPlan P2;
+            // // S1 + 1 join up or S1 + 1 join down
+            // auto PU = findBestPlan(S1 + 1 join up);
+
+            // auto PD = findBestPlan(S1 + 1 join down);
+            // if(PU.cost < PD.cost) {
+            //     P2 = PU;
+            // } else {
+            //     P2 = PD;
+            // }
+
             // The corresponding left side of the join
-            auto SMinusS1 = S.clone();
-            setDifference(SMinusS1, q.second.first);
-            setDifference(SMinusS1, q.second.second);
-            auto P2 = findBestPlan(*SMinusS1);
+            // auto SMinusS1 = S.clone();
+            // setDifference(SMinusS1, q.second.first);
+            // setDifference(SMinusS1, q.second.second);
+            // auto P = constructNewTree(S, P1, q.second);
+            // int A = est->estimate(P).noPaths;
 
-            std::cout << "break after this line" << std::endl;
-            auto P = constructNewTree(S, P1, q.second);
+            // int cost = P1.cost + P2.cost + A; 
+            // std::cout << "new cost: " << cost << " previous cost: " << S.cost << std::endl;
 
-            auto a = parsePathToTree(P->path);
-            for(int i = 0; i < a.size(); i++) {
-                std::cout << a[i] << ", " << std::endl;
-            }
-            std::cout << "12321312" << std::endl;
-            int A = est->estimate(P).noPaths;
-
-            int cost = P1.cost + P2.cost + A; 
-            std::cout << "new cost: " << cost << " previous cost: " << S.cost << std::endl;
-            if (cost < S.cost) {
-                S.cost = cost;
-                S.plan = P;
-            }
+            // if (cost < S.cost) {
+                // S.cost = cost;
+                // S.plan = P;
+            // }
         }
-        std::cout << "end for loop combinations" << std::endl;
     }
     return S;
 }
