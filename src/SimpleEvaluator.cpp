@@ -251,81 +251,80 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
 
 ///
 /// FindBestPlan
-///
-// struct BestPlan {
-//     uint32_t cost;
-//     PathQuery plan;
-//     public:
-//     BestPlan(uint32_t c, PathQuery p) {
-//         cost = c;
-//         plan = p;
-//     }
-// };
 
-void inorderParse(PathTree *node,
-                  std::vector<int> *query) {
+void inorderPrint(PathTree *node) {
     if (node == nullptr) {
         return;
     }
-    inorderParse(node->left, query);
-
-    if (node->data != "/") {
-        query->push_back(std::stoi(node->data));
-    }
-
-    inorderParse(node->right, query);
+    inorderPrint(node->left);
+    std::cout << node->data << std::endl;
+    inorderPrint(node->right);
 }
 
-std::vector<int> parsePathToTree(PathTree *tree) {
-    std::vector<int> query;
+void inorderParseTree(PathTree *node,
+                  std::vector<std::string> *query) {
+    if (node == nullptr) {
+        return;
+    }
+    inorderParseTree(node->left, query);
+
+    if (node->data != "/") {
+        query->push_back(node->data);
+    }
+
+    inorderParseTree(node->right, query);
+}
+
+std::vector<std::string> parsePathToTree(PathTree *tree) {
+    std::vector<std::string> query;
 
     if (!tree->isLeaf()) {
-        inorderParse(tree, &query);
+        inorderParseTree(tree, &query);
     } else {
-        query.push_back(std::stoi(tree->data));
+        query.push_back(tree->data);
     }
     return query;
 }
 
-std::vector<std::pair<PathQuery, std::pair<int, int>>> createSubsetJoins(PathQuery *q) 
+std::vector<std::pair<PathQuery*, std::pair<std::string, std::string>>> createSubsetJoins(PathQuery *q) 
 {
     // Parse path of tree to temporary vector<int>
-    std::vector<int> path = parsePathToTree(q->path);
-    std::cout << "Parsed tree to vector of int" << std::endl;
+    std::vector<std::string> path = parsePathToTree(q->path);
+    // std::cout << "Parsed tree to vector of int" << std::endl;
 
     // All possible pairs
-	std::vector<std::pair<int, int>> combinations;
+	std::vector<std::pair<std::string, std::string>> combinations;
     for(int i = 1; i < path.size(); i++) {
         combinations.push_back(std::make_pair(path[i-1], path[i]));
     }
-    std::cout << "Created combinations: " << combinations.size() << std::endl;
+    // std::cout << "Created combinations: " << combinations.size() << std::endl;
 
-    std::vector<std::pair<PathQuery, std::pair<int, int>>> trees;
+    std::vector<std::pair<PathQuery*, std::pair<std::string, std::string>>> trees;
     for(auto pair : combinations) {
-        std::string first = std::to_string(pair.first);
-        PathTree left = PathTree(first, nullptr, nullptr);
-        std::cout << "left" << std::endl;
+        std::string first = pair.first;
+        PathTree* left = new PathTree(first, nullptr, nullptr);
+        // std::cout << "left" << std::endl;
 
-        std::string second = std::to_string(pair.second);
-        PathTree right = PathTree(second, nullptr, nullptr);
-        std::cout << "right" << std::endl;
+        std::string second = pair.second;
+        PathTree* right = new PathTree(second, nullptr, nullptr);
+        // std::cout << "right" << std::endl;
 
         std::string join = "/";
-        PathTree tree = PathTree(join, &left, &right);
-        std::cout << "tree" << std::endl;
+        PathTree* tree = new PathTree(join, left, right);
+        // std::cout << "tree" << std::endl;
 
         std::string asterisk = "*";
         // TODO: Make sure source target are correct
         // Currently not implemented
-        PathQuery pq = PathQuery(asterisk, &tree, asterisk);
-        std::cout << "pathQuery" << std::endl;
+        PathQuery* pq = new PathQuery(asterisk, tree, asterisk);
+        // std::cout << "pathQuery" << std::endl;
 
         auto treepair = std::make_pair(pq, pair);
-        std::cout << "pair" << std::endl;
+        // std::cout << "pair" << std::endl;
         trees.push_back(treepair);
-        std::cout << "push" << std::endl;
+        // std::cout << "push" << std::endl;
     }
-    std::cout << "Created trees" << std::endl;
+    std::cout << "Created trees: " << trees.size() << std::endl;
     return trees;
 } 
 
@@ -333,27 +332,31 @@ void inorderWalkRemove(PathTree *node, std::string remove) {
     if (node == nullptr) {
         return;
     }
-    inorderWalkRemove(node->left, remove);
 
-    if (node->data != "/") {
-        if (node->data == remove) {
-            node = nullptr;
-            return;
-        }
+    if (node->left->data != remove) {
+        inorderWalkRemove(node->left, remove);
+    } else {
+        node->left = nullptr;
     }
-
-    inorderWalkRemove(node->right, remove);
+    
+    if (node->right->data != remove) {
+        inorderWalkRemove(node->right, remove);
+    } else {
+        node->right = nullptr;
+    }    
 }
 
-BestPlan setDifference(BestPlan S, std::string S1) {
-    inorderWalkRemove(S.plan->path, S1);
-    return S;
+void setDifference(BestPlan *S, std::string S1) {
+    inorderWalkRemove(S->plan->path, S1);
+
+    // inorderPrint(S->plan->path);
+    // return S;
 }
 
 bool containsOneRelation(BestPlan S) {
     // return S.plan.left.isLeaf();
-    std::cout << "# joins: " << (parsePathToTree(S.plan->path).size() == 2) << std::endl;
-    return parsePathToTree(S.plan->path).size() == 2;
+    std::cout << "One join: " << (parsePathToTree(S.plan->path).size() <= 2) << std::endl;
+    return parsePathToTree(S.plan->path).size() <= 2;
 }
 
 // TODO: Extend to join with TC
@@ -362,31 +365,42 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
         return S;
     }
     if (containsOneRelation(S)) {
+        inorderPrint(S.plan->path);
+
         // Based on the best way of assessing S
-        S.cost = est->estimate(S.plan).noOut;
+        S.cost = est->estimate(S.plan).noPaths;
         S.plan = S.plan;
-    }
-    else {
+    } else {
         // All possible join combinations
 	    auto queries = createSubsetJoins(S.plan);
-        std::cout << "Subsets created" << std::endl;
+        std::cout << "Subsets created: " << queries.size() << std::endl;
+
         // for each non-empty subset S1 of S such that S1 != S
-        for (std::pair<PathQuery, std::pair<int, int>> q : queries) {
-            auto S1 = BestPlan(INT_MAX, &q.first);
+        for (std::pair<PathQuery*, std::pair<std::string, std::string>> q : queries) {
+            auto S1 = BestPlan(INT_MAX, q.first);
             auto P1 = findBestPlan(S1);
 
-            std::string first = std::to_string(q.second.first);
-            auto SMinusS1 = setDifference(S, first);
-            auto P2 = findBestPlan(SMinusS1);
+            auto SMinusS1 = S.clone();
+            // The corresponding left side of the join
+            setDifference(SMinusS1, q.second.first);
+            setDifference(SMinusS1, q.second.second);
+            
+            std::cout << "q: " << q.second.first << ", " << q.second.second << std::endl;
+            // inorderPrint(SMinusS1->plan->path);
 
-            // $A=$ best algorithm for joining results of $P 1$ and $P 2$ 
-            // cost = P1.cost + P2.cost + cost of A
-            int cost = INT_MAX;
+            auto P2 = findBestPlan(*SMinusS1);
+
+            // TODO: Estimate the join of P1 and P2 "Naive"?
+            // $A=$ best algorithm for joining results of $P1$ and $P2$
+            int cost = P1.cost + P2.cost; // + cost of A
             if (cost < S.cost) {
+                // TODO: Set the new cost if its lower and create the tree
                 S.cost = cost;
-                // S.plan = execute P1. plan; execute P2. plan; join results of $P 1$ and $P 2$ using A
+                std::cout << "cost: " << cost << std::endl;
+                // S.plan = execute P1. plan; execute P2. plan; join results of $P1$ and $P2$ using A
             }
         }
+        std::cout << "end for loop combinations" << std::endl;
     }
     return S;
 }

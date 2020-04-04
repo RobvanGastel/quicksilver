@@ -14,8 +14,8 @@ struct BestPlan {
     PathQuery* plan;
 
     public:
-    // BestPlan();
     BestPlan(int c, PathQuery* p) : plan(p), cost(c) {};
+    BestPlan* clone() const { return new BestPlan(*this); }
 };
 
 class SimpleEvaluator : public Evaluator {

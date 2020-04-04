@@ -371,6 +371,11 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t rel_type = -1; /// Current Tuple "Table"
     auto path = parsePathTree(q->path);
 
+    for(int i = 0; i < path.size(); i++) {
+        std::cout << path[i] << " ";
+    }
+    std::cout << std::endl;
+
     /// Defaults to 1, unless we know there are no tuples.
     uint32_t noSources = 1;
     uint32_t noPaths = 1;
@@ -773,6 +778,7 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
             }
         }
     }
+
 
     return cardStat {noSources, noPaths, noTargets};
 }
