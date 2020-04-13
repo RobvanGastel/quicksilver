@@ -317,7 +317,7 @@ std::vector<std::pair<PathQuery*, std::pair<std::string, std::string>>> createSu
         auto treepair = std::make_pair(pq, pair);
         trees.push_back(treepair);
     }
-    std::cout << "Created trees: " << trees.size() << std::endl;
+    // std::cout << "Created trees: " << trees.size() << std::endl;
     return trees;
 } 
 
@@ -348,7 +348,7 @@ void setDifference(BestPlan *S, std::string S1) {
 
 bool containsOneRelation(BestPlan S) {
     // return S.plan.left.isLeaf();
-    std::cout << "One join: " << (parsePathToTree(S.plan->path).size() <= 2) << std::endl;
+    // std::cout << "One or less joins: " << (parsePathToTree(S.plan->path).size() <= 2) << std::endl;
     return parsePathToTree(S.plan->path).size() <= 2;
 }
 
@@ -385,7 +385,7 @@ PathQuery* constructNewTree(BestPlan S, BestPlan P1, std::pair<std::string, std:
     return new PathQuery(asterisk, left, asterisk);
 }
 
-void determineOrder() {
+void determineOrder(std::vector<std::string> paths) {
 
 }
 
@@ -402,79 +402,173 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
         // All possible join combinations
 	    auto queries = createSubsetJoins(S.plan);
         std::cout << "Subsets created: " << queries.size() << std::endl;
+        std::cout << "\n";
 
         // for each non-empty subset S1 of S such that S1 != S
         for (std::pair<PathQuery*, std::pair<std::string, std::string>> q : queries) {
             auto S1 = BestPlan(INT_MAX, q.first);
             auto P1 = findBestPlan(S1);
 
-            // locate the query path in overall tree 
-            // move one up and one down
-            std::string joinDown;
-            std::string joinUp;
+            // TODO: Split up recursive look up for up down search in
+            // determineOrder.
+
+            // Loop over all possibilities except the combination join
             std::vector<std::string> path = parsePathToTree(S.plan->path);
+            std::vector<std::string> joinsDown;
+            std::vector<std::string> joinsUp;
             for(int i = 0; i < path.size(); i++) {
-                // Carefull it only works for combinations of two
+                // Find amount to go down
                 if(path[i] == q.second.first && path[i+1] == q.second.second) {
-                    // Found the combination pair first element
+                    // Check if there exist an element
                     if (i > 0) {
-                        joinDown = path[i - 1];
+                        for(int j = i-1; j > -1; j--) {
+                            joinsDown.push_back(path[j]);
+                        }
                     }
                 }
+                // Find amount to go up
                 if(path[i] == q.second.second && path[i-1] == q.second.first) {
                     if (i < path.size() - 1) {
-                        joinUp = path[i + 1];
+                        for(int j = i+1; j < path.size(); j++) {   
+                            joinsUp.push_back(path[j]);
+                        }                    
                     }
-                    std::cout << "combination: " << q.second.first << ", " << q.second.second << "\n";
-                    std::cout << "down: " << joinDown << ", up: " << joinUp<< "\n";
-                    break;
                 }
             }
+
+            std::cout << "combination: " << q.second.first << ", " << q.second.second << std::endl;
+
+            std::cout << "joinsDown: ";
+            for(int i = 0; i < joinsDown.size(); i++) {
+                std::cout << joinsDown[i] << ", ";
+            }
+            std::cout << std::endl;
+
+            std::cout << "joinsUp: ";
+            for(int i = 0; i < joinsUp.size(); i++) {
+                std::cout << joinsUp[i] << ", ";
+            }
+            std::cout << "\n" << std::endl;
 
             std::string join = "/";
             std::string asterisk = "*";
 
-            // TODO: Check if joinDown or joinUp != ""
             // JoinDown tree
-            PathTree* joinLeaf = new PathTree(joinDown, nullptr, nullptr);
-            PathTree* joinDownTree = new PathTree(join, joinLeaf, q.first->path);
-            PathQuery* queryDown = new PathQuery(asterisk, joinDownTree, asterisk);
-            std::cout << *queryDown->path << "\n";
+            BestPlan S2 = BestPlan(INT_MAX, S.plan);
+
+            // Store root node
+            PathTree* root = q.first->path;
+            PathTree* tempNode = q.first->path;
+            
+            if(joinsDown.size() != 0) {
+                for(int i = 0; i < joinsDown.size(); i++) {
+                    
+                    // Need to create a join of case
+                    //    join
+                    //   /    \
+                    //  1   combi-join
+                    //        /    \
+                    //       2      3
+                    if(joinsDown.size()-i == 1) {
+                        if(i == 0) { // set root node pointer I want to keep
+                            PathTree* node = new PathTree(joinsDown[i], nullptr, nullptr);
+                            root = new PathTree(join, node, tempNode);
+                        } else {
+                            PathTree* node = new PathTree(joinsDown[i], nullptr, nullptr);
+                            root = new PathTree(join, node, tempNode);
+                        }
+                    // Need to create a join of case
+                    //          join
+                    //         /    \
+                    //     join    combi-join
+                    //    /   \      /    \
+                    //   1     4    2      3
+                    } else if(joinsDown.size()-i == 2) {
+                        PathTree* node1 = new PathTree(joinsDown[i], nullptr, nullptr);
+                        i++;
+                        PathTree* node4 = new PathTree(joinsDown[i], nullptr, nullptr);
+                        PathTree* nodeJoin = new PathTree(join, node1, node4);
+
+                        root = new PathTree(join, nodeJoin, tempNode);
+
+                    // At least 3 joins
+                    //          join
+                    //         /    \
+                    //     join    combi-join
+                    //    /   \      /    \
+                    //  join  ...   2      3
+                    //  /  \
+                    // 1    4
+                    } else {
+
+                    }
+                }
+
+                PathQuery* queryDown = new PathQuery(asterisk, root, asterisk);
+                std::cout << "JoinsDown tree: " << "\n";
+                std::cout << *queryDown->path << "\n";
+                auto pathsdown = parsePathToTree(queryDown->path);
+                for(int k = 0; k < pathsdown.size(); k++) {
+                    std::cout << pathsdown[k] << ", ";
+                }
+                std::cout << std::endl;
+
+                // Estimate cost
+                int cost = est->estimate(queryDown).noPaths + P1.cost;
+                std::cout << "cost down: " << cost << "\n";
+                S2 = BestPlan(cost, queryDown);
+            }
 
             // JoinUp tree
-            joinLeaf = new PathTree(joinUp, nullptr, nullptr);
-            PathTree* joinUpTree = new PathTree(join, q.first->path, joinLeaf);
-            PathQuery* queryUp = new PathQuery(asterisk, joinUpTree, asterisk);
-            std::cout << *queryDown->path << "\n";
+            // if(joinsUp.size() != 0) {
+            //     // Combine up tree with down tree if the down tree exists
+            //     PathTree* combined = q.first->path;
+            //     if(S2.cost != INT_MAX) {
+            //         combined = S2.plan->path;
+            //     } 
+                
+            //     // Give temp value to start off with
+            //     PathTree* joinUp = q.first->path;
+            //     PathTree* unfinishedFirstNode = q.first->path;
+            //     PathTree* secondNode = q.first->path;
+            //     for(int i = 0; i < joinsUp.size(); i++) {
+            //         PathTree* joinLeaf = new PathTree(joinsUp[i], nullptr, nullptr);
 
+            //         if(i == 0) {
+            //             // After the evaluation the nullptr will be filled with
+            //             // joinDown.
+            //             unfinishedFirstNode = new PathTree(join, nullptr, joinLeaf);
+            //         } else {
+            //             secondNode = new PathTree(join, unfinishedFirstNode, joinLeaf);
+            //         }
+            //     }
 
+            //     PathQuery* queryUpUnfinished = new PathQuery(asterisk, secondNode, asterisk);
+            //     std::cout << *secondNode << "\n";
 
+            //     // Estimate cost
+            //     int cost = 0;
+            //     if(S2.cost != INT_MAX) {
+            //         cost = est->estimate(queryUpUnfinished).noPaths + S2.cost + P1.cost;
+            //     } else {
+            //         cost = est->estimate(queryUpUnfinished).noPaths + P1.cost;
+            //     }
 
-            // if(PU.cost < PD.cost)
-            // BestPlan P2;
-            // // S1 + 1 join up or S1 + 1 join down
-            // auto PU = findBestPlan(S1 + 1 join up);
+            //     // Finish the actual tree after calculating seperate estimations
+            //     unfinishedFirstNode->left = S2.plan->path;
+            //     queryUpUnfinished = new PathQuery(asterisk, secondNode, asterisk);
+            //     std::cout << *secondNode << "\n";
 
-            // auto PD = findBestPlan(S1 + 1 join down);
-            // if(PU.cost < PD.cost) {
-            //     P2 = PU;
-            // } else {
-            //     P2 = PD;
+            //     // The tree is finished in above line!
+            //     std::cout << "cost up: " << cost << "\n";
+            //     S2 = BestPlan(cost, queryUpUnfinished);
             // }
 
-            // The corresponding left side of the join
-            // auto SMinusS1 = S.clone();
-            // setDifference(SMinusS1, q.second.first);
-            // setDifference(SMinusS1, q.second.second);
-            // auto P = constructNewTree(S, P1, q.second);
-            // int A = est->estimate(P).noPaths;
-
-            // int cost = P1.cost + P2.cost + A; 
-            // std::cout << "new cost: " << cost << " previous cost: " << S.cost << std::endl;
-
-            // if (cost < S.cost) {
-                // S.cost = cost;
-                // S.plan = P;
+            // // Determine which combination is better
+            // if(S.cost > S2.cost) {
+            //     std::cout << "new cost: " << S2.cost << ", previous cost: " << S.cost << std::endl;
+            //     std::cout << "\n";
+            //     S = S2;
             // }
         }
     }
@@ -487,14 +581,32 @@ BestPlan SimpleEvaluator::findBestPlan(BestPlan S) {
  * @return A cardinality statistics of the answer graph.
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
-    /// Find best plan
-    std::cout << std::endl;
-    auto S = BestPlan(INT_MAX, query);
-    auto SPlan = findBestPlan(S);
 
-    PathQuery* planQuery = SPlan.plan;
+    // Start normal evaluation
+    auto start = std::chrono::steady_clock::now();
+    PathQuery* planQuery = query;
     auto res = evaluatePath(planQuery->path);
     if(query->s != "*") res = selectSource(planQuery->s, res);
     else if(query->t != "*") res = selectTarget(planQuery->t, res);
+    auto end = std::chrono::steady_clock::now();
+    std::cout << " " << std::endl;
+    std::cout << "Time to evaluate: " << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
+
+    // Start find best plan and evaluate
+    std::cout << " " << std::endl;
+    std::cout << "Start evaluating BestPlan" << std::endl;
+    auto S = BestPlan(INT_MAX, query);
+    auto SPlan = findBestPlan(S);
+    std::cout << "end BestPlan, final cost: " << SPlan.cost << std::endl;
+
+    start = std::chrono::steady_clock::now();
+    planQuery = SPlan.plan;
+    res = evaluatePath(planQuery->path);
+    if(query->s != "*") res = selectSource(planQuery->s, res);
+    else if(query->t != "*") res = selectTarget(planQuery->t, res);
+    end = std::chrono::steady_clock::now();
+    std::cout << "Time to evaluate BestPlan: " << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
+    std::cout << " " << std::endl;
+
     return SimpleEvaluator::computeStats(res);
 }
