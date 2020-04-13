@@ -23,7 +23,7 @@ void CustomEvaluator::prepare() {
 
 cardStat CustomEvaluator::computeStats(std::shared_ptr<csr> &g) {
 
-    cardStat stats {};
+    cardStat stats {0,0,0};
 
     // for(int source = 0; source < g->getNoVertices(); source++) {
     //     if(!g->adj[source].empty()) stats.noOut++;
@@ -264,10 +264,10 @@ void CustomEvaluator::findBestPlan(PathQuery *query) {
 cardStat CustomEvaluator::evaluate(PathQuery *query) {
 
     /// Find best plan
-    findBestPlan(query);
+    // findBestPlan(query);
 
-    auto res = evaluatePath(query->path);
-    if(query->s != "*") res = selectSource(query->s, res);
-    else if(query->t != "*") res = selectTarget(query->t, res);
-    return CustomEvaluator::computeStats(res);
+    // auto res = evaluatePath(query->path);
+    // if(query->s != "*") res = selectSource(query->s, res);
+    // else if(query->t != "*") res = selectTarget(query->t, res);
+    return {0,0,0};
 }
