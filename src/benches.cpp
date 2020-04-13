@@ -5,6 +5,7 @@
 #include <Estimator.h>
 #include <SimpleEstimator.h>
 #include <SimpleEvaluator.h>
+#include "CustomEvaluator.h"
 #include <PathQuery.h>
 #include <csr.h>
 
@@ -109,7 +110,6 @@ struct benchresult_t evaluatorBench(std::string &graphFile, std::string &queries
 	auto g = std::make_shared<csr>();
 
 	
-	
 	auto start = std::chrono::steady_clock::now();
 	try {
 		g->readInitialInfoFromContiguousFile(graphFile);
@@ -138,6 +138,7 @@ struct benchresult_t evaluatorBench(std::string &graphFile, std::string &queries
 	// prepare the evaluator
 	// auto est = std::make_shared<SimpleEstimator>(g);
 	// auto ev = std::make_unique<SimpleEvaluator>(g);
+	auto ev = std::make_unique<CustomEvaluator>(g);
 	
 	// start = std::chrono::steady_clock::now();
 	// ev->attachEstimator(est);

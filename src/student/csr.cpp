@@ -135,7 +135,6 @@ void csr::initialize_positions_adj() {
 }
 
 void csr::readFromContiguousFile(const std::string &fileName) {
-    // std::cout << " SCR readfile" << std::endl;
     std::string line;
     std::ifstream graphFile { fileName };
 
