@@ -7,19 +7,22 @@
 #include <iostream>
 #include <regex>
 #include <fstream>
-#include "Graph.h"
+// #include "Graph.h"
 
-class csr : public Graph {
+class csr {// : public Graph {
 public:
     std::vector<uint32_t> IA;
     std::vector<std::vector<uint32_t>> positions_adj; // positions_adj[label][source] -> starting index in IA; positions_adj[label][source+1] -> ending index in IA
+    std::vector<uint32_t> IA_reverse;
+    std::vector<std::vector<uint32_t>> positions_adj_reverse;
 
 
 protected:
     uint32_t V;
     uint32_t L;
-    std::vector<int> LabelCount;
-    std::vector<std::vector<int>> LabelSource;
+    std::vector<uint32_t> LabelCount;                // TODO: throw after use
+    std::vector<std::vector<uint32_t>> LabelSource;  // TODO: throw after use
+    std::vector<std::vector<uint32_t>> LabelTarget;  // TODO: throw after use
 
 
 public:
@@ -28,17 +31,14 @@ public:
     ~csr() = default;
     explicit csr(uint32_t n);
 
-    uint32_t getNoVertices() const override ;
-    uint32_t getNoEdges() const override ;
-    uint32_t getNoDistinctEdges() const override ;
-    uint32_t getNoLabels() const override ;
+    uint32_t getNoVertices() const ;
+    uint32_t getNoEdges() const;
+    uint32_t getNoDistinctEdges() const;
+    uint32_t getNoLabels() const;
 
-    void addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) override ;
-    void readFromContiguousFile(const std::string &fileName) override ;
+    void readFromContiguousFile(const std::string &fileName);
     void initialize_positions_adj();
     void readInitialInfoFromContiguousFile(const std::string &fileName) ;
-
-    bool edgeExists(uint32_t from, uint32_t to, uint32_t edgeLabel);
 
     void setNoVertices(uint32_t n);
     void setNoLabels(uint32_t noLabels);

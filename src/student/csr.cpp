@@ -9,7 +9,8 @@ uint32_t csr::getNoVertices() const {
 }
 
 void csr::setNoVertices(uint32_t n) {
-    V = n;}
+    V = n;
+}
 
 uint32_t csr::getNoEdges() const {
     uint32_t sum = 0;
@@ -58,53 +59,62 @@ void csr::setNoLabels(uint32_t noLabels) {
     L = noLabels;
     LabelCount.resize(L);
     LabelSource.resize(L);
+    LabelTarget.resize(L);
     for(int i = 0; i < L; i++) {
         LabelCount[i] = 0;
-        std::vector<int> zeroes(V, 0);
+        std::vector<uint32_t> zeroes(V, 0);
         LabelSource[i] = zeroes;
+        LabelTarget[i] = zeroes;
     }
 
-}
-
-void csr::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
-    // if(from >= V || to >= V || edgeLabel >= L)
-    //     throw std::runtime_error(std::string("Edge data out of bounds: ") +
-    //                              "(" + std::to_string(from) + "," + std::to_string(to) + "," +
-    //                              std::to_string(edgeLabel) + ")");
-    // adj[from].emplace_back(std::make_pair(edgeLabel, to));
-
-}
-
-bool csr::edgeExists(uint32_t from, uint32_t to, uint32_t edgeLabel) {
-    // auto it = std::find(adj[from].begin(), adj[from].end(), std::make_pair(edgeLabel, to));
-    // return (it != adj[from].end());
-    return true;
 }
 
 void csr::initialize_positions_adj() {
     positions_adj.resize(L);
+    positions_adj_reverse.resize(L);
+
     for (uint32_t label = 0; label < L; label++) {
         positions_adj[label].resize(V+1);
+        positions_adj_reverse[label].resize(V+1);
     }
 
     // add label posisitons to adj
     positions_adj[0][0] = 0;
-    for(uint32_t label = 0; label < LabelCount.size(); label++){
+    positions_adj_reverse[0][0] = 0;
+
+    for (uint32_t label = 0; label < LabelCount.size(); label++){
         uint32_t count = positions_adj[label][0] + LabelCount[label];
+
         if (label < LabelCount.size()-1)
             positions_adj[label+1][0] = count;
+            positions_adj_reverse[label+1][0] = count;
+
         positions_adj[label][V] = count;
+        positions_adj_reverse[label][V] = count;
     }
 
-    std::cout << LabelSource[3][9725] << "\n";
+    // std::cout << LabelSource[3][9725] << "\n";
+
     // add target positions to adj
-    for (uint32_t label = 0; label < LabelSource.size(); label++){
+    for (uint32_t label = 0; label < L; label++){
         uint32_t sourceIndex = positions_adj[label][0];
-        for (uint32_t source = 1; source < LabelSource[label].size(); source++) {
-            sourceIndex += LabelSource[label][source-1];
-            positions_adj[label][source] = sourceIndex;
+        uint32_t targetIndex = positions_adj[label][0];
+        
+        for (uint32_t i = 1; i < L; i++) {
+            sourceIndex += LabelSource[label][i-1];
+            targetIndex += LabelTarget[label][i-1];
+            positions_adj[label][i] = sourceIndex;
+            positions_adj_reverse[label][i] = targetIndex;
         }
     }
+
+    // for (uint32_t label = 0; label < LabelTarget.size(); label++){
+    //     uint32_t sourceIndex = positions_adj[label][0];
+    //     for (uint32_t source = 1; source < LabelTarget[label].size(); source++) {
+    //         sourceIndex += LabelTarget[label][source-1];
+    //         positions_adj[label][source] = sourceIndex;
+    //     }
+    // }
 
     // test
     // uint32_t max_index = 0;
@@ -135,6 +145,7 @@ void csr::readFromContiguousFile(const std::string &fileName) {
 
     // create positions_adj
     std::vector<std::vector<uint32_t>> adj = positions_adj;
+    std::vector<std::vector<uint32_t>> adj_reverse = positions_adj_reverse;
     while(std::getline(graphFile, line)) {
         if(std::regex_search(line, matches, edgePat)) {
             uint32_t subject = (uint32_t) std::stoul(matches[1]);
@@ -142,11 +153,13 @@ void csr::readFromContiguousFile(const std::string &fileName) {
             uint32_t object = (uint32_t) std::stoul(matches[3]);
 
             uint32_t i = adj[predicate][subject]++;
+            uint32_t i_reverse = adj_reverse[predicate][object]++;
             // if (i > positions_adj[predicate][subject+1])
             //     std::cout << "index too big:" << i << " source:" << subject << " label:" << predicate << " target:" << object << std::endl;
             // if (i > IA.size())
             //     std::cout << predicate << "    " << subject << "   " << i << std::endl;
             IA[i] = object;
+            IA_reverse[i] = subject;
         }
     }
 
@@ -158,7 +171,6 @@ void csr::readFromContiguousFile(const std::string &fileName) {
 }
 
 void csr::readInitialInfoFromContiguousFile(const std::string &fileName) {
-
     std::string line;
     std::ifstream graphFile { fileName };
 
@@ -176,21 +188,21 @@ void csr::readInitialInfoFromContiguousFile(const std::string &fileName) {
         setNoVertices(noNodes);
         setNoLabels(noLabels);
         IA.resize(noEdges);
+        IA_reverse.resize(noEdges);
     } else {
         throw std::runtime_error(std::string("Invalid graph header!"));
     }
 
     // parse edge data
     while(std::getline(graphFile, line)) {
-
         if(std::regex_search(line, matches, edgePat)) {
             uint32_t subject = (uint32_t) std::stoul(matches[1]);
             uint32_t predicate = (uint32_t) std::stoul(matches[2]);
-            // uint32_t object = (uint32_t) std::stoul(matches[3]);
+            uint32_t object = (uint32_t) std::stoul(matches[3]);
 
-            LabelCount[predicate] += 1;
-            LabelSource[predicate][subject] += 1;
-            
+            LabelCount[predicate]++;
+            LabelSource[predicate][subject]++;
+            LabelTarget[predicate][object]++;
         }
     }
 

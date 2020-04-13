@@ -109,6 +109,7 @@ struct benchresult_t evaluatorBench(std::string &graphFile, std::string &queries
 	auto g = std::make_shared<csr>();
 
 	
+	
 	auto start = std::chrono::steady_clock::now();
 	try {
 		g->readInitialInfoFromContiguousFile(graphFile);
@@ -116,6 +117,7 @@ struct benchresult_t evaluatorBench(std::string &graphFile, std::string &queries
 		std::cerr << e.what() << std::endl;
 		return {};
 	}
+	
 	try {
 		g->initialize_positions_adj();
 	} catch (std::runtime_error &e) {
