@@ -252,11 +252,35 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 }
 
 void SimpleEstimator::prepare() {
-    // int noLabels = graph->getNoLabels();
-    // int noVertices = graph->getNoVertices();
+    /*
+    base                           4.7 MiB
+    100000000 bool                20.6 MiB
+    100000000 pairs uint32_t    1028.6 MiB  
+    bool 64 times smaller
+    */
+    // std::pair<uint32_t, uint32_t> y;
+    // std::vector<std::pair<uint32_t, uint32_t>> x;
+    // for (int i=0;i<100000000;i++) {
+    //     y.first = 3;
+    //     y.second = 2;
+    //     x.push_back(y);
+    // }
+    // std::vector<uint32_t> x;
+    // for (int i=0;i<100000000;i++)
+    //     x.push_back((uint32_t) 1);
+    // std::vector<uint8_t> x;
+    // for (int i=0;i<100000000;i++)
+    //     x.push_back((uint8_t) 1);
+    // std::vector<bool> y;
+    // for (int i=0;i<100000000;i++)
+    //     y.push_back(true);
 
-    // stats = Stats(noLabels, noVertices);
-    // stats.create_stats(graph->adj);
+
+    int noLabels = graph->getNoLabels();
+    int noVertices = graph->getNoVertices();
+
+    stats = Stats(noLabels, noVertices);
+    stats.create_stats(graph->adj);
 }
 
 

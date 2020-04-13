@@ -75,6 +75,8 @@ bool SimpleGraph::edgeExists(uint32_t from, uint32_t to, uint32_t edgeLabel) {
     return (it != adj[from].end());
 }
 
+////////////////////////////////////
+
 void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     std::string line;
