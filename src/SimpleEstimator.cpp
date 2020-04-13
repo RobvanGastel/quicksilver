@@ -276,11 +276,11 @@ void SimpleEstimator::prepare() {
     //     y.push_back(true);
 
 
-    int noLabels = graph->getNoLabels();
-    int noVertices = graph->getNoVertices();
+    // int noLabels = graph->getNoLabels();
+    // int noVertices = graph->getNoVertices();
 
-    stats = Stats(noLabels, noVertices);
-    stats.create_stats(graph->adj);
+    // stats = Stats(noLabels, noVertices);
+    // stats.create_stats(graph->adj);
 }
 
 

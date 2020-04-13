@@ -6,7 +6,7 @@
 #include <SimpleEstimator.h>
 #include <SimpleEvaluator.h>
 #include <PathQuery.h>
-
+#include <csr.h>
 
 std::vector<PathQuery *> parseQueries(std::string &fileName) {
 	
@@ -105,9 +105,23 @@ struct benchresult_t evaluatorBench(std::string &graphFile, std::string &queries
 	std::cout << "\n(1) Reading the graph into memory and preparing the evaluator...\n" << std::endl;
 	
 	// read the graph
-	auto g = std::make_shared<SimpleGraph>();
+	// auto g = std::make_shared<SimpleGraph>();
+	auto g = std::make_shared<csr>();
+
 	
 	auto start = std::chrono::steady_clock::now();
+	try {
+		g->readInitialInfoFromContiguousFile(graphFile);
+	} catch (std::runtime_error &e) {
+		std::cerr << e.what() << std::endl;
+		return {};
+	}
+	try {
+		g->initialize_positions_adj();
+	} catch (std::runtime_error &e) {
+		std::cerr << e.what() << std::endl;
+		return {};
+	}
 	try {
 		g->readFromContiguousFile(graphFile);
 	} catch (std::runtime_error &e) {
@@ -120,40 +134,40 @@ struct benchresult_t evaluatorBench(std::string &graphFile, std::string &queries
 	std::cout << "Time to read the graph into memory: " << result.loadTime << " ms" << std::endl;
 	
 	// prepare the evaluator
-	auto est = std::make_shared<SimpleEstimator>(g);
-	auto ev = std::make_unique<SimpleEvaluator>(g);
+	// auto est = std::make_shared<SimpleEstimator>(g);
+	// auto ev = std::make_unique<SimpleEvaluator>(g);
 	
-	start = std::chrono::steady_clock::now();
-	ev->attachEstimator(est);
-	ev->prepare();
-	end = std::chrono::steady_clock::now();
-	result.prepTime = std::chrono::duration<double, std::milli>(end - start).count();
-	std::cout << "Time to prepare the evaluator: " << result.prepTime << " ms" << std::endl;
+	// start = std::chrono::steady_clock::now();
+	// ev->attachEstimator(est);
+	// ev->prepare();
+	// end = std::chrono::steady_clock::now();
+	// result.prepTime = std::chrono::duration<double, std::milli>(end - start).count();
+	// std::cout << "Time to prepare the evaluator: " << result.prepTime << " ms" << std::endl;
 	
-	std::cout << "\n(2) Running the query workload..." << std::endl;
+	// std::cout << "\n(2) Running the query workload..." << std::endl;
 	
-	auto queries = parseQueries(queriesFile);
+	// auto queries = parseQueries(queriesFile);
 	
-	for(auto query : queries) {
+	// for(auto query : queries) {
 		
-		// perform evaluation
-		// parse the query into an AST
-		std::cout << "\nProcessing query: " << *query;
-		std::cout << "Parsed query tree: " << *query->path;
+	// 	// perform evaluation
+	// 	// parse the query into an AST
+	// 	std::cout << "\nProcessing query: " << *query;
+	// 	std::cout << "Parsed query tree: " << *query->path;
 		
-		// perform the evaluation
-		start = std::chrono::steady_clock::now();
-		auto actual = ev->evaluate(query);
-		end = std::chrono::steady_clock::now();
+	// 	// perform the evaluation
+	// 	start = std::chrono::steady_clock::now();
+	// 	auto actual = ev->evaluate(query);
+	// 	end = std::chrono::steady_clock::now();
 		
-		std::cout << "\nActual (noOut, noPaths, noIn) : ";
-		actual.print();
-		long localEvalTime = std::chrono::duration<double, std::milli>(end - start).count();
-		std::cout << "Time to evaluate: " << localEvalTime << " ms" << std::endl;
-		result.evalTime += localEvalTime;
-	}
+	// 	std::cout << "\nActual (noOut, noPaths, noIn) : ";
+	// 	actual.print();
+	// 	long localEvalTime = std::chrono::duration<double, std::milli>(end - start).count();
+	// 	std::cout << "Time to evaluate: " << localEvalTime << " ms" << std::endl;
+	// 	result.evalTime += localEvalTime;
+	// }
 	
-	for(auto query : queries) delete(query);
+	// for(auto query : queries) delete(query);
 	
 	return result;
 }
