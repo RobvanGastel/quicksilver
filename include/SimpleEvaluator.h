@@ -20,6 +20,7 @@ class SimpleEvaluator : public Evaluator {
     std::shared_ptr<SimpleGraph> graph;
     std::shared_ptr<SimpleEstimator> est;
     std::map<std::string, BestPlan> planSpace;
+    std::map<std::string, BestPlan> cachedPlans;
 
 public:
 

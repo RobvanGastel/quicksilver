@@ -299,12 +299,10 @@ uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right)
         query = "(" + left + ")";
     }
 
-    // Debug
     std::cout << "\n\nUnprocessed query:" << query;
     PathTree* tree = PathTree::strToTree(query);
     std::cout << "\nProcessing query: " << *tree;
 
-    // TODO: Currently imputes *
     std::string asterisk = "*";
     PathQuery* pq = new PathQuery(asterisk, tree, asterisk);
 
@@ -316,59 +314,64 @@ uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right)
 BestPlan SimpleEvaluator::findBestPlan(std::string query) {
     std::vector<std::string> path = parseStringToPath(query);
 
-    // TODO: Cache plans and see if already exists
-    if(path.size() == 1) {
-        if(planSpace.count(query) == 0) {
-            std::string left = path[0];
-
-            BestPlan ps;
-            ps.query = query;
-            ps.cost = estimateQueryCost(path[0], "");
-            planSpace[query] = ps;
-        }
-    } else if(path.size() == 2) {
-        if(planSpace.count(query) == 0) {
-            std::string left = path[0];
-            std::string right = path[1];
-
-            BestPlan ps;
-            ps.query = "(" + left + "/" + right + ")";
-            ps.cost = estimateQueryCost(path[0], path[1]);
-            planSpace[query] = ps;
-        }
+    // If already cached
+    if(cachedPlans.count(query) != 0) {
+        planSpace[query].query = cachedPlans[query].query;
+        planSpace[query].cost = cachedPlans[query].cost;
     } else {
-        for(int i = 0; i < path.size()-1; ++i) {
-            std::string left = "";
-            std::string right = "";
-            for (int j = 0; j < path.size(); ++j) {
-                if (j <= i) {
-                    left += path[j] + "/";
-                } else {
-                    right += path[j] + "/";
-                }
-            }
-            left = left.substr(0, left.size()-1);
-            right = right.substr(0, right.size()-1);
-
-            BestPlan P1 = SimpleEvaluator::findBestPlan(left);
-            BestPlan P2 = SimpleEvaluator::findBestPlan(right);
-
-            std::string leftLabel = P1.query;
-            std::string rightLabel = P2.query;
-            uint32_t cost = estimateQueryCost(leftLabel, rightLabel);
-            
+        if(path.size() == 1) {
             if(planSpace.count(query) == 0) {
-                // TODO: Adjust?
-                BestPlan P;
-                P.query = ""; //query
-                P.cost = INT32_MAX;
-                planSpace[query] = P;
+                std::string left = path[0];
+
+                BestPlan ps;
+                ps.query = query;
+                ps.cost = estimateQueryCost(path[0], "");
+                planSpace[query] = ps;
             }
-            if(cost < planSpace[query].cost) {
-                std::string P1Query = "(" + P1.query + ")";
-                std::string P2Query = "(" + P2.query + ")";
-                planSpace[query].query = P1Query + "/" + P2Query;
-                planSpace[query].cost = cost;
+        } else if(path.size() == 2) {
+            if(planSpace.count(query) == 0) {
+                std::string left = path[0];
+                std::string right = path[1];
+
+                BestPlan ps;
+                ps.query = "(" + left + "/" + right + ")";
+                ps.cost = estimateQueryCost(path[0], path[1]);
+                planSpace[query] = ps;
+            }
+        } else {
+            for(int i = 0; i < path.size()-1; ++i) {
+                std::string left = "";
+                std::string right = "";
+                for (int j = 0; j < path.size(); ++j) {
+                    if (j <= i) {
+                        left += path[j] + "/";
+                    } else {
+                        right += path[j] + "/";
+                    }
+                }
+                left = left.substr(0, left.size()-1);
+                right = right.substr(0, right.size()-1);
+
+                BestPlan P1 = SimpleEvaluator::findBestPlan(left);
+                BestPlan P2 = SimpleEvaluator::findBestPlan(right);
+
+                std::string leftLabel = P1.query;
+                std::string rightLabel = P2.query;
+                uint32_t cost = estimateQueryCost(leftLabel, rightLabel);
+                
+                if(planSpace.count(query) == 0) {
+                    // TODO: Adjust?
+                    BestPlan P;
+                    P.query = ""; //query
+                    P.cost = INT32_MAX;
+                    planSpace[query] = P;
+                }
+                if(cost < planSpace[query].cost) {
+                    std::string P1Query = "(" + P1.query + ")";
+                    std::string P2Query = "(" + P2.query + ")";
+                    planSpace[query].query = P1Query + "/" + P2Query;
+                    planSpace[query].cost = cost;
+                }
             }
         }
     }
