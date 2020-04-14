@@ -82,12 +82,13 @@ void csr::initialize_positions_adj() {
     positions_adj[0][0] = 0;
     positions_adj_reverse[0][0] = 0;
 
-    for (uint32_t label = 0; label < LabelCount.size(); label++){
+    for (uint32_t label = 0; label < L; label++){
         uint32_t count = positions_adj[label][0] + LabelCount[label];
 
-        if (label < LabelCount.size()-1)
+        if (label < L-1) {
             positions_adj[label+1][0] = count;
             positions_adj_reverse[label+1][0] = count;
+        }
 
         positions_adj[label][V] = count;
         positions_adj_reverse[label][V] = count;
