@@ -8,11 +8,19 @@
 #include "PathTree.h"
 #include "Evaluator.h"
 #include "Graph.h"
+#include <map>
+
+struct BestPlan {
+    std::string query;
+    uint32_t cost;
+};
 
 class SimpleEvaluator : public Evaluator {
 
     std::shared_ptr<SimpleGraph> graph;
     std::shared_ptr<SimpleEstimator> est;
+    std::map<std::string, BestPlan> planSpace;
+    std::map<std::string, BestPlan> cachedPlans;
 
 public:
 
@@ -20,6 +28,9 @@ public:
     ~SimpleEvaluator() = default;
 
     void prepare() override ;
+    BestPlan findBestPlan(std::string query);
+    uint32_t estimateQueryCost(std::string left, std::string right);
+
     cardStat evaluate(PathQuery *query) override ;
 
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);

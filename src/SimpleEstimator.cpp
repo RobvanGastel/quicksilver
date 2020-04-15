@@ -256,7 +256,7 @@ void SimpleEstimator::prepare() {
     int noVertices = graph->getNoVertices();
 
     stats = Stats(noLabels, noVertices);
-    stats.create_stats(graph->adj);
+//    stats.create_stats(graph->adj);
 }
 
 
@@ -302,24 +302,24 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, flo
     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
     base->setNoLabels(sampleSize);
 
-    for(uint32_t source = 0; source < sampleSize; source++) {
-        int index = rand() % graph->getNoVertices();
-
-        for (auto labelTarget : graph->adj[index]) {
-
-            auto label = labelTarget.first;
-            auto target = labelTarget.second;
-
-            if (label == T) {
-                if(source < sampleSize) {
-                    sampleGraph->addEdge(source, target, 0);
-                    base->addEdge(source, target, 0);
-                } else {
-                    break;
-                }
-            }
-        }
-    }
+//    for(uint32_t source = 0; source < sampleSize; source++) {
+//        int index = rand() % graph->getNoVertices();
+//
+//        for (auto labelTarget : graph->adj[index]) {
+//
+//            auto label = labelTarget.first;
+//            auto target = labelTarget.second;
+//
+//            if (label == T) {
+//                if(source < sampleSize) {
+//                    sampleGraph->addEdge(source, target, 0);
+//                    base->addEdge(source, target, 0);
+//                } else {
+//                    break;
+//                }
+//            }
+//        }
+//    }
 
     while (numNewAdded) {
         auto delta = se.join(sampleGraph, base);
@@ -341,23 +341,23 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int
     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
     base->setNoLabels(1);
 
-    if (reverse) {
-        for (auto labelTarget : graph->reverse_adj[node]) {
-
-            auto label = labelTarget.first;
-            auto target = labelTarget.second;
-            sampleGraph->addEdge(0, target, 0);
-            base->addEdge(0, target, 0);
-        }
-    } else {
-        for (auto labelTarget : graph->adj[node]) {
-
-            auto label = labelTarget.first;
-            auto target = labelTarget.second;
-            sampleGraph->addEdge(0, target, 0);
-            base->addEdge(0, target, 0);
-        }
-    }
+//    if (reverse) {
+//        for (auto labelTarget : graph->reverse_adj[node]) {
+//
+//            auto label = labelTarget.first;
+//            auto target = labelTarget.second;
+//            sampleGraph->addEdge(0, target, 0);
+//            base->addEdge(0, target, 0);
+//        }
+//    } else {
+//        for (auto labelTarget : graph->adj[node]) {
+//
+//            auto label = labelTarget.first;
+//            auto target = labelTarget.second;
+//            sampleGraph->addEdge(0, target, 0);
+//            base->addEdge(0, target, 0);
+//        }
+//    }
 
     while (numNewAdded) {
         auto delta = se.join(sampleGraph, base);

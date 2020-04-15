@@ -7,7 +7,6 @@
 #include <iostream>
 #include <regex>
 #include <fstream>
-#include <set>
 // #include "Graph.h"
 
 class csr {// : public Graph {
@@ -41,7 +40,7 @@ public:
 
     void readFromContiguousFile(const std::string &fileName);
     void initialize_positions_adj();
-    void readInitialInfoFromContiguousFile(const std::string &fileName) ;
+    void readInitialInfoFromContiguousFile(const std::string &fileName);
 
     void setNoVertices(uint32_t n);
     void setNoLabels(uint32_t noLabels);

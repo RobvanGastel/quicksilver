@@ -1,7 +1,6 @@
-#include <limits.h>
 #include "SimpleEstimator.h"
 #include "SimpleEvaluator.h"
-// #include <bits/stdc++.h>
+#include <sstream>
 
 SimpleEvaluator::SimpleEvaluator(std::shared_ptr<SimpleGraph> &g) {
 
@@ -26,16 +25,16 @@ void SimpleEvaluator::prepare() {
 cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
 
     cardStat stats {};
-
-    for(int source = 0; source < g->getNoVertices(); source++) {
-        if(!g->adj[source].empty()) stats.noOut++;
-    }
-
-    stats.noPaths = g->getNoDistinctEdges();
-
-    for(int target = 0; target < g->getNoVertices(); target++) {
-        if(!g->reverse_adj[target].empty()) stats.noIn++;
-    }
+//
+//    for(int source = 0; source < g->getNoVertices(); source++) {
+//        if(!g->adj[source].empty()) stats.noOut++;
+//    }
+//
+//    stats.noPaths = g->getNoDistinctEdges();
+//
+//    for(int target = 0; target < g->getNoVertices(); target++) {
+//        if(!g->reverse_adj[target].empty()) stats.noIn++;
+//    }
 
     return stats;
 }
@@ -53,31 +52,31 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::selectLabel(uint32_t projectLabel,
     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
     out->setNoLabels(in->getNoLabels());
 
-    if(!inverse) {
-        // going forward
-        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-            for (auto labelTarget : in->adj[source]) {
-
-                auto label = labelTarget.first;
-                auto target = labelTarget.second;
-
-                if (label == projectLabel)
-                    out->addEdge(source, target, outLabel);
-            }
-        }
-    } else {
-        // going backward
-        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-            for (auto labelTarget : in->reverse_adj[source]) {
-
-                auto label = labelTarget.first;
-                auto target = labelTarget.second;
-
-                if (label == projectLabel)
-                    out->addEdge(source, target, outLabel);
-            }
-        }
-    }
+//    if(!inverse) {
+//        // going forward
+//        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
+//            for (auto labelTarget : in->adj[source]) {
+//
+//                auto label = labelTarget.first;
+//                auto target = labelTarget.second;
+//
+//                if (label == projectLabel)
+//                    out->addEdge(source, target, outLabel);
+//            }
+//        }
+//    } else {
+//        // going backward
+//        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
+//            for (auto labelTarget : in->reverse_adj[source]) {
+//
+//                auto label = labelTarget.first;
+//                auto target = labelTarget.second;
+//
+//                if (label == projectLabel)
+//                    out->addEdge(source, target, outLabel);
+//            }
+//        }
+//    }
 
     return out;
 }
@@ -112,18 +111,18 @@ uint32_t SimpleEvaluator::unionDistinct(std::shared_ptr<SimpleGraph> &left, std:
 
     uint32_t numNewAdded = 0;
 
-    for(uint32_t source = 0; source < right->getNoVertices(); source++) {
-        for (auto labelTarget : right->adj[source]) {
-
-            auto label = labelTarget.first;
-            auto target = labelTarget.second;
-
-            if(!left->edgeExists(source, target, label)) {
-                left->addEdge(source, target, label);
-                numNewAdded++;
-            }
-        }
-    }
+//    for(uint32_t source = 0; source < right->getNoVertices(); source++) {
+//        for (auto labelTarget : right->adj[source]) {
+//
+//            auto label = labelTarget.first;
+//            auto target = labelTarget.second;
+//
+//            if(!left->edgeExists(source, target, label)) {
+//                left->addEdge(source, target, label);
+//                numNewAdded++;
+//            }
+//        }
+//    }
 
     return numNewAdded;
 }
@@ -139,19 +138,19 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::join(std::shared_ptr<SimpleGraph> 
     auto out = std::make_shared<SimpleGraph>(left->getNoVertices());
     out->setNoLabels(1);
 
-    for(uint32_t leftSource = 0; leftSource < left->getNoVertices(); leftSource++) {
-        for (auto labelTarget : left->adj[leftSource]) {
-
-            int leftTarget = labelTarget.second;
-            // try to join the left target with right s
-            for (auto rightLabelTarget : right->adj[leftTarget]) {
-
-                auto rightTarget = rightLabelTarget.second;
-                out->addEdge(leftSource, rightTarget, 0);
-
-            }
-        }
-    }
+//    for(uint32_t leftSource = 0; leftSource < left->getNoVertices(); leftSource++) {
+//        for (auto labelTarget : left->adj[leftSource]) {
+//
+//            int leftTarget = labelTarget.second;
+//            // try to join the left target with right s
+//            for (auto rightLabelTarget : right->adj[leftTarget]) {
+//
+//                auto rightTarget = rightLabelTarget.second;
+//                out->addEdge(leftSource, rightTarget, 0);
+//
+//            }
+//        }
+//    }
 
     return out;
 }
@@ -218,13 +217,13 @@ std::shared_ptr<SimpleGraph> selectSource(std::string &s, std::shared_ptr<Simple
     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
     out->setNoLabels(in->getNoLabels());
 
-    for (auto labelTarget : in->adj[std::stoi(s)]) {
-
-        auto label = labelTarget.first;
-        auto target = labelTarget.second;
-
-        out->addEdge((uint32_t) std::stoi(s), target, label);
-    }
+//    for (auto labelTarget : in->adj[std::stoi(s)]) {
+//
+//        auto label = labelTarget.first;
+//        auto target = labelTarget.second;
+//
+//        out->addEdge((uint32_t) std::stoi(s), target, label);
+//    }
 
     return out;
 }
@@ -240,12 +239,12 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
     out->setNoLabels(in->getNoLabels());
 
-    for (auto labelSource : in->reverse_adj[std::stoi(t)]) {
-
-        auto label = labelSource.first;
-        auto source = labelSource.second;
-        out->addEdge(source, (uint32_t) std::stoi(t), label);
-    }
+//    for (auto labelSource : in->reverse_adj[std::stoi(t)]) {
+//
+//        auto label = labelSource.first;
+//        auto source = labelSource.second;
+//        out->addEdge(source, (uint32_t) std::stoi(t), label);
+//    }
 
     return out;
 }
@@ -253,97 +252,130 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
 ///
 /// FindBestPlan
 ///
-// struct BestPlan {
-//     uint32_t cost;
-//     PathQuery plan;
-//     public:
-//     BestPlan(uint32_t c, PathQuery p) {
-//         cost = c;
-//         plan = p;
-//     }
-// };
 
-void inorderParse(PathTree *node,
-                  std::vector<int> *query) {
+void inorderParseTree(PathTree *node,
+                      std::vector<std::string> *query) {
     if (node == nullptr) {
         return;
     }
-    inorderParse(node->left, query);
+    inorderParseTree(node->left, query);
 
     if (node->data != "/") {
-        query->push_back(std::stoi(node->data));
+        query->push_back(node->data);
     }
 
-    inorderParse(node->right, query);
+    inorderParseTree(node->right, query);
 }
 
-std::vector<int> parsePathToTree(PathTree *tree) {
-    std::vector<int> query;
+// Parse the given PathTree
+std::vector<std::string> parsePathToTree(PathTree *tree) {
+    std::vector<std::string> query;
 
     if (!tree->isLeaf()) {
-        inorderParse(tree, &query);
+        inorderParseTree(tree, &query);
     } else {
-        query.push_back(std::stoi(tree->data));
+        query.push_back(tree->data);
     }
     return query;
 }
 
-std::vector<std::pair<PathQuery, std::pair<int, int>>> createSubsetJoins(PathQuery *q)
-{
-    // Parse path of tree to temporary vector<int>
-    std::vector<int> path = parsePathToTree(q->path);
-    std::cout << "Parsed tree to vector of int" << std::endl;
-
-    // All possible pairs
-    std::vector<std::pair<int, int>> combinations;
-    for(int i = 1; i < path.size(); i++) {
-        combinations.push_back(std::make_pair(path[i-1], path[i]));
+std::vector<std::string> parseStringToPath(const std::string &query) {
+    std::stringstream ss(query);
+    std::string label;
+    std::vector<std::string> path;
+    while (std::getline(ss, label, '/')) {
+        path.push_back(label);
     }
-    std::cout << "Created combinations: " << combinations.size() << std::endl;
-
-    std::vector<std::pair<PathQuery, std::pair<int, int>>> trees;
-    for(auto pair : combinations) {
-        std::string first = std::to_string(pair.first);
-        PathTree left = PathTree(first, nullptr, nullptr);
-        std::cout << "left" << std::endl;
-
-        std::string second = std::to_string(pair.second);
-        PathTree right = PathTree(second, nullptr, nullptr);
-        std::cout << "right" << std::endl;
-
-        std::string join = "/";
-        PathTree tree = PathTree(join, &left, &right);
-        std::cout << "tree" << std::endl;
-
-        std::string asterisk = "*";
-        // TODO: Make sure source target are correct
-        // Currently not implemented
-        PathQuery pq = PathQuery(asterisk, &tree, asterisk);
-        std::cout << "pathQuery" << std::endl;
-
-        auto treepair = std::make_pair(pq, pair);
-        std::cout << "pair" << std::endl;
-        trees.push_back(treepair);
-        std::cout << "push" << std::endl;
-    }
-    std::cout << "Created trees" << std::endl;
-    return trees;
+    return path;
 }
 
-void inorderWalkRemove(PathTree *node, std::string remove) {
-    if (node == nullptr) {
-        return;
-    }
-    inorderWalkRemove(node->left, remove);
+// Smaller bestPlan object to store string instead
 
-    if (node->data != "/") {
-        if (node->data == remove) {
-            node = nullptr;
-            return;
+uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right) {
+    std::string query = "";
+    if(right != "") {
+        query = "(" + left + "/" + right + ")";
+    } else {
+        query = "(" + left + ")";
+    }
+
+    std::cout << "\n\nUnprocessed query:" << query;
+    PathTree* tree = PathTree::strToTree(query);
+    std::cout << "\nProcessing query: " << *tree;
+
+    std::string asterisk = "*";
+    PathQuery* pq = new PathQuery(asterisk, tree, asterisk);
+
+    auto noPaths = est->estimate(pq).noPaths;
+    delete pq;
+    return noPaths;
+}
+
+BestPlan SimpleEvaluator::findBestPlan(std::string query) {
+    std::vector<std::string> path = parseStringToPath(query);
+
+    // If already cached
+    if(cachedPlans.count(query) != 0) {
+        planSpace[query].query = cachedPlans[query].query;
+        planSpace[query].cost = cachedPlans[query].cost;
+    } else {
+        if(path.size() == 1) {
+            if(planSpace.count(query) == 0) {
+                std::string left = path[0];
+
+                BestPlan ps;
+                ps.query = query;
+                ps.cost = estimateQueryCost(path[0], "");
+                planSpace[query] = ps;
+            }
+        } else if(path.size() == 2) {
+            if(planSpace.count(query) == 0) {
+                std::string left = path[0];
+                std::string right = path[1];
+
+                BestPlan ps;
+                ps.query = "(" + left + "/" + right + ")";
+                ps.cost = estimateQueryCost(path[0], path[1]);
+                planSpace[query] = ps;
+            }
+        } else {
+            for(int i = 0; i < path.size()-1; ++i) {
+                std::string left = "";
+                std::string right = "";
+                for (int j = 0; j < path.size(); ++j) {
+                    if (j <= i) {
+                        left += path[j] + "/";
+                    } else {
+                        right += path[j] + "/";
+                    }
+                }
+                left = left.substr(0, left.size()-1);
+                right = right.substr(0, right.size()-1);
+
+                BestPlan P1 = SimpleEvaluator::findBestPlan(left);
+                BestPlan P2 = SimpleEvaluator::findBestPlan(right);
+
+                std::string leftLabel = P1.query;
+                std::string rightLabel = P2.query;
+                uint32_t cost = estimateQueryCost(leftLabel, rightLabel);
+
+                if(planSpace.count(query) == 0) {
+                    // TODO: Adjust?
+                    BestPlan P;
+                    P.query = ""; //query
+                    P.cost = INT32_MAX;
+                    planSpace[query] = P;
+                }
+                if(cost < planSpace[query].cost) {
+                    std::string P1Query = "(" + P1.query + ")";
+                    std::string P2Query = "(" + P2.query + ")";
+                    planSpace[query].query = P1Query + "/" + P2Query;
+                    planSpace[query].cost = cost;
+                }
+            }
         }
     }
-
-    inorderWalkRemove(node->right, remove);
+    return planSpace[query];
 }
 
 /**
@@ -352,10 +384,20 @@ void inorderWalkRemove(PathTree *node, std::string remove) {
  * @return A cardinality statistics of the answer graph.
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
-    /// Find best plan
-    std::cout << std::endl;
 
-    auto res = evaluatePath(query->path);
+    // Findbestplan DP
+    std::vector<std::string> path = parsePathToTree(query->path);
+    std::string queryString = "" + path[0];
+    for(int i = 1; i < path.size(); i++) {
+        queryString += "/" + path[i];
+    }
+    auto plan = findBestPlan(queryString);
+    planSpace.clear();
+
+    // Recreate new PathTree
+    PathTree* tree = PathTree::strToTree(plan.query);
+
+    auto res = evaluatePath(tree);
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);
     return SimpleEvaluator::computeStats(res);

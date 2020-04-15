@@ -169,7 +169,6 @@ void csr::readFromContiguousFile(const std::string &fileName) {
     std::getline(graphFile, line);
     std::smatch matches;
 
-    // create positions_adj
     std::vector<std::vector<uint32_t>> offset;
     std::vector<std::vector<uint32_t>> rev_offset;
     offset.resize(L);
