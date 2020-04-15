@@ -1,6 +1,7 @@
 #ifndef QS_SIMPLEGRAPH_H
 #define QS_SIMPLEGRAPH_H
 
+#include <stdlib.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -8,14 +9,20 @@
 #include <regex>
 #include <fstream>
 #include "Graph.h"
+#include <map>
 
 class SimpleGraph : public Graph {
 public:
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj;
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> reverse_adj; // vertex adjacency list
+    std::vector<std::vector<std::pair<uint32_t,uint32_t>>> sample_adj;
+    std::vector<std::vector<std::pair<uint32_t,uint32_t>>> sample_reverse_adj;
+    std::vector<std::vector<std::pair<uint32_t,uint32_t>>> comp_adj;
 protected:
     uint32_t V;
     uint32_t L;
+    std::vector<uint32_t> act_sources;
+    std::vector<uint32_t> act_targets;
 
 public:
 

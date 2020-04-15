@@ -42,9 +42,9 @@ file(GLOB_RECURSE STUDENT_HEADER_FILES CONFIGURE_DEPENDS include/student/*.h)
 file(GLOB_RECURSE STUDENT_SOURCE_FILES CONFIGURE_DEPENDS src/student/*.cpp)
 
 add_executable(quicksilver src/main.cpp ${SOURCE_FILES} ${HEADER_FILES} ${STUDENT_SOURCE_FILES} ${STUDENT_HEADER_FILES})
-target_link_libraries(quicksilver Threads::Threads)
+target_link_libraries(quicksilver Threads::Threads -lpsapi)
 
 if (Filesystem_FOUND)
     add_executable(benchmarker src/benchmarker.cpp ${SOURCE_FILES} ${HEADER_FILES} ${STUDENT_SOURCE_FILES} ${STUDENT_HEADER_FILES})
-    target_link_libraries(benchmarker Threads::Threads std::filesystem)
+    target_link_libraries(benchmarker Threads::Threads std::filesystem -lpsapi)
 endif()

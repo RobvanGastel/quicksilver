@@ -1,5 +1,7 @@
+#include <limits.h>
 #include "SimpleEstimator.h"
 #include "SimpleEvaluator.h"
+// #include <bits/stdc++.h>
 
 SimpleEvaluator::SimpleEvaluator(std::shared_ptr<SimpleGraph> &g) {
 
@@ -248,12 +250,111 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
     return out;
 }
 
+///
+/// FindBestPlan
+///
+// struct BestPlan {
+//     uint32_t cost;
+//     PathQuery plan;
+//     public:
+//     BestPlan(uint32_t c, PathQuery p) {
+//         cost = c;
+//         plan = p;
+//     }
+// };
+
+void inorderParse(PathTree *node,
+                  std::vector<int> *query) {
+    if (node == nullptr) {
+        return;
+    }
+    inorderParse(node->left, query);
+
+    if (node->data != "/") {
+        query->push_back(std::stoi(node->data));
+    }
+
+    inorderParse(node->right, query);
+}
+
+std::vector<int> parsePathToTree(PathTree *tree) {
+    std::vector<int> query;
+
+    if (!tree->isLeaf()) {
+        inorderParse(tree, &query);
+    } else {
+        query.push_back(std::stoi(tree->data));
+    }
+    return query;
+}
+
+std::vector<std::pair<PathQuery, std::pair<int, int>>> createSubsetJoins(PathQuery *q)
+{
+    // Parse path of tree to temporary vector<int>
+    std::vector<int> path = parsePathToTree(q->path);
+    std::cout << "Parsed tree to vector of int" << std::endl;
+
+    // All possible pairs
+    std::vector<std::pair<int, int>> combinations;
+    for(int i = 1; i < path.size(); i++) {
+        combinations.push_back(std::make_pair(path[i-1], path[i]));
+    }
+    std::cout << "Created combinations: " << combinations.size() << std::endl;
+
+    std::vector<std::pair<PathQuery, std::pair<int, int>>> trees;
+    for(auto pair : combinations) {
+        std::string first = std::to_string(pair.first);
+        PathTree left = PathTree(first, nullptr, nullptr);
+        std::cout << "left" << std::endl;
+
+        std::string second = std::to_string(pair.second);
+        PathTree right = PathTree(second, nullptr, nullptr);
+        std::cout << "right" << std::endl;
+
+        std::string join = "/";
+        PathTree tree = PathTree(join, &left, &right);
+        std::cout << "tree" << std::endl;
+
+        std::string asterisk = "*";
+        // TODO: Make sure source target are correct
+        // Currently not implemented
+        PathQuery pq = PathQuery(asterisk, &tree, asterisk);
+        std::cout << "pathQuery" << std::endl;
+
+        auto treepair = std::make_pair(pq, pair);
+        std::cout << "pair" << std::endl;
+        trees.push_back(treepair);
+        std::cout << "push" << std::endl;
+    }
+    std::cout << "Created trees" << std::endl;
+    return trees;
+}
+
+void inorderWalkRemove(PathTree *node, std::string remove) {
+    if (node == nullptr) {
+        return;
+    }
+    inorderWalkRemove(node->left, remove);
+
+    if (node->data != "/") {
+        if (node->data == remove) {
+            node = nullptr;
+            return;
+        }
+    }
+
+    inorderWalkRemove(node->right, remove);
+}
+
 /**
  * Evaluate a path query. Produce a cardinality of the answer graph.
  * @param query Query to evaluate.
  * @return A cardinality statistics of the answer graph.
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
+    /// Find best plan
+    std::cout << std::endl;
+
     auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);

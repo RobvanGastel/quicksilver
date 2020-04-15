@@ -12,6 +12,9 @@ void SimpleGraph::setNoVertices(uint32_t n) {
     V = n;
     adj.resize(V);
     reverse_adj.resize(V);
+    srand (time(NULL));
+    sample_adj.resize(V);
+    sample_reverse_adj.resize(V);
 }
 
 uint32_t SimpleGraph::getNoEdges() const {
@@ -68,6 +71,13 @@ void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
                                          std::to_string(edgeLabel) + ")");
     adj[from].emplace_back(std::make_pair(edgeLabel, to));
     reverse_adj[to].emplace_back(std::make_pair(edgeLabel, from));
+
+    int n = rand() % 100;
+    if (n < 25) {
+        sample_adj[from].emplace_back(std::make_pair(edgeLabel, to));
+        sample_reverse_adj[to].emplace_back(std::make_pair(edgeLabel, from));
+    }
+
 }
 
 bool SimpleGraph::edgeExists(uint32_t from, uint32_t to, uint32_t edgeLabel) {
@@ -105,9 +115,41 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
             uint32_t object = (uint32_t) std::stoul(matches[3]);
 
             addEdge(subject, object, predicate);
+//            act_sources.emplace_back(subject);
+//            act_targets.emplace_back(object);
         }
     }
+//    int g=0, f=0;
+//    for (int i=0; i<V; i++){
+//        if (adj[i].size() ==0)
+//            g +=1;
+//        if(reverse_adj[i].size()==0)
+//            f +=1;
+//    }
+//    std::cout << "Unused: " << g << "   " << f << "\n";
+//    sort(act_sources.begin(), act_sources.end());
+//    act_sources.erase(unique(act_sources.begin(), act_sources.end()), act_sources.end());
+//    sort(act_targets.begin(), act_targets.end());
+//    act_targets.erase(unique(act_targets.begin(), act_targets.end()), act_targets.end());
+//    std::cout << "Used: " << act_targets.size() << "   " << act_sources.size() << "\n";
+//
+//
+//    std::map<uint32_t, uint32_t> dict_sources;
+//    for(int i = 1; i <= act_sources.size(); i++)
+//        dict_sources.insert(std::make_pair(act_sources[i-1], i));
+//    std::map<uint32_t, uint32_t> dict_targets;
+//    for(int i = 1; i <= act_targets.size(); i++)
+//        dict_targets.insert(std::make_pair(act_targets[i-1], i));
+//
+//    std::cout << 100 << "   " << dict_sources[100] << "\n";
+//    if (dict_sources.find(0) != dict_sources.end())
+//        std::cout << "Not in dict\n";
+
+//    comp_adj.resize(act_sources.size());
+//    for (int i = 0; i < act_sources.size(); i++) {
+//        comp_adj[i] = ;
+//    }
+
 
     graphFile.close();
-
 }
