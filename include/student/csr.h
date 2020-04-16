@@ -36,6 +36,9 @@ public:
     uint32_t getNoDistinctEdges() const;
     uint32_t getNoLabels() const;
 
+    // Returns starting index of specified label and ending index+1 (so second is not included in the label)
+    std::pair<uint32_t, uint32_t> SelectLabel(uint32_t label, bool reverse);
+
     void readFromContiguousFile(const std::string &fileName);
     void initialize_positions_adj();
     void readInitialInfoFromContiguousFile(const std::string &fileName) ;

@@ -4,6 +4,22 @@ csr::csr(uint32_t n)   {
     setNoVertices(n);
 }
 
+
+std::pair<uint32_t, uint32_t> csr::SelectLabel(uint32_t label, bool reverse) {
+    if (reverse) {
+        return std::pair<uint32_t, uint32_t>(
+            positions_adj_reverse[label][0],
+            positions_adj_reverse[label][positions_adj_reverse[label].size()-1]
+        );
+
+    } else {
+        return std::pair<uint32_t, uint32_t>(
+            positions_adj[label][0],
+            positions_adj[label][positions_adj[label].size()-1]
+        );
+    }
+}
+
 uint32_t csr::getNoVertices() const {
     return V;
 }
@@ -168,6 +184,9 @@ void csr::readFromContiguousFile(const std::string &fileName) {
     // std::cout << positions_adj[0][0] << " " << positions_adj[0][1] << " " << positions_adj[0][2] << " " << positions_adj[0][3] << " " << positions_adj[0][4] << std::endl;
 
     graphFile.close();
+
+    std::pair<uint32_t, uint32_t> x = SelectLabel(1, false);
+    std::cout << x.first << " " << x.second << std::endl;
 }
 
 void csr::readInitialInfoFromContiguousFile(const std::string &fileName) {
