@@ -13,6 +13,10 @@
 
 class SimpleGraph {
 public:
+    // positions_adj[0][14] -> pointer to the first instance of an edge with source 14 and label 0 ->30 so you got Ia[30]
+    // positions_adj[0][15] -> pointer will be after the one on top -> 34 IA[34] means that source 14 has 4 edges with predicate 0
+
+
     std::vector<uint32_t> IA;
     std::vector<std::vector<uint32_t>> positions_adj; // positions_adj[label][source] -> starting index in IA; positions_adj[label][source+1] -> ending index in IA
     std::vector<uint32_t> IA_reverse;
@@ -20,11 +24,11 @@ public:
 protected:
     uint32_t V;
     uint32_t L;
-    std::vector<uint32_t> LabelCount;
-    std::vector<std::vector<uint32_t>> LabelSource;
-    std::vector<std::vector<uint32_t>> LabelTarget;
-    std::vector<std::vector<uint32_t>> subjects;
-    std::vector<std::vector<uint32_t>> objects;
+    std::vector<uint32_t> LabelCount; // number of edges for each label
+    std::vector<std::vector<uint32_t>> LabelSource; // number of edges for each label of each source
+    std::vector<std::vector<uint32_t>> LabelTarget; // number of edges for each label of each target
+    std::vector<std::vector<uint32_t>> subjects;    // Vector of distinct source for each label
+    std::vector<std::vector<uint32_t>> objects;     // Vector of distinct target for each label
 
 public:
 

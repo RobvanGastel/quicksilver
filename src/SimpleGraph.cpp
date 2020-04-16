@@ -124,7 +124,7 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
             addEdge(subject, object, predicate, offset, rev_offset);
         }
     }
-    std::vector<uint32_t > N = findNeighbours(8125, 1, true);
+    std::vector<uint32_t > N = findNeighbours(44, 1, false);
     for (int i = 0; i < N.size(); i++)
         std::cout << N[i] << "\n";
     if (edgeExists(2570,8125,1))
