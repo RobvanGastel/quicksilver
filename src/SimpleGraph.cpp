@@ -51,9 +51,32 @@ void SimpleGraph::setNoLabels(uint32_t noLabels) {
     }
 }
 
+void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel, std::vector<std::vector<uint32_t>> &offset, std::vector<std::vector<uint32_t>> &rev_offset) {
+    int index;
+    for (index = 0; index < subjects[edgeLabel].size(); index++){
+        if (subjects[edgeLabel][index] == from) {
+            uint32_t i = offset[edgeLabel][index];
+            offset[edgeLabel][index]++;
+            IA[positions_adj[edgeLabel][index] + i] = to;
+            break;
+        }
+    }
+    for (index = 0; index < objects[edgeLabel].size(); index++){
+        if (objects[edgeLabel][index] == to) {
+            uint32_t i_reverse = rev_offset[edgeLabel][index];
+            rev_offset[edgeLabel][index]++;
+            IA_reverse[positions_adj_reverse[edgeLabel][index] + i_reverse] = from;
+            break;
+        }
+    }
+}
 
 bool SimpleGraph::edgeExists(uint32_t from, uint32_t to, uint32_t edgeLabel) {
-
+    std::vector<uint32_t> N = findNeighbours(from, edgeLabel, false);
+    for (int i = 0; i < N.size(); i++) {
+        if (N[i] == to)
+            return true;
+    }
     return false;
 }
 
@@ -94,40 +117,25 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
     }
     // parse edge data
     while(std::getline(graphFile, line)) {
-
         if(std::regex_search(line, matches, edgePat)) {
             uint32_t subject = (uint32_t) std::stoul(matches[1]);
             uint32_t predicate = (uint32_t) std::stoul(matches[2]);
             uint32_t object = (uint32_t) std::stoul(matches[3]);
-
-            int index;
-            for (index = 0; index < subjects[predicate].size(); index++){
-                if (subjects[predicate][index] == subject) {
-                    uint32_t i = offset[predicate][index];
-                    offset[predicate][index]++;
-                    IA[positions_adj[predicate][index] + i] = object;
-                    break;
-                }
-            }
-            for (index = 0; index < objects[predicate].size(); index++){
-                if (objects[predicate][index] == object) {
-                    uint32_t i_reverse = rev_offset[predicate][index];
-                    rev_offset[predicate][index]++;
-                    IA_reverse[positions_adj_reverse[predicate][index] + i_reverse] = subject;
-                    break;
-                }
-            }
+            addEdge(subject, object, predicate, offset, rev_offset);
         }
     }
     std::vector<uint32_t > N = findNeighbours(8125, 1, true);
     for (int i = 0; i < N.size(); i++)
         std::cout << N[i] << "\n";
+    if (edgeExists(2570,8125,1))
+        std::cout << "Exists\n";
     graphFile.close();
 }
 
 void SimpleGraph::initialize_positions_adj() {
     positions_adj.resize(L);
     positions_adj_reverse.resize(L);
+
 
     for (uint32_t label = 0; label < L; label++) {
         positions_adj[label].resize(subjects[label].size());
@@ -205,12 +213,7 @@ void SimpleGraph::readInitialInfo(const std::string &fileName) {
             objects[predicate].emplace_back(object);
         }
     }
-    for (int i=0; i<L; i++) {
-        sort(subjects[i].begin(), subjects[i].end());
-        subjects[i].erase(unique(subjects[i].begin(), subjects[i].end()), subjects[i].end());
-        sort(objects[i].begin(), objects[i].end());
-        objects[i].erase(unique(objects[i].begin(), objects[i].end()), objects[i].end());
-    }
+    sortNodes();
     std::cout << "Initial info read\n";
     graphFile.close();
 }
@@ -285,4 +288,76 @@ std::vector<uint32_t> SimpleGraph::findNeighbours(uint32_t id, uint32_t label, b
         }
     }
     return N;
+}
+
+uint32_t SimpleGraph::getIn() {
+    return subjects.size();
+}
+
+uint32_t SimpleGraph::getOut() {
+    return objects.size();
+}
+
+uint32_t SimpleGraph::getPaths() {
+    return getNoEdges();
+}
+
+void SimpleGraph::sortNodes() {
+    for (int i=0; i<L; i++) {
+        if (subjects[i].size() > 1) {
+            sort(subjects[i].begin(), subjects[i].end());
+            subjects[i].erase(unique(subjects[i].begin(), subjects[i].end()), subjects[i].end());
+            sort(objects[i].begin(), objects[i].end());
+            objects[i].erase(unique(objects[i].begin(), objects[i].end()), objects[i].end());
+        }
+    }
+}
+
+uint32_t SimpleGraph::getLabelEdgeCount(uint32_t label, bool reverse) {
+    if (!reverse) {
+        if (label < L - 1)
+            return positions_adj[label+1][0] - positions_adj[label][0];
+        else
+            return getNoEdges() - positions_adj[label][0];
+    }
+    else {
+        if (label < L - 1)
+            return positions_adj_reverse[label+1][0] - positions_adj_reverse[label][0];
+        else
+            return getNoEdges() - positions_adj_reverse[label][0];
+    }
+}
+
+std::vector<uint32_t> SimpleGraph::getLabelSources(uint32_t label, bool reverse) {
+    if (!reverse)
+        return subjects[label];
+    else
+        return objects[label];
+}
+
+std::vector<uint32_t> SimpleGraph::getLabelTargets(uint32_t label, bool reverse) {
+    if (!reverse)
+        return objects[label];
+    else
+        return subjects[label];
+}
+
+void SimpleGraph::setLabelSources(uint32_t label, std::vector<uint32_t> sources) {
+    subjects[label] = sources;
+}
+
+void SimpleGraph::setLabelTargets(uint32_t label, std::vector<uint32_t> targets) {
+    objects[label] = targets;
+}
+
+void SimpleGraph::setLabelCount(uint32_t label, uint32_t count) {
+    LabelCount[label] = count;
+}
+
+void SimpleGraph::addLabelSource(uint32_t label, uint32_t source) {
+    LabelSource[label][source]++;
+}
+
+void SimpleGraph::addLabelTarget(uint32_t label, uint32_t target) {
+    LabelTarget[label][target]++;
 }

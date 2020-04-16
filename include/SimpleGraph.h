@@ -37,6 +37,7 @@ public:
     uint32_t getNoDistinctEdges() const  ;
     uint32_t getNoLabels() const  ;
 
+    void addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel, std::vector<std::vector<uint32_t>> &offset, std::vector<std::vector<uint32_t>> &rev_offset);
     bool edgeExists(uint32_t from, uint32_t to, uint32_t edgeLabel);
     void readFromContiguousFile(const std::string &fileName) ;
     void initialize_positions_adj();
@@ -45,6 +46,18 @@ public:
     void setNoVertices(uint32_t n);
     void setNoLabels(uint32_t noLabels);
     std::vector<uint32_t> findNeighbours(uint32_t id, uint32_t label, bool reverse);
+    uint32_t getIn();
+    uint32_t getOut();
+    uint32_t getPaths();
+    void sortNodes();
+    uint32_t getLabelEdgeCount(uint32_t label, bool reverse);
+    std::vector<uint32_t> getLabelSources(uint32_t label, bool reverse);
+    std::vector<uint32_t> getLabelTargets(uint32_t label, bool reverse);
+    void setLabelSources(uint32_t label, std::vector<uint32_t> sources);
+    void setLabelTargets(uint32_t label, std::vector<uint32_t> targets);
+    void setLabelCount(uint32_t label, uint32_t count);
+    void addLabelSource(uint32_t label, uint32_t source);
+    void addLabelTarget(uint32_t label, uint32_t target);
 
 };
 

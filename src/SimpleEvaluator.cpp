@@ -25,17 +25,9 @@ void SimpleEvaluator::prepare() {
 cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
 
     cardStat stats {};
-//
-//    for(int source = 0; source < g->getNoVertices(); source++) {
-//        if(!g->adj[source].empty()) stats.noOut++;
-//    }
-//
-//    stats.noPaths = g->getNoDistinctEdges();
-//
-//    for(int target = 0; target < g->getNoVertices(); target++) {
-//        if(!g->reverse_adj[target].empty()) stats.noIn++;
-//    }
-
+    stats.noIn = g->getIn();
+    stats.noOut = g->getOut();
+    stats.noPaths = g->getPaths();
     return stats;
 }
 
@@ -51,32 +43,42 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::selectLabel(uint32_t projectLabel,
 
     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
     out->setNoLabels(in->getNoLabels());
+    uint32_t edges = in->getLabelEdgeCount(projectLabel, false);
+    out->IA.resize(edges);
+    out->IA_reverse.resize(edges);
+    out->setLabelCount(outLabel, edges);
 
-//    if(!inverse) {
-//        // going forward
-//        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-//            for (auto labelTarget : in->adj[source]) {
-//
-//                auto label = labelTarget.first;
-//                auto target = labelTarget.second;
-//
-//                if (label == projectLabel)
-//                    out->addEdge(source, target, outLabel);
-//            }
-//        }
-//    } else {
-//        // going backward
-//        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-//            for (auto labelTarget : in->reverse_adj[source]) {
-//
-//                auto label = labelTarget.first;
-//                auto target = labelTarget.second;
-//
-//                if (label == projectLabel)
-//                    out->addEdge(source, target, outLabel);
-//            }
-//        }
-//    }
+    if(!inverse) {
+//        std::vector<uint32_t> sources = in->getLabelSources(projectLabel, false);
+//        std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, false);
+        std::vector<uint32_t> sources = {};
+        std::vector<uint32_t> targets = {};
+//        out->setLabelSources(outLabel, sources);
+//        out->setLabelTargets(outLabel, targets);
+        for (auto source : in->getLabelSources(projectLabel, false)) {
+            std::vector<uint32_t> N = in->findNeighbours(source, projectLabel, false);
+            for (auto target : N){
+                out->addLabelSource(outLabel, source);
+                out->addLabelTarget(outLabel, target);
+                sources.emplace_back(source);
+                targets.emplace_back(target);
+            }
+        }
+        out->setLabelSources(outLabel, sources);
+        out->setLabelTargets(outLabel, targets);
+        std::cout << edges << "   " << sources.size();
+        out->sortNodes();
+        out->initialize_positions_adj();
+        std::cout << out->positions_adj[0][0] << "  " << out->positions_adj[1][0] << "  " << out->positions_adj[2][0] << "  " << out->positions_adj[3][0] << "  ";
+        std::cout << out->getLabelEdgeCount(outLabel, false);
+
+
+    } else {
+        std::vector<uint32_t> sources = in->getLabelSources(projectLabel, true);
+        std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, true);
+        out->setLabelSources(outLabel, sources);
+        out->setLabelTargets(outLabel, targets);
+    }
 
     return out;
 }
@@ -125,6 +127,27 @@ uint32_t SimpleEvaluator::unionDistinct(std::shared_ptr<SimpleGraph> &left, std:
 //    }
 
     return numNewAdded;
+}
+
+std::shared_ptr<SimpleGraph> SimpleEvaluator::join2(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right) {
+
+    auto out = std::make_shared<SimpleGraph>(left->getNoVertices());
+    out->setNoLabels(1);
+
+//    for(uint32_t leftTarget = 0; leftTarget < left->getNoVertices(); leftTarget++) {
+//        if (left->reverse_adj[leftTarget].size() > 0 && right->adj[leftTarget].size() > 0) {
+//            for (auto rightTargetPair : right->adj[leftTarget]) {
+//                uint32_t rightTarget = rightTargetPair.second;
+//
+//                for (auto leftSourcePair : left->reverse_adj[leftTarget]) {
+//                    uint32_t leftSource = leftSourcePair.second;
+//                    out->addEdge(leftSource, rightTarget, 0);
+//                }
+//            }
+//        }
+//    }
+
+    return out;
 }
 
 /**
@@ -199,7 +222,7 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
         auto rightGraph = SimpleEvaluator::evaluatePath(q->right);
 
         // join left with right
-        return SimpleEvaluator::join(leftGraph, rightGraph);
+        return SimpleEvaluator::join2(leftGraph, rightGraph);
 
     }
 

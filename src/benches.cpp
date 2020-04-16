@@ -119,9 +119,10 @@ struct benchresult_t evaluatorBench(std::string &graphFile, std::string &queries
     result.loadTime = std::chrono::duration<double, std::milli>(end - start).count();
     std::cout << "Time to read the graph into memory: " << result.loadTime << " ms" << std::endl;
 
-    // prepare the evaluator
+//     prepare the evaluator
 //    auto est = std::make_shared<SimpleEstimator>(g);
-//    auto ev = std::make_unique<SimpleEvaluator>(g);
+    auto ev = std::make_unique<SimpleEvaluator>(g);
+    ev->selectLabel(0,1,false,g);
 //
 //    start = std::chrono::steady_clock::now();
 //    ev->attachEstimator(est);
