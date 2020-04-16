@@ -190,7 +190,7 @@ void SimpleEstimator::prepare() {
     int noVertices = graph->getNoVertices();
 
     stats = Stats(noLabels, noVertices);
-   stats.create_stats(graph->adj);
+    // stats.create_stats(graph->adj);
 }
 
 
@@ -245,6 +245,7 @@ std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, flo
 }
 
 /// Sample transitive closure for 1 source or target
+// TODO: Adjust after changing the graph calculation doesn't work anymore
 std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int node, bool reverse) {
     auto se = SimpleEvaluator(graph);
     int numNewAdded = 1;

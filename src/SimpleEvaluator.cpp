@@ -313,7 +313,6 @@ std::vector<std::string> parseStringToPath(const std::string &query) {
 }
 
 // Smaller bestPlan object to store string instead
-
 uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right) {
     std::string query = "";
     if(right != "") {
@@ -408,19 +407,20 @@ BestPlan SimpleEvaluator::findBestPlan(std::string query) {
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
 
+    // TODO: Uncomment when estimator is fixed
     // Findbestplan DP
-    std::vector<std::string> path = parsePathToTree(query->path);
-    std::string queryString = "" + path[0];
-    for(int i = 1; i < path.size(); i++) {
-        queryString += "/" + path[i];
-    }
-    auto plan = findBestPlan(queryString);
-    planSpace.clear();
+    // std::vector<std::string> path = parsePathToTree(query->path);
+    // std::string queryString = "" + path[0];
+    // for(int i = 1; i < path.size(); i++) {
+    //     queryString += "/" + path[i];
+    // }
+    // auto plan = findBestPlan(queryString);
+    // planSpace.clear(); // Clean old plans
 
-    // Recreate new PathTree
-    PathTree* tree = PathTree::strToTree(plan.query);
+    // PathTree* tree = PathTree::strToTree(plan.query);
+    // query->path = tree;
 
-    auto res = evaluatePath(tree);
+    auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);
     return SimpleEvaluator::computeStats(res);
