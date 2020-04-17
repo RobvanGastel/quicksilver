@@ -119,6 +119,7 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
                     exist = true;
                 }
             }
+            
             if(!exist) {
                 auto a = adj[i][j];
                 temp.push_back(a);

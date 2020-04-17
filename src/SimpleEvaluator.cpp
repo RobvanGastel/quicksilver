@@ -13,6 +13,33 @@ void SimpleEvaluator::attachEstimator(std::shared_ptr<SimpleEstimator> &e) {
     est = e;
 }
 
+/// Helper functions to parse
+void inorderParseTree(PathTree *node,
+                  std::vector<std::string> *query) {
+    if (node == nullptr) {
+        return;
+    }
+    inorderParseTree(node->left, query);
+
+    if (node->data != "/") {
+        query->push_back(node->data);
+    }
+
+    inorderParseTree(node->right, query);
+}
+
+// Parse the given PathTree
+std::vector<std::string> parsePathToTree(PathTree *tree) {
+    std::vector<std::string> query;
+
+    if (!tree->isLeaf()) {
+        inorderParseTree(tree, &query);
+    } else {
+        query.push_back(tree->data);
+    }
+    return query;
+}
+
 void SimpleEvaluator::prepare() {
 
     // if attached, prepare the estimator
@@ -164,6 +191,16 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
 
     // evaluate according to the AST bottom-up
 
+    // Check if the query is cached
+    auto path = parsePathToTree(q);
+    std::string queryString = "" + path[0];
+    for(int i = 1; i < path.size(); i++) {
+        queryString += "/" + path[i];
+    }
+    if(queryString == cachedQuery.first) {
+        return cachedQuery.second;
+    }
+
     if(q->isLeaf()) {
         // selectLabel out the label in the AST
         std::regex directLabel(R"((\d+)\>)");
@@ -252,33 +289,6 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
 ///
 /// FindBestPlan
 ///
-
-void inorderParseTree(PathTree *node,
-                  std::vector<std::string> *query) {
-    if (node == nullptr) {
-        return;
-    }
-    inorderParseTree(node->left, query);
-
-    if (node->data != "/") {
-        query->push_back(node->data);
-    }
-
-    inorderParseTree(node->right, query);
-}
-
-// Parse the given PathTree
-std::vector<std::string> parsePathToTree(PathTree *tree) {
-    std::vector<std::string> query;
-
-    if (!tree->isLeaf()) {
-        inorderParseTree(tree, &query);
-    } else {
-        query.push_back(tree->data);
-    }
-    return query;
-}
-
 std::vector<std::string> parseStringToPath(const std::string &query) {
     std::stringstream ss(query);
     std::string label;
@@ -399,5 +409,10 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);
+
+    std::cout << "\n\ncache query: " << queryString;
+    cachedQuery.first = queryString;
+    cachedQuery.second = res;
+
     return SimpleEvaluator::computeStats(res);
 }
