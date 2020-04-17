@@ -24,13 +24,16 @@ public:
     // e.g. source_relations_count[0][5] for relation 0 and node 5
     std::vector<std::vector<uint32_t>> source_relations_count;
     std::vector<std::vector<uint32_t>> target_relations_count;
+    // matrix[rel_x][rel_y][x_normal][y_normal]{tuples, s, m, f}
     std::vector<std::vector<std::vector<std::vector<std::vector<uint32_t>>>>> multidimensional_matrix;
 
 public:
     Stats() = default;
     Stats(uint32_t noLabels, uint32_t noVertices);
 
-    void create_stats(std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj);
+    // void create_stats(std::vector<std::vector<uint32_t>> *positions_adj, std::vector<std::vector<uint32_t>> *positions_adj_reverse,
+    //     std::vector<uint32_t> *IA, std::vector<uint32_t> *IA_reverse);
+    void create_stats(std::shared_ptr<SimpleGraph> *g);
 };
 
 class SimpleEstimator : public Estimator {

@@ -95,8 +95,8 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     graphFile.close();
 
-    std::pair<uint32_t, uint32_t> x = SelectLabel(1, false);
-    std::cout << x.first << " " << x.second << std::endl;
+    // std::pair<uint32_t, uint32_t> x = SelectLabel(1, false);
+    // std::cout << x.first << " " << x.second << std::endl;
 }
 
 void SimpleGraph::initialize_positions_adj() {
