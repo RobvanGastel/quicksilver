@@ -51,6 +51,21 @@ std::pair<uint32_t, uint32_t> SimpleGraph::SelectLabel(uint32_t label, bool reve
     }
 }
 
+std::pair<uint32_t, uint32_t> SimpleGraph::SelectIdLabel(uint32_t id, uint32_t label, bool reverse) {
+    if (reverse) {
+        return std::pair<uint32_t, uint32_t>(
+            positions_adj_reverse[label][id],
+            positions_adj_reverse[label][id+1]
+        );
+
+    } else {
+        return std::pair<uint32_t, uint32_t>(
+            positions_adj[label][id],
+            positions_adj[label][id+1]
+        );
+    }
+}
+
 void SimpleGraph::setNoLabels(uint32_t noLabels) {
     L = noLabels;
     LabelCount.resize(L);
@@ -94,9 +109,6 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
     }
 
     graphFile.close();
-
-    // std::pair<uint32_t, uint32_t> x = SelectLabel(1, false);
-    // std::cout << x.first << " " << x.second << std::endl;
 }
 
 void SimpleGraph::initialize_positions_adj() {
@@ -175,4 +187,38 @@ void SimpleGraph::readInitialInfo(const std::string &fileName) {
     }
 
     graphFile.close();
+}
+
+// TODO: Make more generic
+std::shared_ptr<SimpleGraph> SimpleGraph::createGraphSelectLabelSource(uint32_t source, uint32_t label, bool reverse) {
+    
+    // auto res = SelectIdLabel(source, label, reverse);
+    // auto g = std::make_shared<SimpleGraph>();
+    
+    // // Use addEdge from Nikolay 
+    // // adj 
+    // // [source] -> [target]
+
+    // uint32_t first = res.first; 
+    // if (reverse) {
+    //     for (uint32_t i = res.first; i < res.second; i++) {
+    //         IA_reverse[i];
+    //     }
+    // } else {
+    //     for (uint32_t i = res.first; i < res.second; i++) {
+    //         IA[i];
+    //     }
+    // }
+
+    // return g;
+}
+
+/// add edge on the adjacency structure to evaluation of the query
+/// can only be used if, graph is created for use of adj
+void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
+    if(from >= V || to >= V || edgeLabel >= L)
+        throw std::runtime_error(std::string("Edge data out of bounds: ") +
+                                         "(" + std::to_string(from) + "," + std::to_string(to) + "," +
+                                         std::to_string(edgeLabel) + ")");
+    adj[from].emplace_back(std::make_pair(edgeLabel, to));
 }
