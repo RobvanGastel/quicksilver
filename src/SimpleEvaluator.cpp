@@ -47,6 +47,16 @@ void SimpleEvaluator::prepare() {
 
     // prepare other things here.., if necessary
 
+
+    // Precompute TC's
+    for(auto lab : graph->labels) {
+        std::string tc = "(" + std::to_string(lab) + "+" + ")";
+        PathTree* path = PathTree::strToTree(tc);
+
+        std::cout << path->data << std::endl;
+        auto res = evaluatePath(path);
+        cachedQuery[tc] = res;
+    }
 }
 
 cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {

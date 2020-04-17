@@ -119,7 +119,10 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
                     exist = true;
                 }
             }
-            
+
+            // Store unique labels
+            labels.insert(adj[i][j].first);
+
             if(!exist) {
                 auto a = adj[i][j];
                 temp.push_back(a);
