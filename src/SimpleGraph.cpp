@@ -112,14 +112,19 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     std::vector<std::pair<uint32_t,uint32_t>> temp;
     for(int i = 0; i < adj.size(); i++) {
-        for(int j = 0; j < adj.size(); j++) {
-            if(std::find(temp.begin(), temp.end(), adj[i][j]) != temp.end()) {
+        for(int j = 0; j < adj[i].size(); j++) {
+            bool exist = false;
+            for(int k = 0; k < temp.size(); k++) {
+                if(temp[k] == adj[i][j]) {
+                    exist = true;
+                }
+            }
+            if(!exist) {
                 auto a = adj[i][j];
-
                 temp.push_back(a);
             }
-            adj[i] = temp;
-            temp.clear();
         }
+        adj[i] = temp;
+        temp.clear();
     }
 }
