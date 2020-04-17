@@ -410,7 +410,7 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     auto res = evaluatePath(query->path);
 
     std::cout << "\n\ncache query: " << queryString;
-    cachedQuery[queryString] = res;
+    cachedQuery[queryString] = std::make_shared<SimpleGraph>(*res);
 
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);
