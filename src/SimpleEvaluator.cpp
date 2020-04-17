@@ -25,9 +25,6 @@ void SimpleEvaluator::prepare() {
 cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
 
     cardStat stats {};
-    stats.noIn = g->getIn();
-    stats.noOut = g->getOut();
-    stats.noPaths = g->getPaths();
     return stats;
 }
 
@@ -41,46 +38,47 @@ cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
  */
 std::shared_ptr<SimpleGraph> SimpleEvaluator::selectLabel(uint32_t projectLabel, uint32_t outLabel, bool inverse, std::shared_ptr<SimpleGraph> &in) {
 
-    auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
-    out->setNoLabels(in->getNoLabels());
-    uint32_t edges = in->getLabelEdgeCount(projectLabel, false);
-    out->IA.resize(edges);
-    out->IA_reverse.resize(edges);
-    out->setLabelCount(outLabel, edges);
+//     // TODO: 
+//     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
+//     out->setNoLabels(in->getNoLabels());
+//     uint32_t edges = in->getLabelEdgeCount(projectLabel, false);
+//     out->IA.resize(edges);
+//     out->IA_reverse.resize(edges);
+//     out->setLabelCount(outLabel, edges);
 
-    if(!inverse) {
-//        std::vector<uint32_t> sources = in->getLabelSources(projectLabel, false);
-//        std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, false);
-        std::vector<uint32_t> sources = {};
-        std::vector<uint32_t> targets = {};
-//        out->setLabelSources(outLabel, sources);
-//        out->setLabelTargets(outLabel, targets);
-        for (auto source : in->getLabelSources(projectLabel, false)) {
-            std::vector<uint32_t> N = in->findNeighbours(source, projectLabel, false);
-            for (auto target : N){
-                out->addLabelSource(outLabel, source);
-                out->addLabelTarget(outLabel, target);
-                sources.emplace_back(source);
-                targets.emplace_back(target);
-            }
-        }
-        out->setLabelSources(outLabel, sources);
-        out->setLabelTargets(outLabel, targets);
-        std::cout << edges << "   " << sources.size();
-        out->sortNodes();
-        out->initialize_positions_adj();
-        std::cout << out->positions_adj[0][0] << "  " << out->positions_adj[1][0] << "  " << out->positions_adj[2][0] << "  " << out->positions_adj[3][0] << "  ";
-        std::cout << out->getLabelEdgeCount(outLabel, false);
+//     if(!inverse) {
+// //        std::vector<uint32_t> sources = in->getLabelSources(projectLabel, false);
+// //        std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, false);
+//         std::vector<uint32_t> sources = {};
+//         std::vector<uint32_t> targets = {};
+// //        out->setLabelSources(outLabel, sources);
+// //        out->setLabelTargets(outLabel, targets);
+//         for (auto source : in->getLabelSources(projectLabel, false)) {
+//             std::vector<uint32_t> N = in->findNeighbours(source, projectLabel, false);
+//             for (auto target : N){
+//                 out->addLabelSource(outLabel, source);
+//                 out->addLabelTarget(outLabel, target);
+//                 sources.emplace_back(source);
+//                 targets.emplace_back(target);
+//             }
+//         }
+//         out->setLabelSources(outLabel, sources);
+//         out->setLabelTargets(outLabel, targets);
+//         std::cout << edges << "   " << sources.size();
+//         out->sortNodes();
+//         out->initialize_positions_adj();
+//         std::cout << out->positions_adj[0][0] << "  " << out->positions_adj[1][0] << "  " << out->positions_adj[2][0] << "  " << out->positions_adj[3][0] << "  ";
+//         std::cout << out->getLabelEdgeCount(outLabel, false);
 
 
-    } else {
-        std::vector<uint32_t> sources = in->getLabelSources(projectLabel, true);
-        std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, true);
-        out->setLabelSources(outLabel, sources);
-        out->setLabelTargets(outLabel, targets);
-    }
+//     } else {
+//         std::vector<uint32_t> sources = in->getLabelSources(projectLabel, true);
+//         std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, true);
+//         out->setLabelSources(outLabel, sources);
+//         out->setLabelTargets(outLabel, targets);
+//     }
 
-    return out;
+//     return out;
 }
 
 /**
