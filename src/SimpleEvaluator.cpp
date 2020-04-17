@@ -408,11 +408,11 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     query->path = PathTree::strToTree(plan.query);
 
     auto res = evaluatePath(query->path);
-    if(query->s != "*") res = selectSource(query->s, res);
-    else if(query->t != "*") res = selectTarget(query->t, res);
 
     std::cout << "\n\ncache query: " << queryString;
     cachedQuery[queryString] = res;
 
+    if(query->s != "*") res = selectSource(query->s, res);
+    else if(query->t != "*") res = selectTarget(query->t, res);
     return SimpleEvaluator::computeStats(res);
 }
