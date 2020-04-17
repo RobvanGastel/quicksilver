@@ -46,5 +46,5 @@ target_link_libraries(quicksilver Threads::Threads)
 
 if (Filesystem_FOUND)
     add_executable(benchmarker src/benchmarker.cpp ${SOURCE_FILES} ${HEADER_FILES} ${STUDENT_SOURCE_FILES} ${STUDENT_HEADER_FILES})
-    target_link_libraries(benchmarker Threads::Threads std::filesystem)
+    target_link_libraries(benchmarker Threads::Threads std::filesystem -lpsapi)
 endif()
