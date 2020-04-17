@@ -38,8 +38,6 @@ public:
     std::shared_ptr<SimpleGraph> evaluatePath(PathTree *q);
     static std::shared_ptr<SimpleGraph> selectLabel(uint32_t projectLabel, uint32_t outLabel, bool inverse, std::shared_ptr<SimpleGraph> &in);
     static std::shared_ptr<SimpleGraph> join(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
-    static std::shared_ptr<SimpleGraph> join2(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
-
     static std::shared_ptr<SimpleGraph> transitiveClosure(uint32_t label, std::shared_ptr<SimpleGraph> &in);
     static uint32_t unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
 

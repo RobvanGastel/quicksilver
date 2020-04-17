@@ -127,27 +127,6 @@ uint32_t SimpleEvaluator::unionDistinct(std::shared_ptr<SimpleGraph> &left, std:
     return numNewAdded;
 }
 
-std::shared_ptr<SimpleGraph> SimpleEvaluator::join2(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right) {
-
-    auto out = std::make_shared<SimpleGraph>(left->getNoVertices());
-    out->setNoLabels(1);
-
-//    for(uint32_t leftTarget = 0; leftTarget < left->getNoVertices(); leftTarget++) {
-//        if (left->reverse_adj[leftTarget].size() > 0 && right->adj[leftTarget].size() > 0) {
-//            for (auto rightTargetPair : right->adj[leftTarget]) {
-//                uint32_t rightTarget = rightTargetPair.second;
-//
-//                for (auto leftSourcePair : left->reverse_adj[leftTarget]) {
-//                    uint32_t leftSource = leftSourcePair.second;
-//                    out->addEdge(leftSource, rightTarget, 0);
-//                }
-//            }
-//        }
-//    }
-
-    return out;
-}
-
 /**
  * Simple implementation of a join of two graphs.
  * @param left A graph to be joined.
@@ -220,7 +199,7 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
         auto rightGraph = SimpleEvaluator::evaluatePath(q->right);
 
         // join left with right
-        return SimpleEvaluator::join2(leftGraph, rightGraph);
+        return SimpleEvaluator::join(leftGraph, rightGraph);
 
     }
 
@@ -273,7 +252,6 @@ std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<Simple
 ///
 /// FindBestPlan
 ///
-
 void inorderParseTree(PathTree *node,
                       std::vector<std::string> *query) {
     if (node == nullptr) {
