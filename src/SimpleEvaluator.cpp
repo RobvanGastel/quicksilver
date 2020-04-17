@@ -299,9 +299,9 @@ uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right)
         query = "(" + left + ")";
     }
 
-    std::cout << "\n\nUnprocessed query:" << query;
+    // std::cout << "\n\nUnprocessed query:" << query;
     PathTree* tree = PathTree::strToTree(query);
-    std::cout << "\nProcessing query: " << *tree;
+    // std::cout << "\nProcessing query: " << *tree;
 
     std::string asterisk = "*";
     PathQuery* pq = new PathQuery(asterisk, tree, asterisk);
