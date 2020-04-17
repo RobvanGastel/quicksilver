@@ -18,8 +18,10 @@ public:
 
 
     std::vector<uint32_t> IA;
-    std::vector<std::vector<uint32_t>> positions_adj; // positions_adj[label][source] -> starting index in IA; positions_adj[label][source+1] -> ending index in IA
     std::vector<uint32_t> IA_reverse;
+    // positions_adj[label][source] -> starting index in IA; positions_adj[label][source+1] -> ending index in IA
+    std::vector<std::vector<uint32_t>> positions_adj;
+    // positions_adj_reverse[label][target] -> starting index in IA_reverse; positions_adj[label][source+1] -> ending index in IA_reverse
     std::vector<std::vector<uint32_t>> positions_adj_reverse;
 protected:
     uint32_t V;
