@@ -197,8 +197,9 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
     for(int i = 1; i < path.size(); i++) {
         queryString += "/" + path[i];
     }
-    if(queryString == cachedQuery.first) {
-        return cachedQuery.second;
+
+    if(cachedQuery.count(queryString) != 0) {
+        return cachedQuery[queryString];
     }
 
     if(q->isLeaf()) {
@@ -411,8 +412,7 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     else if(query->t != "*") res = selectTarget(query->t, res);
 
     std::cout << "\n\ncache query: " << queryString;
-    cachedQuery.first = queryString;
-    cachedQuery.second = res;
+    cachedQuery[queryString] = res;
 
     return SimpleEvaluator::computeStats(res);
 }
