@@ -393,11 +393,10 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     }
     auto plan = findBestPlan(queryString);
     planSpace.clear();
+    
+    query->path = PathTree::strToTree(plan.query);
 
-    // Recreate new PathTree
-    PathTree* tree = PathTree::strToTree(plan.query);
-
-    auto res = evaluatePath(tree);
+    auto res = evaluatePath(query->path);
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);
     return SimpleEvaluator::computeStats(res);
