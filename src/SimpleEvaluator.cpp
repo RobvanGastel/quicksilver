@@ -22,6 +22,33 @@ void SimpleEvaluator::prepare() {
 
 }
 
+/// Helper functions to parse
+void inorderParseTree(PathTree *node,
+                  std::vector<std::string> *query) {
+    if (node == nullptr) {
+        return;
+    }
+    inorderParseTree(node->left, query);
+
+    if (node->data != "/") {
+        query->push_back(node->data);
+    }
+
+    inorderParseTree(node->right, query);
+}
+
+// Parse the given PathTree
+std::vector<std::string> parsePathToTree(PathTree *tree) {
+    std::vector<std::string> query;
+
+    if (!tree->isLeaf()) {
+        inorderParseTree(tree, &query);
+    } else {
+        query.push_back(tree->data);
+    }
+    return query;
+}
+
 cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>> &g) {
     cardStat stats {};
 
@@ -186,32 +213,6 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
 ///
 /// FindBestPlan
 ///
-void inorderParseTree(PathTree *node,
-                      std::vector<std::string> *query) {
-    if (node == nullptr) {
-        return;
-    }
-    inorderParseTree(node->left, query);
-
-    if (node->data != "/") {
-        query->push_back(node->data);
-    }
-
-    inorderParseTree(node->right, query);
-}
-
-// Parse the given PathTree
-std::vector<std::string> parsePathToTree(PathTree *tree) {
-    std::vector<std::string> query;
-
-    if (!tree->isLeaf()) {
-        inorderParseTree(tree, &query);
-    } else {
-        query.push_back(tree->data);
-    }
-    return query;
-}
-
 std::vector<std::string> parseStringToPath(const std::string &query) {
     std::stringstream ss(query);
     std::string label;
@@ -223,6 +224,7 @@ std::vector<std::string> parseStringToPath(const std::string &query) {
 }
 
 // Smaller bestPlan object to store string instead
+
 uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right) {
     std::string query = "";
     if(right != "") {
@@ -231,9 +233,9 @@ uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right)
         query = "(" + left + ")";
     }
 
-    std::cout << "\n\nUnprocessed query:" << query;
+    // std::cout << "\n\nUnprocessed query:" << query;
     PathTree* tree = PathTree::strToTree(query);
-    std::cout << "\nProcessing query: " << *tree;
+    // std::cout << "\nProcessing query: " << *tree;
 
     std::string asterisk = "*";
     PathQuery* pq = new PathQuery(asterisk, tree, asterisk);
@@ -290,7 +292,7 @@ BestPlan SimpleEvaluator::findBestPlan(std::string query) {
                 std::string leftLabel = P1.query;
                 std::string rightLabel = P2.query;
                 uint32_t cost = estimateQueryCost(leftLabel, rightLabel);
-
+                
                 if(planSpace.count(query) == 0) {
                     // TODO: Adjust?
                     BestPlan P;
@@ -308,6 +310,19 @@ BestPlan SimpleEvaluator::findBestPlan(std::string query) {
         }
     }
     return planSpace[query];
+}
+
+std::string SimpleEvaluator::PathQueryBestPlan(PathQuery* query) {
+    std::vector<std::string> path = parsePathToTree(query->path);
+    std::string queryString = "" + path[0];
+    for(int i = 1; i < path.size(); i++) {
+        queryString += "/" + path[i];
+    }
+    auto plan = findBestPlan(queryString);
+    planSpace.clear();
+    
+    query->path = PathTree::strToTree(plan.query);
+    return queryString;
 }
 
 /**
@@ -336,10 +351,11 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
         t = std::stoi(query->t);
         res = evaluatePath(query->path, s, t);
     } else {
-        res = evaluatePath(query->path, s, t);
-        
         // Findbestplan DP
-        // TODO: Manually merge findBestPlan from bestPlan
+        // Mutates query->path in place
+        std::string qString = PathQueryBestPlan(query);
+
+        res = evaluatePath(query->path, s, t);
     }
 
     return SimpleEvaluator::computeStats(res);
