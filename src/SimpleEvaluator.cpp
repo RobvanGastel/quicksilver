@@ -102,26 +102,13 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
 
         uint32_t label;
         bool inverse;
-
-
-        // (s, 1>, t) => (s, l, t)
-        // (s, 1<, t) => (t, l, s)
-
-        // Reverse = true
-        // (s, 1<, *) => (*, l, s)
-        // (*, 1<, t) => (t, l, *)
-
-        // Reverse = false
-        // (s, 1>, *) => (s, l, *)
-        // (*, 1>, t) => (t, l, *)
-
         
         if (std::regex_search(q->data, matches, directLabel)) {
             // Case: 1>
             label = (uint32_t) std::stoul(matches[1]);
 
             if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
+            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
             if(s != -1) return graph->SelectIdLabel(s, label, false, false); // 42, 1>, *
             if(t != -1) return graph->SelectIdLabel(t, label, false, true); // *, 1>, 42
             // return SimpleEvaluator::selectLabel(label, label, false, graph);
@@ -130,7 +117,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             label = (uint32_t) std::stoul(matches[1]);
             
             if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1<, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1<, *
+            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1<, *
             if(s != -1) return graph->SelectIdLabel(s, label, true, false); // 42, 1<, *
             if(t != -1) return graph->SelectIdLabel(t, label, true, true); // *, 1<, 42
         }
@@ -159,7 +146,6 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
 
     }
     
-
     return std::vector<std::pair<uint32_t, uint32_t>> {};
 }
 
