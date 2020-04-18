@@ -67,15 +67,6 @@ std::pair<uint32_t, uint32_t> SimpleGraph::SelectIdLabel(uint32_t id, uint32_t l
 
 void SimpleGraph::setNoLabels(uint32_t noLabels) {
     L = noLabels;
-    // LabelCount.resize(L);
-    // LabelSource.resize(L);
-    // LabelTarget.resize(L);
-    // for(int i = 0; i < L; i++) {
-    //     LabelCount[i] = 0;
-    //     std::vector<uint32_t> zeroes(V, 0);
-    //     LabelSource[i] = zeroes;
-    //     LabelTarget[i] = zeroes;
-    // }
 }
 
 void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::string line;
@@ -234,10 +225,10 @@ std::shared_ptr<SimpleGraph> SimpleGraph::createGraphSelectLabelSource(uint32_t 
 
 /// add edge on the adjacency structure to evaluation of the query
 /// can only be used if, graph is created for use of adj
-void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
-    if(from >= V || to >= V || edgeLabel >= L)
-        throw std::runtime_error(std::string("Edge data out of bounds: ") +
-                                         "(" + std::to_string(from) + "," + std::to_string(to) + "," +
-                                         std::to_string(edgeLabel) + ")");
-    adj[from].emplace_back(std::make_pair(edgeLabel, to));
-}
+// void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
+//     if(from >= V || to >= V || edgeLabel >= L)
+//         throw std::runtime_error(std::string("Edge data out of bounds: ") +
+//                                          "(" + std::to_string(from) + "," + std::to_string(to) + "," +
+//                                          std::to_string(edgeLabel) + ")");
+//     adj[from].emplace_back(std::make_pair(edgeLabel, to));
+// }
