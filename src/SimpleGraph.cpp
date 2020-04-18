@@ -58,7 +58,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectLabel(uint32_t lab
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(i, IA[j]));
         }
     }
-    
+
     return pairs;
 }
 

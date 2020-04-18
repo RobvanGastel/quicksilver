@@ -52,12 +52,7 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>
     targets.erase(unique(targets.begin(), targets.end()), targets.end());
 
     stats.noIn = sources.size();
-
     stats.noPaths = paths.size();
-
-    // (1480, 17262, 3005) | (3005, 17258, 1480)
-    // (2963, 21269, 3015) | (3016, 21260, 2963)
-
     stats.noOut = targets.size();
 
     return stats;
@@ -111,19 +106,21 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
         if (std::regex_search(q->data, matches, directLabel)) {
             // Case: 1>
             label = (uint32_t) std::stoul(matches[1]);
+            std::cout << "\n" << q->data << "\n";
 
-            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
+            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
             if(s != -1) return graph->SelectIdLabel(s, label, false); // *, 1>, 42
             if(t != -1) return graph->SelectIdLabel(t, label, true); // 42, 1>, *
             // return SimpleEvaluator::selectLabel(label, label, false, graph);
         } else if (std::regex_search(q->data, matches, inverseLabel)) {
             // Case: 1<
             label = (uint32_t) std::stoul(matches[1]);
+            std::cout << "\n" << q->data << "\n";
 
-            if(s != -1 && t != -1) return graph->SelectSTL(t, s, label, false); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
-            if(s != -1) return graph->SelectIdLabel(s, label, true); // *, 1>, 42
+            if(s != -1 && t != -1) return graph->SelectSTL(t, s, label, true); // 42, 1>, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
+            if(s != -1) return graph->SelectIdLabel(s, label, false); // *, 1>, 42
             if(t != -1) return graph->SelectIdLabel(t, label, true); // 42, 1>, *
         }
         else if(std::regex_search(q->data, matches, kleeneStar)) {
@@ -311,8 +308,6 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
         
         // Findbestplan DP
         // TODO: Manually merge findBestPlan from bestPlan
-
-        res = evaluatePath(query->path, s, t);
     }
 
     return SimpleEvaluator::computeStats(res);
