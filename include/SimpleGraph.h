@@ -14,7 +14,7 @@ public:
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj;
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> reverse_adj; // vertex adjacency list
 
-    std::unordered_set<std::uint32_t> labels;
+    std::unordered_set<std::uint32_t> labels; 
 protected:
     uint32_t V;
     uint32_t L;

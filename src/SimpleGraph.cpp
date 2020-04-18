@@ -66,8 +66,15 @@ void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
         throw std::runtime_error(std::string("Edge data out of bounds: ") +
                                          "(" + std::to_string(from) + "," + std::to_string(to) + "," +
                                          std::to_string(edgeLabel) + ")");
-    adj[from].emplace_back(std::make_pair(edgeLabel, to));
-    reverse_adj[to].emplace_back(std::make_pair(edgeLabel, from));
+    bool exists = false;
+    for (int i = 0; i < adj[from].size(); i++){
+        if (adj[from][i].second == to && adj[from][i].first == edgeLabel)
+            exists = true;
+    }
+    if (!exists){
+        adj[from].emplace_back(std::make_pair(edgeLabel, to));
+        reverse_adj[to].emplace_back(std::make_pair(edgeLabel, from));
+    }
 }
 
 bool SimpleGraph::edgeExists(uint32_t from, uint32_t to, uint32_t edgeLabel) {
@@ -110,25 +117,25 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     graphFile.close();
 
-    std::vector<std::pair<uint32_t,uint32_t>> temp;
-    for(int i = 0; i < adj.size(); i++) {
-        for(int j = 0; j < adj[i].size(); j++) {
-            bool exist = false;
-            for(int k = 0; k < temp.size(); k++) {
-                if(temp[k] == adj[i][j]) {
-                    exist = true;
-                }
-            }
+    // std::vector<std::pair<uint32_t,uint32_t>> temp;
+    // for(int i = 0; i < adj.size(); i++) {
+    //     for(int j = 0; j < adj[i].size(); j++) {
+    //         bool exist = false;
+    //         for(int k = 0; k < temp.size(); k++) {
+    //             if(temp[k] == adj[i][j]) {
+    //                 exist = true;
+    //             }
+    //         }
 
-            // Store unique labels
-            labels.insert(adj[i][j].first);
+    //         // Store unique labels, not used currently
+    //         labels.insert(adj[i][j].first);
 
-            if(!exist) {
-                auto a = adj[i][j];
-                temp.push_back(a);
-            }
-        }
-        adj[i] = temp;
-        temp.clear();
-    }
+    //         if(!exist) {
+    //             auto a = adj[i][j];
+    //             temp.push_back(a);
+    //         }
+    //     }
+    //     adj[i] = temp;
+    //     temp.clear();
+    // }
 }
