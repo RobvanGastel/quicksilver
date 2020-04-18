@@ -25,6 +25,23 @@ void SimpleEvaluator::prepare() {
 cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>> &g) {
     cardStat stats {};
 
+    // std::vector<uint32_t> uniquein;
+    // std::vector<uint32_t> uniqueout;
+    // for(int i =0; i < g.size(); i++) {
+    //     uniquein.push_back(g[i].first);
+    //     uniqueout.push_back(g[i].second);
+    // }
+
+    // std::sort(uniquein.begin(), uniquein.end());
+    // uniquein.erase(unique(uniquein.begin(), uniquein.end()), uniquein.end());
+    // std::sort(uniqueout.begin(), uniqueout.end());
+    // uniqueout.erase(unique(uniqueout.begin(), uniqueout.end()), uniqueout.end());
+
+    // stats.noPaths = g.size();
+    // stats.noIn = uniqueout.size();
+    // stats.noOut = uniquein.size();
+
+    // std::cout << "adsad\n";
     std::vector<uint32_t> sources = {};
     std::vector<uint32_t> targets = {};
     std::vector<std::pair<uint32_t, uint32_t>> paths = {};
@@ -59,19 +76,6 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>
 }
 
 /**
- * Merges a graph into another graph.
- * @param left A graph to be merged into.
- * @param right A graph to be merged from.
- * @return A number of distinct new edges added from the "right" graph into the "left" graph.
- */
-uint32_t SimpleEvaluator::unionDistinct(std::vector<std::pair<uint32_t, uint32_t>> &left, 
-            std::vector<std::pair<uint32_t, uint32_t>> &right) {
-
-    uint32_t numNewAdded = 0;
-    return numNewAdded;
-}
-
-/**
  * Simple implementation of a join of two graphs.
  * @param left A graph to be joined.
  * @param right Another graph to join with.
@@ -80,8 +84,35 @@ uint32_t SimpleEvaluator::unionDistinct(std::vector<std::pair<uint32_t, uint32_t
 std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
             std::vector<std::pair<uint32_t, uint32_t>> &left, 
             std::vector<std::pair<uint32_t, uint32_t>>  &right) {
+    std::vector<std::pair<uint32_t,uint32_t>> join;
 
-    return std::vector<std::pair<uint32_t, uint32_t>> {};
+    int leftk = 0;
+    int rightk = 0;
+    int next;
+
+    // Join left and right in join vertex
+    while(leftk != left.size() && rightk != right.size()){
+        if(left[leftk].first == right[rightk].first) {
+            next = rightk;
+            
+            while(next != right.size() && left[leftk].first == right[next].first) {
+                join.emplace_back(
+                    std::make_pair(
+                        left[leftk].second, 
+                        right[next].second));
+                next++;
+            }
+            leftk++;
+        } else if(left[leftk].first < right[rightk].first) {
+            leftk++;
+        } else {
+            rightk++;
+        }
+    }
+    // Remove the duplicates keep unique values
+    std::sort(join.begin(),join.end());
+    join.erase(unique(join.begin(), join.end()), join.end());
+    return join;
 }
 
 /**
@@ -124,10 +155,12 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
 
         else if(std::regex_search(q->data, matches, kleeneStar)) {
             // Case: 1+
+            label = (uint32_t) std::stoul(matches[1]);
 
-            // TODO: Implement the TC
-            // label = (uint32_t) std::stoul(matches[1]);
-            // return SimpleEvaluator::transitiveClosure(label, graph);
+            // if(s != -1 && t != -1) return graph->TC(s, t, label, true); // 42, 1+, 43
+            if(s == -1 && t == -1) return graph->TC(label); // *, 1+, *
+            // if(s != -1) return graph->TC(s, label); // 42, 1+, *
+            // if(t != -1) return graph->TC(t, label); // *, 1+, 42
         } else {
             std::cerr << "Label parsing failed!" << std::endl;
         }
@@ -138,11 +171,12 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
     if(q->isConcat()) {
 
         // evaluate the children
-        auto leftGraph = SimpleEvaluator::evaluatePath(q->left, -1, -1);
-        auto rightGraph = SimpleEvaluator::evaluatePath(q->right, -1, -1);
+        auto leftPairs = SimpleEvaluator::evaluatePath(q->left, s, -1);
+        auto rightPairs = SimpleEvaluator::evaluatePath(q->right, -1, t);
+
 
         // join left with right
-        return SimpleEvaluator::join(leftGraph, rightGraph);
+        return SimpleEvaluator::join(leftPairs, rightPairs);
 
     }
     

@@ -58,14 +58,14 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectLabel(uint32_t lab
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(i, IA[j]));
         }
     }
-
+    sort(pairs.begin(), pairs.end());
+    // pairs.erase(unique(pairs.begin(), pairs.end()), pairs.end());
     return pairs;
 }
 
 std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t id, uint32_t label, bool reverse, bool isTarget) {
 
     std::vector<std::pair<uint32_t, uint32_t>> pairs;
-    std::cout << id << " " << label << " " << positions_adj[label][id] <<std::endl;
     if (reverse) { // 1<
         // 42,1<,*
         if(!isTarget) {
@@ -107,6 +107,8 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t i
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA_reverse[i]));
         }
     }
+    sort(pairs.begin(), pairs.end());
+    // pairs.erase(unique(pairs.begin(), pairs.end()), pairs.end());
     return pairs;
 }
 
@@ -131,8 +133,28 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectSTL(uint32_t sourc
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(source, target));
         }
     }
+    sort(pairs.begin(), pairs.end());
+    // pairs.erase(unique(pairs.begin(), pairs.end()), pairs.end());
     return pairs;
 }
+
+std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::TC(uint32_t label) {
+    std::vector<std::pair<uint32_t, uint32_t>> pairs;
+    
+    // uint32_t numNewAdded = 1;
+
+    // while (numNewAdded) {
+    //     auto delta = join(tc, base);
+    //     numNewAdded = unionDistinct(tc, delta);
+    // }
+
+    // return tc;
+
+
+
+    return pairs;
+}
+
 
 void SimpleGraph::setNoLabels(uint32_t noLabels) {
     L = noLabels;
