@@ -71,7 +71,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t i
             positions_adj_reverse[label][id+1]
         );
         for (uint32_t i = indexes.first; i < indexes.second; i++)
-            pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA_reverse[i]));
+            pairs.emplace_back(std::pair<uint32_t, uint32_t>(IA_reverse[i], id));
     } else {
         auto indexes = std::pair<uint32_t, uint32_t>(
             positions_adj[label][id],
@@ -92,7 +92,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectSTL(uint32_t sourc
         );
         for (uint32_t i = indexes.first; i < indexes.second; i++) {
             if (IA_reverse[i] == target)
-                pairs.emplace_back(std::pair<uint32_t, uint32_t>(source, target));
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(target, source));
         }
     } else {
         auto indexes = std::pair<uint32_t, uint32_t>(

@@ -107,20 +107,26 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             // Case: 1>
             label = (uint32_t) std::stoul(matches[1]);
 
-            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
-            if(s != -1) return graph->SelectIdLabel(s, label, false); // *, 1>, 42
-            if(t != -1) return graph->SelectIdLabel(t, label, true); // 42, 1>, *
+            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
+            if(s != -1) return graph->SelectIdLabel(s, label, true); // 42, 1>, *
+            if(t != -1) return graph->SelectIdLabel(t, label, false); // *, 1>, 42
             // return SimpleEvaluator::selectLabel(label, label, false, graph);
         } else if (std::regex_search(q->data, matches, inverseLabel)) {
             // Case: 1<
             label = (uint32_t) std::stoul(matches[1]);
-
-            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
-            if(s != -1) return graph->SelectIdLabel(s, label, false); // *, 1>, 42
-            if(t != -1) return graph->SelectIdLabel(t, label, true); // 42, 1>, *
+            
+            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1<, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1<, *
+            if(s != -1) return graph->SelectIdLabel(s, label, true); // 42, 1<, *
+            if(t != -1) return graph->SelectIdLabel(t, label, false); // *, 1<, 42
         }
+        // 1. (0>) => s, t
+        // 2. (0<) => t, s
+        // 1. t = 10, reverse
+        // 1. s = 10, no reverse
+        // 2. t = 10, no reverse
+
         else if(std::regex_search(q->data, matches, kleeneStar)) {
             // Case: 1+
 
