@@ -122,8 +122,8 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
 
             if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
             if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
-            if(s != -1) return graph->SelectIdLabel(s, label, false); // 42, 1>, *
-            if(t != -1) return graph->SelectIdLabel(t, label, true); // *, 1>, 42
+            if(s != -1) return graph->SelectIdLabel(s, label, false, false); // 42, 1>, *
+            if(t != -1) return graph->SelectIdLabel(t, label, false, true); // *, 1>, 42
             // return SimpleEvaluator::selectLabel(label, label, false, graph);
         } else if (std::regex_search(q->data, matches, inverseLabel)) {
             // Case: 1<
@@ -131,8 +131,8 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             
             if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1<, 43
             if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1<, *
-            if(s != -1) return graph->SelectIdLabel(s, label, true); // 42, 1<, *
-            if(t != -1) return graph->SelectIdLabel(t, label, false); // *, 1<, 42
+            if(s != -1) return graph->SelectIdLabel(s, label, true, false); // 42, 1<, *
+            if(t != -1) return graph->SelectIdLabel(t, label, true, true); // *, 1<, 42
         }
 
         else if(std::regex_search(q->data, matches, kleeneStar)) {
