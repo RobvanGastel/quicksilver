@@ -15,6 +15,7 @@ class SimpleGraph {
 public:
     // positions_adj[0][14] -> pointer to the first instance of an edge with source 14 and label 0 ->30 so you got Ia[30]
     // positions_adj[0][15] -> pointer will be after the one on top -> 34 IA[34] means that source 14 has 4 edges with predicate 0
+    bool using_csr=false;
 
     std::vector<uint32_t> IA;
     std::vector<uint32_t> IA_reverse;
@@ -24,7 +25,7 @@ public:
     std::vector<std::vector<uint32_t>> positions_adj_reverse;
 
     // Adjacency structure for evaluation of the query
-    std::vector<std::vector<std::pair<uint32_t,uint32_t>>> adj;
+    std::vector<std::pair<uint32_t,uint32_t>> joinPairs;
 protected:
     uint32_t V;
     uint32_t L;

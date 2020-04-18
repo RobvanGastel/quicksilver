@@ -394,22 +394,33 @@ BestPlan SimpleEvaluator::findBestPlan(std::string query) {
  * @return A cardinality statistics of the answer graph.
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
+    std::shared_ptr<SimpleGraph> res;
 
-    // TODO: Uncomment when estimator is fixed
-    // Findbestplan DP
-    // std::vector<std::string> path = parsePathToTree(query->path);
-    // std::string queryString = "" + path[0];
-    // for(int i = 1; i < path.size(); i++) {
-    //     queryString += "/" + path[i];
-    // }
-    // auto plan = findBestPlan(queryString);
-    // planSpace.clear(); // Clean old plans
+    if(query->s != "*") { // evaluate source id first and continue from left to right
+        res = evaluatePath(query->path);
+        // res = selectSource(query->s, res);
+    }
+    else if(query->t != "*") { // evaluate target id first and continue from right to left
+        res = evaluatePath(query->path);
+        // res = selectTarget(query->t, res);
+    }
+    else {
+        // // Findbestplan DP
+        // std::vector<std::string> path = parsePathToTree(query->path);
+        // std::string queryString = "" + path[0];
+        // for(int i = 1; i < path.size(); i++) {
+        //     queryString += "/" + path[i];
+        // }
+        // auto plan = findBestPlan(queryString);
+        // planSpace.clear();
 
-    // PathTree* tree = PathTree::strToTree(plan.query);
-    // query->path = tree;
+        // // Recreate new PathTree
+        // PathTree* tree = PathTree::strToTree(plan.query);
 
-    auto res = evaluatePath(query->path);
-    if(query->s != "*") res = selectSource(query->s, res);
-    else if(query->t != "*") res = selectTarget(query->t, res);
+        // res = evaluatePath(tree);
+
+        res = evaluatePath(query->path);
+    }
+
     return SimpleEvaluator::computeStats(res);
 }

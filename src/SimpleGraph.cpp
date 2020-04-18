@@ -42,7 +42,6 @@ std::pair<uint32_t, uint32_t> SimpleGraph::SelectLabel(uint32_t label, bool reve
             positions_adj_reverse[label][0],
             positions_adj_reverse[label][positions_adj_reverse[label].size()-1]
         );
-
     } else {
         return std::pair<uint32_t, uint32_t>(
             positions_adj[label][0],
@@ -80,6 +79,8 @@ void SimpleGraph::setNoLabels(uint32_t noLabels) {
 }
 
 void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::string line;
+    using_csr = true;
+
     std::regex edgePat (R"((\d+)\s(\d+)\s(\d+)\s\.)");  // subject predicate object .
     std::regex headerPat (R"((\d+),(\d+),(\d+))");      // noNodes,noEdges,noLabels
 
