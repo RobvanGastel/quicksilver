@@ -158,15 +158,6 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::TC(uint32_t label) {
 
 void SimpleGraph::setNoLabels(uint32_t noLabels) {
     L = noLabels;
-    // LabelCount.resize(L);
-    // LabelSource.resize(L);
-    // LabelTarget.resize(L);
-    // for(int i = 0; i < L; i++) {
-    //     LabelCount[i] = 0;
-    //     std::vector<uint32_t> zeroes(V, 0);
-    //     LabelSource[i] = zeroes;
-    //     LabelTarget[i] = zeroes;
-    // }
 }
 
 void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::string line;
