@@ -336,6 +336,10 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     int s = -1;
     int t = -1;
 
+    // TODO: Possibility to cache query results
+    // Cache all queries for entire query execution duration
+    // cachedQuery[qString] = std::make_shared<SimpleGraph>(*res);
+
     if(query->s != "*" && query->t != "*") {
         s = std::stoi(query->s);
         t = std::stoi(query->t);
