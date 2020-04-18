@@ -21,7 +21,6 @@ Stats::Stats(uint32_t noLabels, uint32_t noVertices) {
 void Stats::create_stats(std::shared_ptr<SimpleGraph> *g) {
     // std::vector<std::vector<uint32_t>> *positions_adj, std::vector<std::vector<uint32_t>> *positions_adj_reverse,
     // std::vector<uint32_t> *IA, std::vector<uint32_t> *IA_reverse) {
-    std::cout << (*g)->positions_adj[1][0] << " " << labels << std::endl;
 
     // total_relations = std::vector<uint32_t > (labels, (uint32_t) 0);
     source_relations_count = std::vector<std::vector<uint32_t >> (labels, std::vector<uint32_t > (vertices));
@@ -193,12 +192,12 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 }
 
 void SimpleEstimator::prepare() {
-    uint32_t noLabels = graph->getNoLabels();
-    uint32_t noVertices = graph->getNoVertices();
+    // uint32_t noLabels = graph->getNoLabels();
+    // uint32_t noVertices = graph->getNoVertices();
 
-    stats = Stats(noLabels, noVertices);
-    // stats.create_stats(&graph->positions_adj, &graph->positions_adj_reverse, &graph->IA, &graph->IA_reverse);
-    stats.create_stats(&graph);
+    // stats = Stats(noLabels, noVertices);
+    // // stats.create_stats(&graph->positions_adj, &graph->positions_adj_reverse, &graph->IA, &graph->IA_reverse);
+    // stats.create_stats(&graph);
 }
 
 

@@ -52,12 +52,12 @@ std::pair<uint32_t, uint32_t> SimpleGraph::SelectLabel(uint32_t label, bool reve
 }
 
 std::pair<uint32_t, uint32_t> SimpleGraph::SelectIdLabel(uint32_t id, uint32_t label, bool reverse) {
+    std::cout << id << " " << label << " " << positions_adj[label][id] <<std::endl;
     if (reverse) {
         return std::pair<uint32_t, uint32_t>(
             positions_adj_reverse[label][id],
             positions_adj_reverse[label][id+1]
         );
-
     } else {
         return std::pair<uint32_t, uint32_t>(
             positions_adj[label][id],
@@ -68,50 +68,76 @@ std::pair<uint32_t, uint32_t> SimpleGraph::SelectIdLabel(uint32_t id, uint32_t l
 
 void SimpleGraph::setNoLabels(uint32_t noLabels) {
     L = noLabels;
-    LabelCount.resize(L);
-    LabelSource.resize(L);
-    LabelTarget.resize(L);
-    for(int i = 0; i < L; i++) {
-        LabelCount[i] = 0;
-        std::vector<uint32_t> zeroes(V, 0);
-        LabelSource[i] = zeroes;
-        LabelTarget[i] = zeroes;
-    }
+    // LabelCount.resize(L);
+    // LabelSource.resize(L);
+    // LabelTarget.resize(L);
+    // for(int i = 0; i < L; i++) {
+    //     LabelCount[i] = 0;
+    //     std::vector<uint32_t> zeroes(V, 0);
+    //     LabelSource[i] = zeroes;
+    //     LabelTarget[i] = zeroes;
+    // }
 }
 
-void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
+void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::string line;
+    std::regex edgePat (R"((\d+)\s(\d+)\s(\d+)\s\.)");  // subject predicate object .
+    std::regex headerPat (R"((\d+),(\d+),(\d+))");      // noNodes,noEdges,noLabels
 
-    readInitialInfo(fileName);
-    initialize_positions_adj();
+    std::vector<uint32_t> LabelCount;               // number of edges for each label
+    std::vector<std::vector<uint32_t>> LabelSource; // number of edges for each label of each source
+    std::vector<std::vector<uint32_t>> LabelTarget; // number of edges for each label of each target
 
-    std::string line;
+
+    // READ INITIAL INFO
+    // readInitialInfo(fileName);
     std::ifstream graphFile { fileName };
 
-    std::regex edgePat (R"((\d+)\s(\d+)\s(\d+)\s\.)"); // subject predicate object .
+    // parse the header (1st line)
     std::getline(graphFile, line);
     std::smatch matches;
+    if(std::regex_search(line, matches, headerPat)) {
+        uint32_t noNodes = (uint32_t) std::stoul(matches[1]);
+        uint32_t noEdges = (uint32_t) std::stoul(matches[2]);
+        uint32_t noLabels = (uint32_t) std::stoul(matches[3]);
 
-    // create positions_adj
-    std::vector<std::vector<uint32_t>> adj = positions_adj;
-    std::vector<std::vector<uint32_t>> adj_reverse = positions_adj_reverse;
+        setNoVertices(noNodes);
+        setNoLabels(noLabels);
+
+        LabelCount.resize(L);
+        LabelSource.resize(L);
+        LabelTarget.resize(L);
+        for(int i = 0; i < L; i++) {
+            LabelCount[i] = 0;
+            std::vector<uint32_t> zeroes(V, 0);
+            LabelSource[i] = zeroes;
+            LabelTarget[i] = zeroes;
+        }
+
+        IA.resize(noEdges);
+        IA_reverse.resize(noEdges);
+    } 
+    else {
+        throw std::runtime_error(std::string("Invalid graph header!"));
+    }
+
+    // parse edge data
     while(std::getline(graphFile, line)) {
         if(std::regex_search(line, matches, edgePat)) {
             uint32_t subject = (uint32_t) std::stoul(matches[1]);
             uint32_t predicate = (uint32_t) std::stoul(matches[2]);
             uint32_t object = (uint32_t) std::stoul(matches[3]);
 
-            uint32_t i = adj[predicate][subject]++;
-            uint32_t i_reverse = adj_reverse[predicate][object]++;
-
-            IA[i] = object;
-            IA_reverse[i] = subject;
+            LabelCount[predicate]++;
+            LabelSource[predicate][subject]++;
+            LabelTarget[predicate][object]++;
         }
     }
 
     graphFile.close();
-}
 
-void SimpleGraph::initialize_positions_adj() {
+
+    // INITIALIZE POSITIONS
+    // initialize_positions_adj();
     positions_adj.resize(L);
     positions_adj_reverse.resize(L);
 
@@ -121,8 +147,8 @@ void SimpleGraph::initialize_positions_adj() {
     }
 
     // add label posisitons to adj
-    positions_adj[0][0] = 0;
-    positions_adj_reverse[0][0] = 0;
+    // positions_adj[0][0] = 0;
+    // positions_adj_reverse[0][0] = 0;
 
     for (uint32_t label = 0; label < L; label++){
         uint32_t count = positions_adj[label][0] + LabelCount[label];
@@ -141,52 +167,44 @@ void SimpleGraph::initialize_positions_adj() {
         uint32_t sourceIndex = positions_adj[label][0];
         uint32_t targetIndex = positions_adj[label][0];
         
-        for (uint32_t i = 1; i < L; i++) {
+        for (uint32_t i = 1; i < V; i++) {
             sourceIndex += LabelSource[label][i-1];
             targetIndex += LabelTarget[label][i-1];
             positions_adj[label][i] = sourceIndex;
             positions_adj_reverse[label][i] = targetIndex;
         }
     }
-}
 
-void SimpleGraph::readInitialInfo(const std::string &fileName) {
-    std::string line;
-    std::ifstream graphFile { fileName };
+    // CREATE CSR
+    line;
+    std::ifstream graphFile2 { fileName };
 
-    std::regex edgePat (R"((\d+)\s(\d+)\s(\d+)\s\.)"); // subject predicate object .
-    std::regex headerPat (R"((\d+),(\d+),(\d+))"); // noNodes,noEdges,noLabels
+    std::getline(graphFile2, line);
 
-    // parse the header (1st line)
-    std::getline(graphFile, line);
-    std::smatch matches;
-    if(std::regex_search(line, matches, headerPat)) {
-        uint32_t noNodes = (uint32_t) std::stoul(matches[1]);
-        uint32_t noEdges = (uint32_t) std::stoul(matches[2]);
-        uint32_t noLabels = (uint32_t) std::stoul(matches[3]);
-
-        setNoVertices(noNodes);
-        setNoLabels(noLabels);
-        IA.resize(noEdges);
-        IA_reverse.resize(noEdges);
-    } else {
-        throw std::runtime_error(std::string("Invalid graph header!"));
-    }
-
-    // parse edge data
-    while(std::getline(graphFile, line)) {
+    // create positions_adj
+    std::vector<std::vector<uint32_t>> adj = positions_adj;
+    std::vector<std::vector<uint32_t>> adj_reverse = positions_adj_reverse;
+    while(std::getline(graphFile2, line)) {
         if(std::regex_search(line, matches, edgePat)) {
             uint32_t subject = (uint32_t) std::stoul(matches[1]);
             uint32_t predicate = (uint32_t) std::stoul(matches[2]);
             uint32_t object = (uint32_t) std::stoul(matches[3]);
 
-            LabelCount[predicate]++;
-            LabelSource[predicate][subject]++;
-            LabelTarget[predicate][object]++;
+            uint32_t i = adj[predicate][subject]++;
+            uint32_t i_reverse = adj_reverse[predicate][object]++;
+
+            IA[i] = object;
+            IA_reverse[i_reverse] = subject;
         }
     }
 
-    graphFile.close();
+    graphFile2.close();
+
+    // Testing CSR selectIdLabel() & selectLabel()
+    // std::pair<uint32_t, uint32_t> res = SelectLabel(1, true);
+    // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
+    // res = SelectIdLabel(42, 1, false);
+    // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
 }
 
 // TODO: Make more generic

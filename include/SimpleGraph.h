@@ -28,9 +28,9 @@ public:
 protected:
     uint32_t V;
     uint32_t L;
-    std::vector<uint32_t> LabelCount; // number of edges for each label
-    std::vector<std::vector<uint32_t>> LabelSource; // number of edges for each label of each source
-    std::vector<std::vector<uint32_t>> LabelTarget; // number of edges for each label of each target
+    // std::vector<uint32_t> LabelCount; // number of edges for each label
+    // std::vector<std::vector<uint32_t>> LabelSource; // number of edges for each label of each source
+    // std::vector<std::vector<uint32_t>> LabelTarget; // number of edges for each label of each target
 
 public:
 
@@ -53,8 +53,6 @@ public:
     void addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel);
 
     void readFromContiguousFile(const std::string &fileName);
-    void initialize_positions_adj();
-    void readInitialInfo(const std::string &fileName);
 
     void setNoVertices(uint32_t n);
     void setNoLabels(uint32_t noLabels);
