@@ -45,7 +45,7 @@ public:
     uint32_t getNoLabels() const;
 
     // Returns starting index of specified label and ending index+1 (so second is not included in the label)
-    std::vector<std::pair<uint32_t, uint32_t>> SelectLabel(uint32_t label, bool reverse);
+    std::vector<std::pair<uint32_t, uint32_t>> SelectLabel(uint32_t label, bool reverse, bool sort_sec=false);
     std::vector<std::pair<uint32_t, uint32_t>> SelectIdLabel(uint32_t id, uint32_t label, bool reverse, bool isTarget);
     std::vector<std::pair<uint32_t, uint32_t>> SelectSTL(uint32_t source, uint32_t target, uint32_t label, bool reverse);
 
@@ -60,6 +60,8 @@ public:
 
     void setNoVertices(uint32_t n);
     void setNoLabels(uint32_t noLabels);
+
+    // bool sortbysec()
 };
 
 #endif //QS_SIMPLEGRAPH_H

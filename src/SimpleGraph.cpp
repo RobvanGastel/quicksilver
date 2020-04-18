@@ -37,7 +37,7 @@ uint32_t SimpleGraph::getNoLabels() const {
 }
 
 
-std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectLabel(uint32_t label, bool reverse) {
+std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectLabel(uint32_t label, bool reverse, bool sort_sec) {
     std::vector<std::pair<uint32_t, uint32_t>> pairs;
     if (reverse) {
         for (uint32_t i = 0; i < V; i++) {
@@ -58,7 +58,11 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectLabel(uint32_t lab
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(i, IA[j]));
         }
     }
-    sort(pairs.begin(), pairs.end());
+
+    // if (sort_sec)
+    //     sort(pairs.begin(), pairs.end(), sortbysec);
+    // else
+    //     sort(pairs.begin(), pairs.end());
     // pairs.erase(unique(pairs.begin(), pairs.end()), pairs.end());
     return pairs;
 }
@@ -107,7 +111,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t i
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA_reverse[i]));
         }
     }
-    sort(pairs.begin(), pairs.end());
+    // sort(pairs.begin(), pairs.end());
     // pairs.erase(unique(pairs.begin(), pairs.end()), pairs.end());
     return pairs;
 }

@@ -59,7 +59,7 @@ void Stats::create_stats(std::shared_ptr<SimpleGraph> *g) {
     uint32_t f;
     uint32_t source_answers_size;
     std::vector<uint32_t> result;
-    uint32_t counter = 0;
+    // uint32_t counter = 0;
     std::cout << "Create matrix" << std::endl;
     for (uint32_t rel_x = 0; rel_x < labels; rel_x++) {
         for (uint32_t rel_y = 0; rel_y < rel_x+1; rel_y++) {

@@ -2,6 +2,11 @@
 #include "SimpleEvaluator.h"
 #include <sstream>
 
+bool sortbysec(const std::pair<uint32_t, uint32_t> &a, 
+              const std::pair<uint32_t, uint32_t> &b) { 
+    return (a.second < b.second); 
+} 
+
 SimpleEvaluator::SimpleEvaluator(std::shared_ptr<SimpleGraph> &g) {
 
     // works only with SimpleGraph
@@ -119,18 +124,18 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
 
     // Join left and right in join vertex
     while(leftk != left.size() && rightk != right.size()){
-        if(left[leftk].first == right[rightk].first) {
+        if(left[leftk].second == right[rightk].first) {
             next = rightk;
             
-            while(next != right.size() && left[leftk].first == right[next].first) {
+            while(next != right.size() && left[leftk].second == right[next].first) {
                 join.emplace_back(
                     std::make_pair(
-                        left[leftk].second, 
+                        left[leftk].first, 
                         right[next].second));
                 next++;
             }
             leftk++;
-        } else if(left[leftk].first < right[rightk].first) {
+        } else if(left[leftk].second < right[rightk].first) {
             leftk++;
         } else {
             rightk++;
@@ -201,6 +206,8 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
         auto leftPairs = SimpleEvaluator::evaluatePath(q->left, s, -1);
         auto rightPairs = SimpleEvaluator::evaluatePath(q->right, -1, t);
 
+        sort(leftPairs.begin(), leftPairs.end(), sortbysec);
+        sort(rightPairs.begin(), rightPairs.end());
 
         // join left with right
         return SimpleEvaluator::join(leftPairs, rightPairs);
