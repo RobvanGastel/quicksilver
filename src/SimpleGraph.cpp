@@ -170,39 +170,41 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::
     std::vector<std::vector<uint32_t>> LabelSource; // number of edges for each label of each source
     std::vector<std::vector<uint32_t>> LabelTarget; // number of edges for each label of each target
 
+    //_____________________________________________________________________________________________________________________
 
-    // READ INITIAL INFO
-    // readInitialInfo(fileName);
+    std::vector<std::vector<std::vector<uint32_t>>> temp_adj;
+    uint32_t noNodes;
+    uint32_t noEdges;
+    uint32_t noLabels;
+
     std::ifstream graphFile { fileName };
 
     // parse the header (1st line)
     std::getline(graphFile, line);
     std::smatch matches;
     if(std::regex_search(line, matches, headerPat)) {
-        uint32_t noNodes = (uint32_t) std::stoul(matches[1]);
-        uint32_t noEdges = (uint32_t) std::stoul(matches[2]);
-        uint32_t noLabels = (uint32_t) std::stoul(matches[3]);
-
+        noNodes = (uint32_t) std::stoul(matches[1]);
+        noEdges = (uint32_t) std::stoul(matches[2]);
+        noLabels = (uint32_t) std::stoul(matches[3]);
         setNoVertices(noNodes);
         setNoLabels(noLabels);
-
         LabelCount.resize(L);
         LabelSource.resize(L);
         LabelTarget.resize(L);
+        temp_adj.resize(L);
         for(int i = 0; i < L; i++) {
             LabelCount[i] = 0;
             std::vector<uint32_t> zeroes(V, 0);
             LabelSource[i] = zeroes;
             LabelTarget[i] = zeroes;
+            temp_adj[i].resize(noNodes);
         }
-
-        IA.resize(noEdges);
-        IA_reverse.resize(noEdges);
-    } 
+    }
     else {
         throw std::runtime_error(std::string("Invalid graph header!"));
     }
 
+    std::cout << "edges: " << noEdges << "\n";
     // parse edge data
     while(std::getline(graphFile, line)) {
         if(std::regex_search(line, matches, edgePat)) {
@@ -210,17 +212,28 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::
             uint32_t predicate = (uint32_t) std::stoul(matches[2]);
             uint32_t object = (uint32_t) std::stoul(matches[3]);
 
-            LabelCount[predicate]++;
-            LabelSource[predicate][subject]++;
-            LabelTarget[predicate][object]++;
+            bool exists = false;
+            for (auto node : temp_adj[predicate][subject]) {
+                if (node == object)
+                    exists = true;
+            }
+            if (exists) {
+                noEdges--;
+            }
+            else {
+                temp_adj[predicate][subject].emplace_back(object);
+                LabelCount[predicate]++;
+                LabelSource[predicate][subject]++;
+                LabelTarget[predicate][object]++;
+            }
         }
     }
+    std::cout << "edges: " << noEdges << "\n";
+    IA.resize(noEdges);
+    IA_reverse.resize(noEdges);
 
     graphFile.close();
 
-
-    // INITIALIZE POSITIONS
-    // initialize_positions_adj();
     positions_adj.resize(L);
     positions_adj_reverse.resize(L);
 
@@ -228,10 +241,6 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::
         positions_adj[label].resize(V+1);
         positions_adj_reverse[label].resize(V+1);
     }
-
-    // add label posisitons to adj
-    // positions_adj[0][0] = 0;
-    // positions_adj_reverse[0][0] = 0;
 
     for (uint32_t label = 0; label < L; label++){
         uint32_t count = positions_adj[label][0] + LabelCount[label];
@@ -259,29 +268,28 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::
     }
 
     // CREATE CSR
-    // line;
-    std::ifstream graphFile2 { fileName };
-
-    std::getline(graphFile2, line);
 
     // create positions_adj
     std::vector<std::vector<uint32_t>> adj = positions_adj;
     std::vector<std::vector<uint32_t>> adj_reverse = positions_adj_reverse;
-    while(std::getline(graphFile2, line)) {
-        if(std::regex_search(line, matches, edgePat)) {
-            uint32_t subject = (uint32_t) std::stoul(matches[1]);
-            uint32_t predicate = (uint32_t) std::stoul(matches[2]);
-            uint32_t object = (uint32_t) std::stoul(matches[3]);
+     for (uint32_t predicate = 0; predicate < temp_adj.size(); predicate++){
+        for (uint32_t subject = 0; subject < temp_adj[predicate].size(); subject++) {
+            for (auto object : temp_adj[predicate][subject]) {
+                uint32_t i = adj[predicate][subject]++;
+                uint32_t i_reverse = adj_reverse[predicate][object]++;
 
-            uint32_t i = adj[predicate][subject]++;
-            uint32_t i_reverse = adj_reverse[predicate][object]++;
-
-            IA[i] = object;
-            IA_reverse[i_reverse] = subject;
+                IA[i] = object;
+                IA_reverse[i_reverse] = subject;
+            }
+        std::vector<uint32_t >().swap(temp_adj[predicate][subject]);
         }
     }
 
-    graphFile2.close();
+// Total load time: 2184 ms
+// Total prep time: 77 ms
+// Total eval time: 0 ms
+// Peak memory usage (for all workloads): 45.1094 MiB
+
 
     // Testing CSR selectIdLabel() & selectLabel()
     // std::pair<uint32_t, uint32_t> res = SelectLabel(1, true);
@@ -289,3 +297,133 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::
     // res = SelectIdLabel(42, 1, false);
     // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
 }
+
+
+//_____________________________________________________________________________________________________________________
+    // // parse the header (1st line)
+    // std::getline(graphFile, line);
+    // std::smatch matches;
+    // if(std::regex_search(line, matches, headerPat)) {
+    //     noNodes = (uint32_t) std::stoul(matches[1]);
+    //     noEdges = (uint32_t) std::stoul(matches[2]);
+    //     noLabels = (uint32_t) std::stoul(matches[3]);
+
+    //     setNoVertices(noNodes);
+    //     setNoLabels(noLabels);
+
+    //     LabelCount.resize(L);
+    //     LabelSource.resize(L);
+    //     LabelTarget.resize(L);
+    //     for(int i = 0; i < L; i++) {
+    //         LabelCount[i] = 0;
+    //         std::vector<uint32_t> zeroes(V, 0);
+    //         LabelSource[i] = zeroes;
+    //         LabelTarget[i] = zeroes;
+    //     }
+
+    //     IA.resize(noEdges);
+    //     IA_reverse.resize(noEdges);
+    // } 
+    // else {
+    //     throw std::runtime_error(std::string("Invalid graph header!"));
+    // }
+
+    // parse edge data
+    // while(std::getline(graphFile, line)) {
+    //     if(std::regex_search(line, matches, edgePat)) {
+    //         uint32_t subject = (uint32_t) std::stoul(matches[1]);
+    //         uint32_t predicate = (uint32_t) std::stoul(matches[2]);
+    //         uint32_t object = (uint32_t) std::stoul(matches[3]);
+
+    //         LabelCount[predicate]++;
+    //         LabelSource[predicate][subject]++;
+    //         LabelTarget[predicate][object]++;
+    //     }
+    // }
+
+    // graphFile.close();
+
+
+    // INITIALIZE POSITIONS
+    // initialize_positions_adj();
+//     positions_adj.resize(L);
+//     positions_adj_reverse.resize(L);
+
+//     for (uint32_t label = 0; label < L; label++) {
+//         positions_adj[label].resize(V+1);
+//         positions_adj_reverse[label].resize(V+1);
+//     }
+
+//     // add label posisitons to adj
+//     // positions_adj[0][0] = 0;
+//     // positions_adj_reverse[0][0] = 0;
+
+//     for (uint32_t label = 0; label < L; label++){
+//         uint32_t count = positions_adj[label][0] + LabelCount[label];
+
+//         if (label < L-1) {
+//             positions_adj[label+1][0] = count;
+//             positions_adj_reverse[label+1][0] = count;
+//         }
+
+//         positions_adj[label][V] = count;
+//         positions_adj_reverse[label][V] = count;
+//     }
+
+//     // add target positions to adj
+//     for (uint32_t label = 0; label < L; label++){
+//         uint32_t sourceIndex = positions_adj[label][0];
+//         uint32_t targetIndex = positions_adj[label][0];
+        
+//         for (uint32_t i = 1; i < V; i++) {
+//             sourceIndex += LabelSource[label][i-1];
+//             targetIndex += LabelTarget[label][i-1];
+//             positions_adj[label][i] = sourceIndex;
+//             positions_adj_reverse[label][i] = targetIndex;
+//         }
+//     }
+
+//     // CREATE CSR
+//     // line;
+//     std::ifstream graphFile2 { fileName };
+
+//     std::getline(graphFile2, line);
+
+//     // create positions_adj
+//     std::vector<std::vector<uint32_t>> adj = positions_adj;
+//     std::vector<std::vector<uint32_t>> adj_reverse = positions_adj_reverse;
+//     while(std::getline(graphFile2, line)) {
+//         if(std::regex_search(line, matches, edgePat)) {
+//             uint32_t subject = (uint32_t) std::stoul(matches[1]);
+//             uint32_t predicate = (uint32_t) std::stoul(matches[2]);
+//             uint32_t object = (uint32_t) std::stoul(matches[3]);
+
+//             uint32_t i = adj[predicate][subject]++;
+//             uint32_t i_reverse = adj_reverse[predicate][object]++;
+
+//             IA[i] = object;
+//             IA_reverse[i_reverse] = subject;
+//         }
+//     }
+
+//     graphFile2.close();
+
+//     // Testing CSR selectIdLabel() & selectLabel()
+//     // std::pair<uint32_t, uint32_t> res = SelectLabel(1, true);
+//     // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
+//     // res = SelectIdLabel(42, 1, false);
+//     // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
+// }
+// //             IA[i] = object;
+//             IA_reverse[i_reverse] = subject;
+//         }
+    // }
+// 
+    // graphFile2.close();
+// 
+//     // Testing CSR selectIdLabel() & selectLabel()
+    // std::pair<uint32_t, uint32_t> res = SelectLabel(1, true);
+    // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
+    // res = SelectIdLabel(42, 1, false);
+    // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
+// }
