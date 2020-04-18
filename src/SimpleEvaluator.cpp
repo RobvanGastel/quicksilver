@@ -49,14 +49,15 @@ void SimpleEvaluator::prepare() {
 
 
     // Precompute TC's
-    for(auto lab : graph->labels) {
-        std::string tc = "(" + std::to_string(lab) + "+" + ")";
-        PathTree* path = PathTree::strToTree(tc);
+    // Too expensive at the moment
+    // for(auto lab : graph->labels) {
+    //     std::string tc = "(" + std::to_string(lab) + "+" + ")";
+    //     PathTree* path = PathTree::strToTree(tc);
 
-        std::cout << path->data << std::endl;
-        auto res = evaluatePath(path);
-        cachedQuery[tc] = res;
-    }
+    //     std::cout << path->data << std::endl;
+    //     auto res = evaluatePath(path);
+    //     cachedQuery[tc] = res;
+    // }
 }
 
 cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
@@ -197,7 +198,7 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::join(std::shared_ptr<SimpleGraph> 
  * @param q Parsed AST.
  * @return Solution as a graph.
  */
-std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
+std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) { // , int source, int target
 
     // evaluate according to the AST bottom-up
 
@@ -243,8 +244,8 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
     if(q->isConcat()) {
 
         // evaluate the children
-        auto leftGraph = SimpleEvaluator::evaluatePath(q->left);
-        auto rightGraph = SimpleEvaluator::evaluatePath(q->right);
+        auto leftGraph = SimpleEvaluator::evaluatePath(q->left);// -1, -1
+        auto rightGraph = SimpleEvaluator::evaluatePath(q->right); // -1, -1
 
         // join left with right
         return SimpleEvaluator::join(leftGraph, rightGraph);
@@ -399,14 +400,7 @@ BestPlan SimpleEvaluator::findBestPlan(std::string query) {
     return planSpace[query];
 }
 
-/**
- * Evaluate a path query. Produce a cardinality of the answer graph.
- * @param query Query to evaluate.
- * @return A cardinality statistics of the answer graph.
- */
-cardStat SimpleEvaluator::evaluate(PathQuery *query) {
-
-    // Findbestplan DP
+std::string SimpleEvaluator::PathQueryBestPlan(PathQuery* query) {
     std::vector<std::string> path = parsePathToTree(query->path);
     std::string queryString = "" + path[0];
     for(int i = 1; i < path.size(); i++) {
@@ -416,11 +410,27 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
     planSpace.clear();
     
     query->path = PathTree::strToTree(plan.query);
+    return queryString;
+}
 
-    auto res = evaluatePath(query->path);
+/**
+ * Evaluate a path query. Produce a cardinality of the answer graph.
+ * @param query Query to evaluate.
+ * @return A cardinality statistics of the answer graph.
+ */
+cardStat SimpleEvaluator::evaluate(PathQuery *query) {
 
-    std::cout << "\n\ncache query: " << queryString;
-    cachedQuery[queryString] = std::make_shared<SimpleGraph>(*res);
+    // Findbestplan DP
+    std::string qString = PathQueryBestPlan(query);
+    
+    // int s = -1;
+    // int t = -1;
+    // if(query->s != "*") s = std::stoi(query->s);
+    // if(query->t != "*") s = std::stoi(query->t);
+    auto res = evaluatePath(query->path); //, s, t);
+
+    // Cache all queries for entire query execution duration
+    cachedQuery[qString] = std::make_shared<SimpleGraph>(*res);
 
     if(query->s != "*") res = selectSource(query->s, res);
     else if(query->t != "*") res = selectTarget(query->t, res);

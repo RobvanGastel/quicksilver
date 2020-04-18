@@ -31,6 +31,7 @@ public:
 
     void prepare() override ;
     BestPlan findBestPlan(std::string query);
+    std::string PathQueryBestPlan(PathQuery* query);
     uint32_t estimateQueryCost(std::string left, std::string right);
 
     cardStat evaluate(PathQuery *query) override ;
