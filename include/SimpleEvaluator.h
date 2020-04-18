@@ -32,16 +32,14 @@ public:
     uint32_t estimateQueryCost(std::string left, std::string right);
 
     cardStat evaluate(PathQuery *query) override ;
-
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);
 
-    std::shared_ptr<SimpleGraph> evaluatePath(PathTree *q);
-    static std::shared_ptr<SimpleGraph> selectLabel(uint32_t projectLabel, uint32_t outLabel, bool inverse, std::shared_ptr<SimpleGraph> &in);
-    static std::shared_ptr<SimpleGraph> join(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
-    static std::shared_ptr<SimpleGraph> transitiveClosure(uint32_t label, std::shared_ptr<SimpleGraph> &in);
-    static uint32_t unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
+    std::vector<std::pair<uint32_t, uint32_t>> evaluatePath(PathTree *q, int source, int target);
+    static std::vector<std::pair<uint32_t, uint32_t>> join(std::vector<std::pair<uint32_t, uint32_t>> &left, std::vector<std::pair<uint32_t, uint32_t>> &right);
+    static std::vector<std::pair<uint32_t, uint32_t>> transitiveClosure(uint32_t label, std::vector<std::pair<uint32_t, uint32_t>> &in);
+    static uint32_t unionDistinct(std::vector<std::pair<uint32_t, uint32_t>> &left, std::vector<std::pair<uint32_t, uint32_t>> &right);
 
-    static cardStat computeStats(std::shared_ptr<SimpleGraph> &g);
+    static cardStat computeStats(std::vector<std::pair<uint32_t, uint32_t>> &g);
 
 };
 

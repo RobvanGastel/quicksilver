@@ -228,49 +228,49 @@ std::vector<std::string> parsePathTree(PathTree *tree) {
 }
 
 /// Sample transitive closure queries
-std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, float sample) {
-    auto se = SimpleEvaluator(graph);
+// std::vector<std::pair<uint32_t, uint32_t>> SimpleEstimator::SampleTransitiveClosure(int T, float sample) {
+//     auto se = SimpleEvaluator(graph);
 
-    int sampleSize = ceil(sample * graph->getNoVertices());
-    int numNewAdded = 1;
+//     int sampleSize = ceil(sample * graph->getNoVertices());
+//     int numNewAdded = 1;
 
-    /// Create sample graph (TC)
-    // Use max upperbound for labels
-    auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    sampleGraph->setNoLabels(sampleSize);
+//     /// Create sample graph (TC)
+//     // Use max upperbound for labels
+//     auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
+//     sampleGraph->setNoLabels(sampleSize);
 
-    // Use max upperbound for labels
-    auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    base->setNoLabels(sampleSize);
+//     // Use max upperbound for labels
+//     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
+//     base->setNoLabels(sampleSize);
 
-    while (numNewAdded) {
-        auto delta = se.join(sampleGraph, base);
-        numNewAdded = se.unionDistinct(sampleGraph, delta);
-    }
+//     while (numNewAdded) {
+//         auto delta = se.join(sampleGraph, base);
+//         numNewAdded = se.unionDistinct(sampleGraph, delta);
+//     }
 
-    return sampleGraph;
-}
+//     return sampleGraph;
+// }
 
 /// Sample transitive closure for 1 source or target
 // TODO: Adjust after changing the graph calculation doesn't work anymore
-std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int node, bool reverse) {
-    auto se = SimpleEvaluator(graph);
-    int numNewAdded = 1;
+// std::shared_ptr<SimpleGraph> SimpleEstimator::SampleTransitiveClosure(int T, int node, bool reverse) {
+//     auto se = SimpleEvaluator(graph);
+//     int numNewAdded = 1;
 
-    /// Create sample graph (TC)
-    auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    sampleGraph->setNoLabels(1);
+//     /// Create sample graph (TC)
+//     auto sampleGraph = std::make_shared<SimpleGraph>(graph->getNoVertices());
+//     sampleGraph->setNoLabels(1);
 
-    auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
-    base->setNoLabels(1);
+//     auto base = std::make_shared<SimpleGraph>(graph->getNoVertices());
+//     base->setNoLabels(1);
 
-    while (numNewAdded) {
-        auto delta = se.join(sampleGraph, base);
-        numNewAdded = se.unionDistinct(sampleGraph, delta);
-    }
+//     while (numNewAdded) {
+//         auto delta = se.join(sampleGraph, base);
+//         numNewAdded = se.unionDistinct(sampleGraph, delta);
+//     }
 
-    return sampleGraph;
-}
+//     return sampleGraph;
+// }
 
 cardStat SimpleEstimator::estimate(PathQuery *q) {
     int32_t rel_type = -1; /// Current Tuple "Table"
@@ -360,21 +360,21 @@ cardStat SimpleEstimator::estimate(PathQuery *q) {
                     noPaths = stats.total_relations[rel_type] + stats.multidimensional_matrix[rel_type][rel_type][0][0][0];
                 } else { // - Source: *, Target: i
                     int t_i = std::stoi(q->t);
-                    auto out = SampleTransitiveClosure(rel_type, t_i, true);
+                    // auto out = SampleTransitiveClosure(rel_type, t_i, true);
 
-                    noSources = out->getNoDistinctEdges();
-                    noPaths = out->getNoDistinctEdges();
+                    // noSources = out->getNoDistinctEdges();
+                    // noPaths = out->getNoDistinctEdges();
                     noTargets = 1;
                 }
             } else {
                 int s_i = std::stoi(q->s);
 
                 if (q->t =="*") { // - Source: i, Target: *
-                    auto out = SampleTransitiveClosure(rel_type, s_i, false);
+                    // auto out = SampleTransitiveClosure(rel_type, s_i, false);
 
                     noSources = 1;
-                    noPaths = out->getNoDistinctEdges();
-                    noTargets = out->getNoDistinctEdges();
+                    // noPaths = out->getNoDistinctEdges();
+                    // noTargets = out->getNoDistinctEdges();
                 } else { // - Source: i, Target: j
                 }
             }
