@@ -45,8 +45,9 @@ public:
     uint32_t getNoLabels() const;
 
     // Returns starting index of specified label and ending index+1 (so second is not included in the label)
-    std::pair<uint32_t, uint32_t> SelectLabel(uint32_t label, bool reverse);
-    std::pair<uint32_t, uint32_t> SelectIdLabel(uint32_t id, uint32_t label, bool reverse);
+    std::vector<std::pair<uint32_t, uint32_t>> SelectLabel(uint32_t label, bool reverse);
+    std::vector<std::pair<uint32_t, uint32_t>> SelectIdLabel(uint32_t id, uint32_t label, bool reverse, bool isTarget);
+    std::vector<std::pair<uint32_t, uint32_t>> SelectSTL(uint32_t source, uint32_t target, uint32_t label, bool reverse);
 
     // methods to create "SimpleGraph" structure for evaluation of the query
     std::shared_ptr<SimpleGraph> createGraphSelectLabelSource(uint32_t source, uint32_t label, bool reverse);

@@ -36,33 +36,102 @@ uint32_t SimpleGraph::getNoLabels() const {
     return L;
 }
 
-std::pair<uint32_t, uint32_t> SimpleGraph::SelectLabel(uint32_t label, bool reverse) {
+
+std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectLabel(uint32_t label, bool reverse) {
+    std::vector<std::pair<uint32_t, uint32_t>> pairs;
     if (reverse) {
-        return std::pair<uint32_t, uint32_t>(
-            positions_adj_reverse[label][0],
-            positions_adj_reverse[label][positions_adj_reverse[label].size()-1]
-        );
+        for (uint32_t i = 0; i < V; i++) {
+            auto indexes = std::pair<uint32_t, uint32_t>(
+                positions_adj_reverse[label][i],
+                positions_adj_reverse[label][i+1]
+            );
+            for (uint32_t j = indexes.first; j < indexes.second; j++)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(i, IA_reverse[j]));
+        }
     } else {
-        return std::pair<uint32_t, uint32_t>(
-            positions_adj[label][0],
-            positions_adj[label][positions_adj[label].size()-1]
-        );
+        for (uint32_t i = 0; i < V; i++) {
+            auto indexes = std::pair<uint32_t, uint32_t>(
+                positions_adj[label][i],
+                positions_adj[label][i+1]
+            );
+            for (uint32_t j = indexes.first; j < indexes.second; j++)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(i, IA[j]));
+        }
     }
+
+    return pairs;
 }
 
-std::pair<uint32_t, uint32_t> SimpleGraph::SelectIdLabel(uint32_t id, uint32_t label, bool reverse) {
+std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t id, uint32_t label, bool reverse, bool isTarget) {
+
+    std::vector<std::pair<uint32_t, uint32_t>> pairs;
     std::cout << id << " " << label << " " << positions_adj[label][id] <<std::endl;
-    if (reverse) {
-        return std::pair<uint32_t, uint32_t>(
-            positions_adj_reverse[label][id],
-            positions_adj_reverse[label][id+1]
-        );
-    } else {
-        return std::pair<uint32_t, uint32_t>(
-            positions_adj[label][id],
-            positions_adj[label][id+1]
-        );
+    if (reverse) { // 1<
+        // 42,1<,*
+        if(!isTarget) {
+            auto indexes = std::pair<uint32_t, uint32_t>(
+                positions_adj_reverse[label][id],
+                positions_adj_reverse[label][id+1]
+            );
+            for (uint32_t i = indexes.first; i < indexes.second; i++)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(IA_reverse[i], id));
+        }
+        // *,1<,42
+        // 1<
+        // *,1<,t => t,l,*
+        else {
+            auto indexes = std::pair<uint32_t, uint32_t>(
+                positions_adj[label][id],
+                positions_adj[label][id+1]
+            );
+            for (uint32_t i = indexes.first; i < indexes.second; i++)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA[i]));
+        }
+    } else { // 1>
+        // 42,1>,*
+        if(!isTarget) {
+            auto indexes = std::pair<uint32_t, uint32_t>(
+                positions_adj[label][id],
+                positions_adj[label][id+1]
+            );
+            for (uint32_t i = indexes.first; i < indexes.second; i++)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(IA[i], id));
+        }
+        // *,1>,42 
+        else {
+            auto indexes = std::pair<uint32_t, uint32_t>(
+                positions_adj_reverse[label][id],
+                positions_adj_reverse[label][id+1]
+            );
+            for (uint32_t i = indexes.first; i < indexes.second; i++)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA_reverse[i]));
+        }
     }
+    return pairs;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectSTL(uint32_t source, uint32_t target, uint32_t label, bool reverse) {
+    std::vector<std::pair<uint32_t, uint32_t>> pairs;
+    if (reverse) {
+        auto indexes = std::pair<uint32_t, uint32_t>(
+            positions_adj_reverse[label][source],
+            positions_adj_reverse[label][source+1]
+        );
+        for (uint32_t i = indexes.first; i < indexes.second; i++) {
+            if (IA_reverse[i] == target)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(target, source));
+        }
+    } else {
+        auto indexes = std::pair<uint32_t, uint32_t>(
+            positions_adj[label][source],
+            positions_adj[label][source+1]
+        );
+        for (uint32_t i = indexes.first; i < indexes.second; i++){
+            if (IA[i] == target)
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(source, target));
+        }
+    }
+    return pairs;
 }
 
 void SimpleGraph::setNoLabels(uint32_t noLabels) {
@@ -168,7 +237,7 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::
     }
 
     // CREATE CSR
-    line;
+    // line;
     std::ifstream graphFile2 { fileName };
 
     std::getline(graphFile2, line);
@@ -198,37 +267,3 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {    std::
     // res = SelectIdLabel(42, 1, false);
     // std::cout << "selectIdLabel first: " <<  res.first << "  second: " << res.second << std::endl;
 }
-
-// TODO: Make more generic
-std::shared_ptr<SimpleGraph> SimpleGraph::createGraphSelectLabelSource(uint32_t source, uint32_t label, bool reverse) {
-    
-    // auto res = SelectIdLabel(source, label, reverse);
-    // auto g = std::make_shared<SimpleGraph>();
-    
-    // // Use addEdge from Nikolay 
-    // // adj 
-    // // [source] -> [target]
-
-    // uint32_t first = res.first; 
-    // if (reverse) {
-    //     for (uint32_t i = res.first; i < res.second; i++) {
-    //         IA_reverse[i];
-    //     }
-    // } else {
-    //     for (uint32_t i = res.first; i < res.second; i++) {
-    //         IA[i];
-    //     }
-    // }
-
-    // return g;
-}
-
-/// add edge on the adjacency structure to evaluation of the query
-/// can only be used if, graph is created for use of adj
-// void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
-//     if(from >= V || to >= V || edgeLabel >= L)
-//         throw std::runtime_error(std::string("Edge data out of bounds: ") +
-//                                          "(" + std::to_string(from) + "," + std::to_string(to) + "," +
-//                                          std::to_string(edgeLabel) + ")");
-//     adj[from].emplace_back(std::make_pair(edgeLabel, to));
-// }

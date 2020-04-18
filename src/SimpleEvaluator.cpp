@@ -22,95 +22,40 @@ void SimpleEvaluator::prepare() {
 
 }
 
-cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
-
+cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>> &g) {
     cardStat stats {};
 
-    // Old implementation
-    // for(int source = 0; source < g->getNoVertices(); source++) {
-    //     if(!g->adj[source].empty()) stats.noOut++;
-    // }
+    std::vector<uint32_t> sources = {};
+    std::vector<uint32_t> targets = {};
+    std::vector<std::pair<uint32_t, uint32_t>> paths = {};
 
-    // stats.noPaths = g->getNoDistinctEdges();
+    for(int i = 0; i < g.size(); i++) {
+        sources.emplace_back(g[i].first);
+        targets.emplace_back(g[i].second);
 
-    // for(int target = 0; target < g->getNoVertices(); target++) {
-    //     if(!g->reverse_adj[target].empty()) stats.noIn++;
-    // }
+        bool exists = false;
+        for(int j = 0; j < paths.size(); j++) {
+            if(paths[j] == g[i]) {
+                exists = true;
+                break;
+            }
+        }
+        if(!exists) {
+            paths.emplace_back(g[i]);
+        }
+    }
+    
+    sort(sources.begin(), sources.end());
+    sources.erase(unique(sources.begin(), sources.end()), sources.end());
+
+    sort(targets.begin(), targets.end());
+    targets.erase(unique(targets.begin(), targets.end()), targets.end());
+
+    stats.noIn = sources.size();
+    stats.noPaths = paths.size();
+    stats.noOut = targets.size();
 
     return stats;
-}
-
-/**
- * Select all edges from a graph with a given edge label.
- * @param projectLabel Label to select.
- * @param outLabel Label to rename the selected edge labels to (used in the TC).
- * @param inverse Follow the edges in inverse direction.
- * @param in The graph to select from.
- * @return The graph which only has edges with the specified edge label.
- */
-std::shared_ptr<SimpleGraph> SimpleEvaluator::selectLabel(uint32_t projectLabel, uint32_t outLabel, bool inverse, std::shared_ptr<SimpleGraph> &in) {
-
-//     // TODO: 
-//     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
-//     out->setNoLabels(in->getNoLabels());
-//     uint32_t edges = in->getLabelEdgeCount(projectLabel, false);
-//     out->IA.resize(edges);
-//     out->IA_reverse.resize(edges);
-//     out->setLabelCount(outLabel, edges);
-
-//     if(!inverse) {
-// //        std::vector<uint32_t> sources = in->getLabelSources(projectLabel, false);
-// //        std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, false);
-//         std::vector<uint32_t> sources = {};
-//         std::vector<uint32_t> targets = {};
-// //        out->setLabelSources(outLabel, sources);
-// //        out->setLabelTargets(outLabel, targets);
-//         for (auto source : in->getLabelSources(projectLabel, false)) {
-//             std::vector<uint32_t> N = in->findNeighbours(source, projectLabel, false);
-//             for (auto target : N){
-//                 out->addLabelSource(outLabel, source);
-//                 out->addLabelTarget(outLabel, target);
-//                 sources.emplace_back(source);
-//                 targets.emplace_back(target);
-//             }
-//         }
-//         out->setLabelSources(outLabel, sources);
-//         out->setLabelTargets(outLabel, targets);
-//         std::cout << edges << "   " << sources.size();
-//         out->sortNodes();
-//         out->initialize_positions_adj();
-//         std::cout << out->positions_adj[0][0] << "  " << out->positions_adj[1][0] << "  " << out->positions_adj[2][0] << "  " << out->positions_adj[3][0] << "  ";
-//         std::cout << out->getLabelEdgeCount(outLabel, false);
-
-
-//     } else {
-//         std::vector<uint32_t> sources = in->getLabelSources(projectLabel, true);
-//         std::vector<uint32_t> targets = in->getLabelTargets(projectLabel, true);
-//         out->setLabelSources(outLabel, sources);
-//         out->setLabelTargets(outLabel, targets);
-//     }
-
-//     return out;
-}
-
-/**
- * A naive transitive closure (TC) computation.
- * @param label A graph edge label to compute the TC for.
- * @param in Input graph
- * @return
- */
-std::shared_ptr<SimpleGraph> SimpleEvaluator::transitiveClosure(uint32_t label, std::shared_ptr<SimpleGraph> &in) {
-
-    auto tc = selectLabel(label, 0, 0, in);
-    auto base = selectLabel(label, 0, 0, in);
-    uint32_t numNewAdded = 1;
-
-    while (numNewAdded) {
-        auto delta = join(tc, base);
-        numNewAdded = unionDistinct(tc, delta);
-    }
-
-    return tc;
 }
 
 /**
@@ -119,23 +64,10 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::transitiveClosure(uint32_t label, 
  * @param right A graph to be merged from.
  * @return A number of distinct new edges added from the "right" graph into the "left" graph.
  */
-uint32_t SimpleEvaluator::unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right) {
+uint32_t SimpleEvaluator::unionDistinct(std::vector<std::pair<uint32_t, uint32_t>> &left, 
+            std::vector<std::pair<uint32_t, uint32_t>> &right) {
 
     uint32_t numNewAdded = 0;
-
-//    for(uint32_t source = 0; source < right->getNoVertices(); source++) {
-//        for (auto labelTarget : right->adj[source]) {
-//
-//            auto label = labelTarget.first;
-//            auto target = labelTarget.second;
-//
-//            if(!left->edgeExists(source, target, label)) {
-//                left->addEdge(source, target, label);
-//                numNewAdded++;
-//            }
-//        }
-//    }
-
     return numNewAdded;
 }
 
@@ -145,26 +77,11 @@ uint32_t SimpleEvaluator::unionDistinct(std::shared_ptr<SimpleGraph> &left, std:
  * @param right Another graph to join with.
  * @return Answer graph for a join. Note that all labels in the answer graph are "0".
  */
-std::shared_ptr<SimpleGraph> SimpleEvaluator::join(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right) {
+std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
+            std::vector<std::pair<uint32_t, uint32_t>> &left, 
+            std::vector<std::pair<uint32_t, uint32_t>>  &right) {
 
-    auto out = std::make_shared<SimpleGraph>(left->getNoVertices());
-    out->setNoLabels(1);
-
-//    for(uint32_t leftSource = 0; leftSource < left->getNoVertices(); leftSource++) {
-//        for (auto labelTarget : left->adj[leftSource]) {
-//
-//            int leftTarget = labelTarget.second;
-//            // try to join the left target with right s
-//            for (auto rightLabelTarget : right->adj[leftTarget]) {
-//
-//                auto rightTarget = rightLabelTarget.second;
-//                out->addEdge(leftSource, rightTarget, 0);
-//
-//            }
-//        }
-//    }
-
-    return out;
+    return std::vector<std::pair<uint32_t, uint32_t>> {};
 }
 
 /**
@@ -172,8 +89,7 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::join(std::shared_ptr<SimpleGraph> 
  * @param q Parsed AST.
  * @return Solution as a graph.
  */
-std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
-
+std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTree *q, int s, int t) {
     // evaluate according to the AST bottom-up
 
     if(q->isLeaf()) {
@@ -186,79 +102,51 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluatePath(PathTree *q) {
 
         uint32_t label;
         bool inverse;
-
+        
         if (std::regex_search(q->data, matches, directLabel)) {
+            // Case: 1>
             label = (uint32_t) std::stoul(matches[1]);
-            return SimpleEvaluator::selectLabel(label, label, false, graph);
+
+            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
+            if(s != -1) return graph->SelectIdLabel(s, label, false, false); // 42, 1>, *
+            if(t != -1) return graph->SelectIdLabel(t, label, false, true); // *, 1>, 42
+            // return SimpleEvaluator::selectLabel(label, label, false, graph);
         } else if (std::regex_search(q->data, matches, inverseLabel)) {
+            // Case: 1<
             label = (uint32_t) std::stoul(matches[1]);
-            return SimpleEvaluator::selectLabel(label, label, true, graph);
+            
+            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1<, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1<, *
+            if(s != -1) return graph->SelectIdLabel(s, label, true, false); // 42, 1<, *
+            if(t != -1) return graph->SelectIdLabel(t, label, true, true); // *, 1<, 42
         }
+
         else if(std::regex_search(q->data, matches, kleeneStar)) {
-            label = (uint32_t) std::stoul(matches[1]);
-            return SimpleEvaluator::transitiveClosure(label, graph);
+            // Case: 1+
+
+            // TODO: Implement the TC
+            // label = (uint32_t) std::stoul(matches[1]);
+            // return SimpleEvaluator::transitiveClosure(label, graph);
         } else {
             std::cerr << "Label parsing failed!" << std::endl;
         }
 
-        return nullptr;
+        return std::vector<std::pair<uint32_t, uint32_t>> {};
     }
 
     if(q->isConcat()) {
 
         // evaluate the children
-        auto leftGraph = SimpleEvaluator::evaluatePath(q->left);
-        auto rightGraph = SimpleEvaluator::evaluatePath(q->right);
+        auto leftGraph = SimpleEvaluator::evaluatePath(q->left, -1, -1);
+        auto rightGraph = SimpleEvaluator::evaluatePath(q->right, -1, -1);
 
         // join left with right
         return SimpleEvaluator::join(leftGraph, rightGraph);
 
     }
-
-    return nullptr;
-}
-
-/**
- * Perform a selection on a source constant.
- * @param s A source constant.
- * @param in A graph to select from.
- * @return An answer graph as a result of the given selection.
- */
-std::shared_ptr<SimpleGraph> selectSource(std::string &s, std::shared_ptr<SimpleGraph> &in) {
-
-    auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
-    out->setNoLabels(in->getNoLabels());
-
-//    for (auto labelTarget : in->adj[std::stoi(s)]) {
-//
-//        auto label = labelTarget.first;
-//        auto target = labelTarget.second;
-//
-//        out->addEdge((uint32_t) std::stoi(s), target, label);
-//    }
-
-    return out;
-}
-
-/**
- * Perform a selection on a target constant.
- * @param s A target constant.
- * @param in A graph to select from.
- * @return An answer graph as a result of the given selection.
- */
-std::shared_ptr<SimpleGraph> selectTarget(std::string &t, std::shared_ptr<SimpleGraph> &in) {
-
-    auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
-    out->setNoLabels(in->getNoLabels());
-
-//    for (auto labelSource : in->reverse_adj[std::stoi(t)]) {
-//
-//        auto label = labelSource.first;
-//        auto source = labelSource.second;
-//        out->addEdge(source, (uint32_t) std::stoi(t), label);
-//    }
-
-    return out;
+    
+    return std::vector<std::pair<uint32_t, uint32_t>> {};
 }
 
 ///
@@ -394,32 +282,30 @@ BestPlan SimpleEvaluator::findBestPlan(std::string query) {
  * @return A cardinality statistics of the answer graph.
  */
 cardStat SimpleEvaluator::evaluate(PathQuery *query) {
-    std::shared_ptr<SimpleGraph> res;
+    std::vector<std::pair<uint32_t, uint32_t>> res = {};
 
-    if(query->s != "*") { // evaluate source id first and continue from left to right
-        res = evaluatePath(query->path);
-        // res = selectSource(query->s, res);
+    int s = -1;
+    int t = -1;
+
+    if(query->s != "*" && query->t != "*") {
+        s = std::stoi(query->s);
+        t = std::stoi(query->t);
+        res = evaluatePath(query->path, s, t);
+    } 
+    // evaluate source id first and continue from left to right
+    else if(query->s != "*") {
+        s = std::stoi(query->s);
+        res = evaluatePath(query->path, s, t);
     }
-    else if(query->t != "*") { // evaluate target id first and continue from right to left
-        res = evaluatePath(query->path);
-        // res = selectTarget(query->t, res);
-    }
-    else {
-        // // Findbestplan DP
-        // std::vector<std::string> path = parsePathToTree(query->path);
-        // std::string queryString = "" + path[0];
-        // for(int i = 1; i < path.size(); i++) {
-        //     queryString += "/" + path[i];
-        // }
-        // auto plan = findBestPlan(queryString);
-        // planSpace.clear();
-
-        // // Recreate new PathTree
-        // PathTree* tree = PathTree::strToTree(plan.query);
-
-        // res = evaluatePath(tree);
-
-        res = evaluatePath(query->path);
+    // evaluate target id first and continue from right to left
+    else if(query->t != "*") { 
+        t = std::stoi(query->t);
+        res = evaluatePath(query->path, s, t);
+    } else {
+        res = evaluatePath(query->path, s, t);
+        
+        // Findbestplan DP
+        // TODO: Manually merge findBestPlan from bestPlan
     }
 
     return SimpleEvaluator::computeStats(res);
