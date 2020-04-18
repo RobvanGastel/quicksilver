@@ -27,9 +27,22 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>
 
     std::vector<uint32_t> sources = {};
     std::vector<uint32_t> targets = {};
+    std::vector<std::pair<uint32_t, uint32_t>> paths = {};
+
     for(int i = 0; i < g.size(); i++) {
         sources.emplace_back(g[i].first);
         targets.emplace_back(g[i].second);
+
+        bool exists = false;
+        for(int j = 0; j < paths.size(); j++) {
+            if(paths[j] == g[i]) {
+                exists = true;
+                break;
+            }
+        }
+        if(!exists) {
+            paths.emplace_back(g[i]);
+        }
     }
     
     sort(sources.begin(), sources.end());
@@ -39,7 +52,12 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>
     targets.erase(unique(targets.begin(), targets.end()), targets.end());
 
     stats.noIn = sources.size();
-    stats.noPaths = g.size();
+
+    stats.noPaths = paths.size();
+
+    // (1480, 17262, 3005) | (3005, 17258, 1480)
+    // (2963, 21269, 3015) | (3016, 21260, 2963)
+
     stats.noOut = targets.size();
 
     return stats;
@@ -94,8 +112,8 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             // Case: 1>
             label = (uint32_t) std::stoul(matches[1]);
 
-            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
+            if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1>, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
             if(s != -1) return graph->SelectIdLabel(s, label, false); // *, 1>, 42
             if(t != -1) return graph->SelectIdLabel(t, label, true); // 42, 1>, *
             // return SimpleEvaluator::selectLabel(label, label, false, graph);
@@ -103,8 +121,8 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             // Case: 1<
             label = (uint32_t) std::stoul(matches[1]);
 
-            if(s != -1 && t != -1) return graph->SelectSTL(t, s, label, true); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
+            if(s != -1 && t != -1) return graph->SelectSTL(t, s, label, false); // 42, 1>, 43
+            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
             if(s != -1) return graph->SelectIdLabel(s, label, true); // *, 1>, 42
             if(t != -1) return graph->SelectIdLabel(t, label, true); // 42, 1>, *
         }

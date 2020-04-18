@@ -42,23 +42,23 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectLabel(uint32_t lab
     if (reverse) {
         for (uint32_t i = 0; i < (V-1); i++) {
             auto indexes = std::pair<uint32_t, uint32_t>(
-            positions_adj_reverse[label][i],
-            positions_adj_reverse[label][i+1]
+                positions_adj_reverse[label][i],
+                positions_adj_reverse[label][i+1]
             );
             for (uint32_t j = indexes.first; j < indexes.second; j++)
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(i, IA_reverse[j]));
         }
-        
     } else {
         for (uint32_t i = 0; i < (V-1); i++) {
             auto indexes = std::pair<uint32_t, uint32_t>(
-            positions_adj[label][i],
-            positions_adj[label][i+1]
+                positions_adj[label][i],
+                positions_adj[label][i+1]
             );
             for (uint32_t j = indexes.first; j < indexes.second; j++)
                 pairs.emplace_back(std::pair<uint32_t, uint32_t>(i, IA[j]));
         }
     }
+    
     return pairs;
 }
 
