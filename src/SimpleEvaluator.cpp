@@ -2,10 +2,11 @@
 #include "SimpleEvaluator.h"
 #include <sstream>
 
-bool sortbysec(const std::pair<uint32_t, uint32_t> &a, 
-              const std::pair<uint32_t, uint32_t> &b) { 
-    return (a.second < b.second); 
-} 
+bool sortbysec(const std::pair<uint32_t,uint32_t> &a, const std::pair<uint32_t,uint32_t> &b) {
+    if (a.second < b.second) return true;
+    if (a.second == b.second) return a.first < b.first;
+    return false;
+}
 
 SimpleEvaluator::SimpleEvaluator(std::shared_ptr<SimpleGraph> &g) {
 
@@ -57,54 +58,68 @@ std::vector<std::string> parsePathToTree(PathTree *tree) {
 cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>> &g) {
     cardStat stats {};
 
-    // std::vector<uint32_t> uniquein;
-    // std::vector<uint32_t> uniqueout;
-    // for(int i =0; i < g.size(); i++) {
-    //     uniquein.push_back(g[i].first);
-    //     uniqueout.push_back(g[i].second);
-    // }
+    std::unordered_set<uint32_t> sources = {};
+    std::unordered_set<uint32_t> targets = {};
 
-    // std::sort(uniquein.begin(), uniquein.end());
-    // uniquein.erase(unique(uniquein.begin(), uniquein.end()), uniquein.end());
-    // std::sort(uniqueout.begin(), uniqueout.end());
-    // uniqueout.erase(unique(uniqueout.begin(), uniqueout.end()), uniqueout.end());
-
-    // stats.noPaths = g.size();
-    // stats.noIn = uniqueout.size();
-    // stats.noOut = uniquein.size();
-
-    // std::cout << "adsad\n";
-    std::vector<uint32_t> sources = {};
-    std::vector<uint32_t> targets = {};
-    std::vector<std::pair<uint32_t, uint32_t>> paths = {};
-
-    for(int i = 0; i < g.size(); i++) {
-        sources.emplace_back(g[i].first);
-        targets.emplace_back(g[i].second);
-
-        bool exists = false;
-        for(int j = 0; j < paths.size(); j++) {
-            if(paths[j] == g[i]) {
-                exists = true;
-                break;
-            }
-        }
-        if(!exists) {
-            paths.emplace_back(g[i]);
-        }
+    for (auto tuple : g) {
+        sources.insert(tuple.first);
+        targets.insert(tuple.second);
     }
-    
-    sort(sources.begin(), sources.end());
-    sources.erase(unique(sources.begin(), sources.end()), sources.end());
-
-    sort(targets.begin(), targets.end());
-    targets.erase(unique(targets.begin(), targets.end()), targets.end());
 
     stats.noIn = sources.size();
-    stats.noPaths = paths.size();
+    stats.noPaths = g.size();
     stats.noOut = targets.size();
 
     return stats;
+
+    // // std::vector<uint32_t> uniquein;
+    // // std::vector<uint32_t> uniqueout;
+    // // for(int i =0; i < g.size(); i++) {
+    // //     uniquein.push_back(g[i].first);
+    // //     uniqueout.push_back(g[i].second);
+    // // }
+
+    // // std::sort(uniquein.begin(), uniquein.end());
+    // // uniquein.erase(unique(uniquein.begin(), uniquein.end()), uniquein.end());
+    // // std::sort(uniqueout.begin(), uniqueout.end());
+    // // uniqueout.erase(unique(uniqueout.begin(), uniqueout.end()), uniqueout.end());
+
+    // // stats.noPaths = g.size();
+    // // stats.noIn = uniqueout.size();
+    // // stats.noOut = uniquein.size();
+
+    // // std::cout << "adsad\n";
+    // std::vector<uint32_t> sources = {};
+    // std::vector<uint32_t> targets = {};
+    // std::vector<std::pair<uint32_t, uint32_t>> paths = {};
+
+    // for(int i = 0; i < g.size(); i++) {
+    //     sources.emplace_back(g[i].first);
+    //     targets.emplace_back(g[i].second);
+
+    //     bool exists = false;
+    //     for(int j = 0; j < paths.size(); j++) {
+    //         if(paths[j] == g[i]) {
+    //             exists = true;
+    //             break;
+    //         }
+    //     }
+    //     if(!exists) {
+    //         paths.emplace_back(g[i]);
+    //     }
+    // }
+    
+    // sort(sources.begin(), sources.end());
+    // sources.erase(unique(sources.begin(), sources.end()), sources.end());
+
+    // sort(targets.begin(), targets.end());
+    // targets.erase(unique(targets.begin(), targets.end()), targets.end());
+
+    // stats.noIn = sources.size();
+    // stats.noPaths = paths.size();
+    // stats.noOut = targets.size();
+
+    // return stats;
 }
 
 /**
@@ -118,29 +133,63 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
             std::vector<std::pair<uint32_t, uint32_t>>  &right) {
     std::vector<std::pair<uint32_t,uint32_t>> join;
 
-    int leftk = 0;
-    int rightk = 0;
-    int next;
+    uint32_t joinTarget = 0;
+    uint32_t source;
+    uint32_t left_i = 0;
+    uint32_t left_max = left.size();
+    uint32_t leftJoinTarget = 0;
+    uint32_t right_i = 0;
+    uint32_t right_step = 0;
+    uint32_t right_max = right.size();
 
-    // Join left and right in join vertex
-    while(leftk != left.size() && rightk != right.size()){
-        if(left[leftk].second == right[rightk].first) {
-            next = rightk;
+    while ((left_i <= left_max) && (right_i <= right_max)) {
+        if (left[left_i].second == right[right_i].first) {
+            source = left[left_i].first;
+            leftJoinTarget = left[left_i].second;
+            right_step = right_i;
+
+            join.emplace_back(std::make_pair(source, right[right_i].second));
             
-            while(next != right.size() && left[leftk].second == right[next].first) {
-                join.emplace_back(
-                    std::make_pair(
-                        left[leftk].first, 
-                        right[next].second));
-                next++;
+            while ((right_step <= right_max) && (leftJoinTarget == right[right_step].first)) {
+                join.emplace_back(std::make_pair(source, right[right_step].second));
+                right_step++;
             }
-            leftk++;
-        } else if(left[leftk].second < right[rightk].first) {
-            leftk++;
+            left_i++;
+        } else if (left[left_i].second < right[right_i].first) {
+            left_i++;
         } else {
-            rightk++;
+            // std::cout << "right++" << std::endl;
+            // if (right_step > right_i)
+            //     right_i = right_step; 
+            // else
+                right_i++;
         }
     }
+    
+
+    // int leftk = 0;
+    // int rightk = 0;
+    // int next;
+
+    // // Join left and right in join vertex
+    // while(leftk != left.size() && rightk != right.size()){
+    //     if(left[leftk].second == right[rightk].first) {
+    //         next = rightk;
+            
+    //         while(next != right.size() && left[leftk].second == right[next].first) {
+    //             join.emplace_back(
+    //                 std::make_pair(
+    //                     left[leftk].first, 
+    //                     right[next].second));
+    //             next++;
+    //         }
+    //         leftk++;
+    //     } else if(left[leftk].second < right[rightk].first) {
+    //         leftk++;
+    //     } else {
+    //         rightk++;
+    //     }
+    // }
     // Remove the duplicates keep unique values
     std::sort(join.begin(),join.end());
     join.erase(unique(join.begin(), join.end()), join.end());
@@ -171,7 +220,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             label = (uint32_t) std::stoul(matches[1]);
 
             if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, false); // 42, 1>, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1>, *
+            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1>, *
             if(s != -1) return graph->SelectIdLabel(s, label, false, false); // 42, 1>, *
             if(t != -1) return graph->SelectIdLabel(t, label, false, true); // *, 1>, 42
             // return SimpleEvaluator::selectLabel(label, label, false, graph);
@@ -180,7 +229,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             label = (uint32_t) std::stoul(matches[1]);
             
             if(s != -1 && t != -1) return graph->SelectSTL(s, t, label, true); // 42, 1<, 43
-            if(s == -1 && t == -1) return graph->SelectLabel(label, false); // *, 1<, *
+            if(s == -1 && t == -1) return graph->SelectLabel(label, true); // *, 1<, *
             if(s != -1) return graph->SelectIdLabel(s, label, true, false); // 42, 1<, *
             if(t != -1) return graph->SelectIdLabel(t, label, true, true); // *, 1<, 42
         }
