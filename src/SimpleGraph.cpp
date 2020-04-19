@@ -173,9 +173,9 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectSTL(uint32_t sourc
  */
 std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::transitiveClosure(uint32_t label) {
     // std::unordered_set<std::pair<uint32_t, uint32_t>, pair_hash> tc_set;
-    std::vector<std::pair<uint32_t, uint32_t>> tc;
     // std::vector<std::pair<uint32_t, uint32_t>> tc = SelectLabel(label, false);
     std::vector<std::pair<uint32_t, uint32_t>> base = SelectLabel(label, false);
+    std::vector<std::pair<uint32_t, uint32_t>> tc = base;
 
     uint32_t numNewAdded = 1;
     uint32_t old_tc_len;
