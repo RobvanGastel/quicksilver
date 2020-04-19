@@ -47,7 +47,6 @@ void Stats::create_stats(std::shared_ptr<SimpleGraph> *g) {
     uint32_t y_step_i; // start subject
     uint32_t y_step_j; // end subject
     uint32_t V = (*g)->getNoVertices();
-    std::cout << "V " << V << std::endl;
 
     uint32_t tuples;
     std::unordered_set<uint32_t> source_answers;

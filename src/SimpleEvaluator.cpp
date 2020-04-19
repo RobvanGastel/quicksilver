@@ -60,16 +60,18 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>
 
     std::unordered_set<uint32_t> sources = {};
     std::unordered_set<uint32_t> targets = {};
+    std::vector<std::pair<uint32_t, uint32_t>> tuples(g.begin(), g.end());
+    std::sort(tuples.begin(), tuples.end());
 
     for (auto tuple : g) {
         sources.insert(tuple.first);
         targets.insert(tuple.second);
     }
 
-    stats.noIn = sources.size();
-    stats.noPaths = g.size();
-    stats.noOut = targets.size();
-
+    stats.noIn = targets.size();
+    stats.noPaths = std::unique(tuples.begin(), tuples.end()) - tuples.begin();
+    stats.noOut = sources.size();
+    
     return stats;
 
     // // std::vector<uint32_t> uniquein;
@@ -132,7 +134,6 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
             std::vector<std::pair<uint32_t, uint32_t>> &left, 
             std::vector<std::pair<uint32_t, uint32_t>>  &right) {
     std::vector<std::pair<uint32_t,uint32_t>> join;
-
     uint32_t joinTarget = 0;
     uint32_t source;
     uint32_t left_i = 0;
@@ -141,30 +142,68 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
     uint32_t right_i = 0;
     uint32_t right_step = 0;
     uint32_t right_max = right.size();
+    
 
-    while ((left_i <= left_max) && (right_i <= right_max)) {
-        if (left[left_i].second == right[right_i].first) {
-            source = left[left_i].first;
-            leftJoinTarget = left[left_i].second;
-            right_step = right_i;
-
-            join.emplace_back(std::make_pair(source, right[right_i].second));
-            
-            while ((right_step <= right_max) && (leftJoinTarget == right[right_step].first)) {
-                join.emplace_back(std::make_pair(source, right[right_step].second));
-                right_step++;
-            }
-            left_i++;
-        } else if (left[left_i].second < right[right_i].first) {
-            left_i++;
-        } else {
-            // std::cout << "right++" << std::endl;
-            // if (right_step > right_i)
-            //     right_i = right_step; 
-            // else
-                right_i++;
+    // new
+    uint32_t join_max_id = 0; //std::min(left[left.size()-1].second, right[right.size()-1].first);
+    for (auto p : left) {
+        if (p.second > join_max_id) {
+            join_max_id = p.second;
         }
     }
+    for (auto p : right) {
+        if (p.first > join_max_id) {
+            join_max_id = p.first;
+        }
+    }
+
+    std::vector<std::vector<uint32_t>> left_adj;
+    left_adj.resize(join_max_id+1);
+    for (auto p : left) {
+        left_adj[p.second].emplace_back(p.first);
+    }
+    std::vector<std::vector<uint32_t>> right_adj;
+    right_adj.resize(join_max_id+1);
+    for (auto p : right) {
+        right_adj[p.first].emplace_back(p.second);
+    }
+    for (uint32_t join_id = 0; join_id <= join_max_id; join_id++) {
+        if ((!left_adj[join_id].empty()) && (!right_adj[join_id].empty())) {
+            for (uint32_t lp : left_adj[join_id]) {
+                for (uint32_t rp : right_adj[join_id]) {
+                    join.emplace_back(std::make_pair(lp, rp));
+                }
+            }
+        }
+    }
+
+    // end new       
+
+
+
+    // while ((left_i <= left_max) && (right_i <= right_max)) {
+    //     if (left[left_i].second == right[right_i].first) {
+    //         source = left[left_i].first;
+    //         leftJoinTarget = left[left_i].second;
+    //         right_step = right_i;
+
+    //         join.emplace_back(std::make_pair(source, right[right_i].second));
+            
+    //         while ((right_step <= right_max) && (leftJoinTarget == right[right_step].first)) {
+    //             join.emplace_back(std::make_pair(source, right[right_step].second));
+    //             right_step++;
+    //         }
+    //         left_i++;
+    //     } else if (left[left_i].second < right[right_i].first) {
+    //         left_i++;
+    //     } else {
+    //         // std::cout << "right++" << std::endl;
+    //         // if (right_step > right_i)
+    //         //     right_i = right_step; 
+    //         // else
+    //             right_i++;
+    //     }
+    // }
     
 
     // int leftk = 0;
@@ -190,9 +229,11 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
     //         rightk++;
     //     }
     // }
-    // Remove the duplicates keep unique values
-    std::sort(join.begin(),join.end());
-    join.erase(unique(join.begin(), join.end()), join.end());
+
+
+    // // Remove the duplicates keep unique values
+    // std::sort(join.begin(),join.end());
+    // join.erase(unique(join.begin(), join.end()), join.end());
     return join;
 }
 
@@ -255,8 +296,8 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
         auto leftPairs = SimpleEvaluator::evaluatePath(q->left, s, -1);
         auto rightPairs = SimpleEvaluator::evaluatePath(q->right, -1, t);
 
-        sort(leftPairs.begin(), leftPairs.end(), sortbysec);
-        sort(rightPairs.begin(), rightPairs.end());
+        // sort(leftPairs.begin(), leftPairs.end(), sortbysec);
+        // sort(rightPairs.begin(), rightPairs.end());
 
         // join left with right
         return SimpleEvaluator::join(leftPairs, rightPairs);

@@ -78,7 +78,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t i
                 positions_adj_reverse[label][id+1]
             );
             for (uint32_t i = indexes.first; i < indexes.second; i++)
-                pairs.emplace_back(std::pair<uint32_t, uint32_t>(IA_reverse[i], id));
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA_reverse[i]));  // not sure
         }
         // *,1<,42
         // 1<
@@ -89,7 +89,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t i
                 positions_adj[label][id+1]
             );
             for (uint32_t i = indexes.first; i < indexes.second; i++)
-                pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA[i]));
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(IA[i], id));  // not sure
         }
     } else { // 1>
         // 42,1>,*
@@ -99,7 +99,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t i
                 positions_adj[label][id+1]
             );
             for (uint32_t i = indexes.first; i < indexes.second; i++)
-                pairs.emplace_back(std::pair<uint32_t, uint32_t>(IA[i], id));
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA[i])); // correct way
         }
         // *,1>,42 
         else {
@@ -108,7 +108,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectIdLabel(uint32_t i
                 positions_adj_reverse[label][id+1]
             );
             for (uint32_t i = indexes.first; i < indexes.second; i++)
-                pairs.emplace_back(std::pair<uint32_t, uint32_t>(id, IA_reverse[i]));
+                pairs.emplace_back(std::pair<uint32_t, uint32_t>(IA_reverse[i], id)); // not sure
         }
     }
     // sort(pairs.begin(), pairs.end());
