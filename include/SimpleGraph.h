@@ -56,7 +56,7 @@ public:
 
     // std::vector<std::pair<uint32_t, uint32_t>> TC(uint32_t label);
     std::vector<std::pair<uint32_t, uint32_t>> transitiveClosure(uint32_t label);
-    uint32_t unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
+    // uint32_t unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
 
     // methods to create "SimpleGraph" structure for evaluation of the query
     std::shared_ptr<SimpleGraph> createGraphSelectLabelSource(uint32_t source, uint32_t label, bool reverse);

@@ -240,31 +240,31 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::transitiveClosure(uint32
     return tc;
 }
 
-/**
- * Merges a graph into another graph.
- * @param left A graph to be merged into.
- * @param right A graph to be merged from.
- * @return A number of distinct new edges added from the "right" graph into the "left" graph.
- */
-uint32_t SimpleGraph::unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right) {
+// /**
+//  * Merges a graph into another graph.
+//  * @param left A graph to be merged into.
+//  * @param right A graph to be merged from.
+//  * @return A number of distinct new edges added from the "right" graph into the "left" graph.
+//  */
+// uint32_t SimpleGraph::unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right) {
 
-    // uint32_t numNewAdded = 0;
+//     // uint32_t numNewAdded = 0;
 
-    // for(uint32_t source = 0; source < right->getNoVertices(); source++) {
-    //     for (auto labelTarget : right->adj[source]) {
+//     // for(uint32_t source = 0; source < right->getNoVertices(); source++) {
+//     //     for (auto labelTarget : right->adj[source]) {
 
-    //         auto label = labelTarget.first;
-    //         auto target = labelTarget.second;
+//     //         auto label = labelTarget.first;
+//     //         auto target = labelTarget.second;
 
-    //         if(!left->edgeExists(source, target, label)) {
-    //             left->addEdge(source, target, label);
-    //             numNewAdded++;
-    //         }
-    //     }
-    // }
+//     //         if(!left->edgeExists(source, target, label)) {
+//     //             left->addEdge(source, target, label);
+//     //             numNewAdded++;
+//     //         }
+//     //     }
+//     // }
 
-    // return numNewAdded;
-}
+//     // return numNewAdded;
+// }
 
 
 
