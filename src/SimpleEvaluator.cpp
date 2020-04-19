@@ -55,6 +55,25 @@ std::vector<std::string> parsePathToTree(PathTree *tree) {
     return query;
 }
 
+PathTree* reverseJoinOrder(PathTree* p) {
+    std::vector<std::string> path = parsePathToTree(p);
+    std::string query;
+
+    // Only then reverse, (2>/3>), (2>), (3>/(4>/5>))
+    if(path.size() >= 3) {
+        std::reverse(path.begin(), path.end());
+
+        query = "(" + path[1] + "/" + path[0] + ")";
+        for(int i = 2; i < path.size(); i++) {
+            query = "(" + path[2] + "/" + query + ")";
+        }
+    } else {
+        return p;
+    }
+
+    return PathTree::strToTree(query);
+}
+
 cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>> &g) {
     cardStat stats {};
 
@@ -73,55 +92,6 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>
     stats.noOut = sources.size();
     
     return stats;
-
-    // // std::vector<uint32_t> uniquein;
-    // // std::vector<uint32_t> uniqueout;
-    // // for(int i =0; i < g.size(); i++) {
-    // //     uniquein.push_back(g[i].first);
-    // //     uniqueout.push_back(g[i].second);
-    // // }
-
-    // // std::sort(uniquein.begin(), uniquein.end());
-    // // uniquein.erase(unique(uniquein.begin(), uniquein.end()), uniquein.end());
-    // // std::sort(uniqueout.begin(), uniqueout.end());
-    // // uniqueout.erase(unique(uniqueout.begin(), uniqueout.end()), uniqueout.end());
-
-    // // stats.noPaths = g.size();
-    // // stats.noIn = uniqueout.size();
-    // // stats.noOut = uniquein.size();
-
-    // // std::cout << "adsad\n";
-    // std::vector<uint32_t> sources = {};
-    // std::vector<uint32_t> targets = {};
-    // std::vector<std::pair<uint32_t, uint32_t>> paths = {};
-
-    // for(int i = 0; i < g.size(); i++) {
-    //     sources.emplace_back(g[i].first);
-    //     targets.emplace_back(g[i].second);
-
-    //     bool exists = false;
-    //     for(int j = 0; j < paths.size(); j++) {
-    //         if(paths[j] == g[i]) {
-    //             exists = true;
-    //             break;
-    //         }
-    //     }
-    //     if(!exists) {
-    //         paths.emplace_back(g[i]);
-    //     }
-    // }
-    
-    // sort(sources.begin(), sources.end());
-    // sources.erase(unique(sources.begin(), sources.end()), sources.end());
-
-    // sort(targets.begin(), targets.end());
-    // targets.erase(unique(targets.begin(), targets.end()), targets.end());
-
-    // stats.noIn = sources.size();
-    // stats.noPaths = paths.size();
-    // stats.noOut = targets.size();
-
-    // return stats;
 }
 
 /**
@@ -307,6 +277,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
     return std::vector<std::pair<uint32_t, uint32_t>> {};
 }
 
+
 ///
 /// FindBestPlan
 ///
@@ -452,6 +423,13 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
         // Mutates query->path in place
         std::string qString = PathQueryBestPlan(query);
 
+        // TODO: Possibility to cache query results
+        // Cache all queries for entire query execution duration
+        // cachedQuery[qString] = std::make_shared<SimpleGraph>(*res);
+        
+        // std::cout << "\n" << *query->path;
+        // query->path = reverseJoinOrder(query->path);
+        // std::cout << "\n"  << *query->path;
         res = evaluatePath(query->path, s, t);
     }
 
