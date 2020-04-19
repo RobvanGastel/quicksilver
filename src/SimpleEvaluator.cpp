@@ -55,6 +55,25 @@ std::vector<std::string> parsePathToTree(PathTree *tree) {
     return query;
 }
 
+PathTree* reverseJoinOrder(PathTree* p) {
+    std::vector<std::string> path = parsePathToTree(p);
+    std::string query;
+
+    // Only then reverse, (2>/3>), (2>), (3>/(4>/5>))
+    if(path.size() >= 3) {
+        std::reverse(path.begin(), path.end());
+
+        query = "(" + path[1] + "/" + path[0] + ")";
+        for(int i = 2; i < path.size(); i++) {
+            query = "(" + path[2] + "/" + query + ")";
+        }
+    } else {
+        return p;
+    }
+
+    return PathTree::strToTree(query);
+}
+
 cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>> &g) {
     cardStat stats {};
 
@@ -192,6 +211,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
     
     return std::vector<std::pair<uint32_t, uint32_t>> {};
 }
+
 
 ///
 /// FindBestPlan
@@ -342,6 +362,9 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
         // Cache all queries for entire query execution duration
         // cachedQuery[qString] = std::make_shared<SimpleGraph>(*res);
         
+        // std::cout << "\n" << *query->path;
+        // query->path = reverseJoinOrder(query->path);
+        // std::cout << "\n"  << *query->path;
         res = evaluatePath(query->path, s, t);
     }
 
