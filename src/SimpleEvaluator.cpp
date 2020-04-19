@@ -429,13 +429,14 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
         // Mutates query->path in place
         std::string qString = PathQueryBestPlan(query);
         
-        // std::cout << "\n" << *query->path;
-        // query->path = reverseJoinOrder(query->path);
-        // std::cout << "\n"  << *query->path;
-        res = evaluatePath(query->path, s, t);
+        if(cachedQuery.count(qString) != 0) {
+            res = cachedQuery[qString];
+        } else {
+            res = evaluatePath(query->path, s, t);
 
-        // Cache all queries for entire query execution duration
-        cachedQuery[qString] = res;
+            // Cache all queries for entire query execution duration
+            cachedQuery[qString] = res;
+        }
     }
 
     return SimpleEvaluator::computeStats(res);
