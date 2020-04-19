@@ -80,13 +80,10 @@ void AdjMatrix::readFromContiguousFile(const std::string &fileName) {
             addEdge(subject, object, predicate);
         }
     }
-//    std::cout << E << "  " << dist_E <<std::endl;
-//    printMatrix(0);
     graphFile.close();
 }
 
 void AdjMatrix::printMatrix(int label) {
-    std::cout << "Relation " << label << std::endl;
     for (int j = 0; j < V; j++) {
         for (int z = 0; z < V; z++) {
             if ((int)adj_matrix[label][j][z] == 1)

@@ -2,17 +2,6 @@
 #include "SimpleEvaluator.h"
 #include <sstream>
 
-// struct pair_hash {
-//     inline std::size_t operator()(const std::pair<uint32_t, uint32_t> & v) const {
-//         return v.first*31+v.second;
-//     }
-// };
-
-// std::vector<uint32_t> uniquesv(std::vector<uint32_t> vec) {
-//     sort( vec.begin(), vec.end() );
-//     vec.erase( unique( vec.begin(), vec.end() ), vec.end() );
-// }
-
 bool sortbysec(const std::pair<uint32_t,uint32_t> &a, const std::pair<uint32_t,uint32_t> &b) {
     if (a.second < b.second) return true;
     if (a.second == b.second) return a.first < b.first;
@@ -70,7 +59,6 @@ PathTree* reverseJoinOrder(PathTree* p) {
     std::vector<std::string> path = parsePathToTree(p);
     std::string query;
 
-    // Only then reverse, (2>/3>), (2>), (3>/(4>/5>))
     if(path.size() >= 3) {
         std::reverse(path.begin(), path.end());
 
@@ -124,9 +112,7 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
     uint32_t right_step = 0;
     uint32_t right_max = right.size();
     
-
-    // new
-    uint32_t join_max_id = 0; //std::min(left[left.size()-1].second, right[right.size()-1].first);
+    uint32_t join_max_id = 0;
     for (auto p : left) {
         if (p.second > join_max_id) {
             join_max_id = p.second;
@@ -166,64 +152,6 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
             }
         }
     }
-
-    // end new       
-
-
-
-    // while ((left_i <= left_max) && (right_i <= right_max)) {
-    //     if (left[left_i].second == right[right_i].first) {
-    //         source = left[left_i].first;
-    //         leftJoinTarget = left[left_i].second;
-    //         right_step = right_i;
-
-    //         join.emplace_back(std::make_pair(source, right[right_i].second));
-            
-    //         while ((right_step <= right_max) && (leftJoinTarget == right[right_step].first)) {
-    //             join.emplace_back(std::make_pair(source, right[right_step].second));
-    //             right_step++;
-    //         }
-    //         left_i++;
-    //     } else if (left[left_i].second < right[right_i].first) {
-    //         left_i++;
-    //     } else {
-    //         // std::cout << "right++" << std::endl;
-    //         // if (right_step > right_i)
-    //         //     right_i = right_step; 
-    //         // else
-    //             right_i++;
-    //     }
-    // }
-    
-
-    // int leftk = 0;
-    // int rightk = 0;
-    // int next;
-
-    // // Join left and right in join vertex
-    // while(leftk != left.size() && rightk != right.size()){
-    //     if(left[leftk].second == right[rightk].first) {
-    //         next = rightk;
-            
-    //         while(next != right.size() && left[leftk].second == right[next].first) {
-    //             join.emplace_back(
-    //                 std::make_pair(
-    //                     left[leftk].first, 
-    //                     right[next].second));
-    //             next++;
-    //         }
-    //         leftk++;
-    //     } else if(left[leftk].second < right[rightk].first) {
-    //         leftk++;
-    //     } else {
-    //         rightk++;
-    //     }
-    // }
-
-
-    // // Remove the duplicates keep unique values
-    // std::sort(join.begin(),join.end());
-    // join.erase(unique(join.begin(), join.end()), join.end());
     return join;
 }
 
@@ -321,9 +249,7 @@ uint32_t SimpleEvaluator::estimateQueryCost(std::string left, std::string right)
         query = "(" + left + ")";
     }
 
-    // std::cout << "\n\nUnprocessed query:" << query;
     PathTree* tree = PathTree::strToTree(query);
-    // std::cout << "\nProcessing query: " << *tree;
 
     std::string asterisk = "*";
     PathQuery* pq = new PathQuery(asterisk, tree, asterisk);
@@ -447,9 +373,6 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
         // Cache all queries for entire query execution duration
         // cachedQuery[qString] = std::make_shared<SimpleGraph>(*res);
         
-        // std::cout << "\n" << *query->path;
-        // query->path = reverseJoinOrder(query->path);
-        // std::cout << "\n"  << *query->path;
         res = evaluatePath(query->path, s, t);
     }
 
