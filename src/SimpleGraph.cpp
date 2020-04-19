@@ -1,5 +1,11 @@
 #include "SimpleGraph.h"
 
+// struct pair_hash {
+//     inline std::size_t operator()(const std::pair<uint32_t, uint32_t> & v) const {
+//         return v.first*31+v.second;
+//     }
+// }
+
 SimpleGraph::SimpleGraph(uint32_t n)   {
     setNoVertices(n);
 }
@@ -142,22 +148,124 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectSTL(uint32_t sourc
     return pairs;
 }
 
-std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::TC(uint32_t label) {
-    std::vector<std::pair<uint32_t, uint32_t>> pairs;
+// std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::TC(uint32_t label) {
+//     std::vector<std::pair<uint32_t, uint32_t>> pairs;
     
-    // uint32_t numNewAdded = 1;
+//     uint32_t numNewAdded = 1;
 
-    // while (numNewAdded) {
-    //     auto delta = join(tc, base);
-    //     numNewAdded = unionDistinct(tc, delta);
+//     while (numNewAdded) {
+//         std::vector<std::pair<uint32_t, uint32_t>> delta = join(tc, base);
+//         numNewAdded = unionDistinct(tc, delta);
+//     }
+
+//     // return tc;
+
+
+
+//     return pairs;
+// }
+
+/**
+ * A naive transitive closure (TC) computation.
+ * @param label A graph edge label to compute the TC for.
+ * @param in Input graph
+ * @return
+ */
+std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::transitiveClosure(uint32_t label) {
+    // std::unordered_set<std::pair<uint32_t, uint32_t>, pair_hash> tc_set;
+    std::vector<std::pair<uint32_t, uint32_t>> tc;
+    // std::vector<std::pair<uint32_t, uint32_t>> tc = SelectLabel(label, false);
+    std::vector<std::pair<uint32_t, uint32_t>> base = SelectLabel(label, false);
+
+    uint32_t numNewAdded = 1;
+    uint32_t old_tc_len;
+    uint32_t joinTarget = 0;
+    // new
+    uint32_t join_max_id = 0; //std::min(left[left.size()-1].second, right[right.size()-1].first);
+    for (auto p : base) {
+        if (p.second > join_max_id) {
+            join_max_id = p.second;
+        }
+        if (p.first > join_max_id) {
+            join_max_id = p.first;
+        }
+    }
+    
+    std::vector<std::vector<uint32_t>> left_adj;
+    std::vector<std::vector<uint32_t>> right_adj;
+    left_adj.resize(join_max_id+1);
+    right_adj.resize(join_max_id+1);
+    for (auto p : base) {
+        left_adj[p.second].emplace_back(p.first);
+        right_adj[p.first].emplace_back(p.second);
+    }
+    
+    for (uint32_t join_id = 0; join_id <= join_max_id; join_id++) {
+        if ((!left_adj[join_id].empty()) && (!right_adj[join_id].empty())) {
+            for (uint32_t lp : left_adj[join_id]) {
+                for (uint32_t rp : right_adj[join_id]) {
+                    tc.emplace_back(std::make_pair(lp, rp));
+                }
+            }
+        }
+    }
+    std::sort(tc.begin(),tc.end());
+    tc.erase(unique(tc.begin(), tc.end()), tc.end());
+
+    while (numNewAdded) {
+        old_tc_len = tc.size();
+        right_adj = {};
+        right_adj.resize(join_max_id+1);
+        for (auto p : tc) {
+            right_adj[p.first].emplace_back(p.second);
+        }
+        for (uint32_t join_id = 0; join_id <= join_max_id; join_id++) {
+            if ((!left_adj[join_id].empty()) && (!right_adj[join_id].empty())) {
+                for (uint32_t lp : left_adj[join_id]) {
+                    for (uint32_t rp : right_adj[join_id]) {
+                        tc.emplace_back(std::make_pair(lp, rp));
+                    }
+                }
+            }
+        }
+        std::sort(tc.begin(),tc.end());
+        tc.erase(unique(tc.begin(), tc.end()), tc.end());
+
+
+
+    //     auto delta =  join(tc, base);
+        numNewAdded = old_tc_len - tc.size();
+    }
+
+    return tc;
+}
+
+/**
+ * Merges a graph into another graph.
+ * @param left A graph to be merged into.
+ * @param right A graph to be merged from.
+ * @return A number of distinct new edges added from the "right" graph into the "left" graph.
+ */
+uint32_t SimpleGraph::unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right) {
+
+    // uint32_t numNewAdded = 0;
+
+    // for(uint32_t source = 0; source < right->getNoVertices(); source++) {
+    //     for (auto labelTarget : right->adj[source]) {
+
+    //         auto label = labelTarget.first;
+    //         auto target = labelTarget.second;
+
+    //         if(!left->edgeExists(source, target, label)) {
+    //             left->addEdge(source, target, label);
+    //             numNewAdded++;
+    //         }
+    //     }
     // }
 
-    // return tc;
-
-
-
-    return pairs;
+    // return numNewAdded;
 }
+
 
 
 void SimpleGraph::setNoLabels(uint32_t noLabels) {

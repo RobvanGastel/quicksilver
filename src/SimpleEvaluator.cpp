@@ -2,6 +2,12 @@
 #include "SimpleEvaluator.h"
 #include <sstream>
 
+// struct pair_hash {
+//     inline std::size_t operator()(const std::pair<uint32_t, uint32_t> & v) const {
+//         return v.first*31+v.second;
+//     }
+// };
+
 bool sortbysec(const std::pair<uint32_t,uint32_t> &a, const std::pair<uint32_t,uint32_t> &b) {
     if (a.second < b.second) return true;
     if (a.second == b.second) return a.first < b.first;
@@ -250,7 +256,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
             label = (uint32_t) std::stoul(matches[1]);
 
             // if(s != -1 && t != -1) return graph->TC(s, t, label, true); // 42, 1+, 43
-            if(s == -1 && t == -1) return graph->TC(label); // *, 1+, *
+            if(s == -1 && t == -1) return graph->transitiveClosure(label); // *, 1+, *
             // if(s != -1) return graph->TC(s, label); // 42, 1+, *
             // if(t != -1) return graph->TC(t, label); // *, 1+, 42
         } else {

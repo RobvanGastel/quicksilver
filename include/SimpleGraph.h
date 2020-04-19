@@ -16,6 +16,11 @@ public:
     // positions_adj[0][14] -> pointer to the first instance of an edge with source 14 and label 0 ->30 so you got Ia[30]
     // positions_adj[0][15] -> pointer will be after the one on top -> 34 IA[34] means that source 14 has 4 edges with predicate 0
     bool using_csr=false;
+    // struct pair_hash {
+    //     inline std::size_t operator()(const std::pair<uint32_t, uint32_t> & v) const {
+    //         return v.first*31+v.second;
+    //     }
+    // };
 
     std::vector<uint32_t> IA;
     std::vector<uint32_t> IA_reverse;
@@ -49,7 +54,9 @@ public:
     std::vector<std::pair<uint32_t, uint32_t>> SelectIdLabel(uint32_t id, uint32_t label, bool reverse, bool isTarget);
     std::vector<std::pair<uint32_t, uint32_t>> SelectSTL(uint32_t source, uint32_t target, uint32_t label, bool reverse);
 
-    std::vector<std::pair<uint32_t, uint32_t>> TC(uint32_t label);
+    // std::vector<std::pair<uint32_t, uint32_t>> TC(uint32_t label);
+    std::vector<std::pair<uint32_t, uint32_t>> transitiveClosure(uint32_t label);
+    uint32_t unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
 
     // methods to create "SimpleGraph" structure for evaluation of the query
     std::shared_ptr<SimpleGraph> createGraphSelectLabelSource(uint32_t source, uint32_t label, bool reverse);
