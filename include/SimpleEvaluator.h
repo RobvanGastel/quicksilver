@@ -22,7 +22,7 @@ class SimpleEvaluator : public Evaluator {
     std::map<std::string, BestPlan> planSpace;
     std::map<std::string, BestPlan> cachedPlans;
 
-    std::map<std::string, std::shared_ptr<SimpleGraph>> cachedQuery;
+    std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> cachedQuery;
 
 public:
 

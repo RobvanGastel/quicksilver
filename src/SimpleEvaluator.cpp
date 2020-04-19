@@ -428,15 +428,14 @@ cardStat SimpleEvaluator::evaluate(PathQuery *query) {
         // Findbestplan DP
         // Mutates query->path in place
         std::string qString = PathQueryBestPlan(query);
-
-        // TODO: Possibility to cache query results
-        // Cache all queries for entire query execution duration
-        // cachedQuery[qString] = std::make_shared<SimpleGraph>(*res);
         
         // std::cout << "\n" << *query->path;
         // query->path = reverseJoinOrder(query->path);
         // std::cout << "\n"  << *query->path;
         res = evaluatePath(query->path, s, t);
+
+        // Cache all queries for entire query execution duration
+        cachedQuery[qString] = res;
     }
 
     return SimpleEvaluator::computeStats(res);
