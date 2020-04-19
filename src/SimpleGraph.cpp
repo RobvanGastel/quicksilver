@@ -171,11 +171,11 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::SelectSTL(uint32_t sourc
  * @param in Input graph
  * @return
  */
-std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::transitiveClosure(uint32_t label) {
+std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::transitiveClosure(uint32_t label, int s, int t) {
     // std::unordered_set<std::pair<uint32_t, uint32_t>, pair_hash> tc_set;
     // std::vector<std::pair<uint32_t, uint32_t>> tc = SelectLabel(label, false);
     std::vector<std::pair<uint32_t, uint32_t>> base = SelectLabel(label, false);
-    std::vector<std::pair<uint32_t, uint32_t>> tc = base;
+    std::vector<std::pair<uint32_t, uint32_t>> tc;
 
     uint32_t numNewAdded = 1;
     uint32_t old_tc_len;
@@ -195,9 +195,22 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleGraph::transitiveClosure(uint32
     std::vector<std::vector<uint32_t>> right_adj;
     left_adj.resize(join_max_id+1);
     right_adj.resize(join_max_id+1);
-    for (auto p : base) {
-        left_adj[p.second].emplace_back(p.first);
-        right_adj[p.first].emplace_back(p.second);
+    if (s == -1 && t == -1) {
+        std::cout << "star tc" << std::endl;
+        tc = base;
+        for (auto p : base) {
+            left_adj[p.second].emplace_back(p.first);
+            right_adj[p.first].emplace_back(p.second);
+        }
+    } else if (s != -1) {
+        std::cout << "s tc" << std::endl;
+        for (auto p : base) {
+            if (p.first == s){
+                left_adj[p.second].emplace_back(s);
+                tc.emplace_back(std::make_pair(s, p.second));
+            }
+            right_adj[p.first].emplace_back(p.second);
+        }
     }
     
     for (uint32_t join_id = 0; join_id <= join_max_id; join_id++) {

@@ -257,7 +257,7 @@ std::vector<std::pair<uint32_t, uint32_t>> SimpleEvaluator::evaluatePath(PathTre
 
             // if(s != -1 && t != -1) return graph->TC(s, t, label, true); // 42, 1+, 43
             if(s == -1 && t == -1) return graph->transitiveClosure(label); // *, 1+, *
-            // if(s != -1) return graph->TC(s, label); // 42, 1+, *
+            if(s != -1) return graph->transitiveClosure(label, s); // 42, 1+, *
             // if(t != -1) return graph->TC(t, label); // *, 1+, 42
         } else {
             std::cerr << "Label parsing failed!" << std::endl;

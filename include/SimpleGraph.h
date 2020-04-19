@@ -55,7 +55,7 @@ public:
     std::vector<std::pair<uint32_t, uint32_t>> SelectSTL(uint32_t source, uint32_t target, uint32_t label, bool reverse);
 
     // std::vector<std::pair<uint32_t, uint32_t>> TC(uint32_t label);
-    std::vector<std::pair<uint32_t, uint32_t>> transitiveClosure(uint32_t label);
+    std::vector<std::pair<uint32_t, uint32_t>> transitiveClosure(uint32_t label, int s=-1, int t=-1);
     // uint32_t unionDistinct(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
 
     // methods to create "SimpleGraph" structure for evaluation of the query
