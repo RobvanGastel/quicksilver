@@ -150,12 +150,12 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
     }
 
     // remove duplicates
-    // for (uint32_t i = 0; i < left_adj.size(); i++) {
-    //     sort(left_adj[i].begin(), left_adj[i].end());
-    //     left_adj[i].erase( unique( left_adj[i].begin(), left_adj[i].end() ), left_adj[i].end() );
-    //     sort(right_adj[i].begin(), right_adj[i].end());
-    //     right_adj[i].erase( unique( right_adj[i].begin(), right_adj[i].end() ), right_adj[i].end() );
-    // }
+    for (uint32_t i = 0; i < left_adj.size(); i++) {
+        sort(left_adj[i].begin(), left_adj[i].end());
+        left_adj[i].erase( unique( left_adj[i].begin(), left_adj[i].end() ), left_adj[i].end() );
+        sort(right_adj[i].begin(), right_adj[i].end());
+        right_adj[i].erase( unique( right_adj[i].begin(), right_adj[i].end() ), right_adj[i].end() );
+    }
 
     for (uint32_t join_id = 0; join_id <= join_max_id; join_id++) {
         if ((!left_adj[join_id].empty()) && (!right_adj[join_id].empty())) {
