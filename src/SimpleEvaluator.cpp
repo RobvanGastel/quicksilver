@@ -71,55 +71,6 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t, uint32_t>
     stats.noOut = targets.size();
 
     return stats;
-
-    // // std::vector<uint32_t> uniquein;
-    // // std::vector<uint32_t> uniqueout;
-    // // for(int i =0; i < g.size(); i++) {
-    // //     uniquein.push_back(g[i].first);
-    // //     uniqueout.push_back(g[i].second);
-    // // }
-
-    // // std::sort(uniquein.begin(), uniquein.end());
-    // // uniquein.erase(unique(uniquein.begin(), uniquein.end()), uniquein.end());
-    // // std::sort(uniqueout.begin(), uniqueout.end());
-    // // uniqueout.erase(unique(uniqueout.begin(), uniqueout.end()), uniqueout.end());
-
-    // // stats.noPaths = g.size();
-    // // stats.noIn = uniqueout.size();
-    // // stats.noOut = uniquein.size();
-
-    // // std::cout << "adsad\n";
-    // std::vector<uint32_t> sources = {};
-    // std::vector<uint32_t> targets = {};
-    // std::vector<std::pair<uint32_t, uint32_t>> paths = {};
-
-    // for(int i = 0; i < g.size(); i++) {
-    //     sources.emplace_back(g[i].first);
-    //     targets.emplace_back(g[i].second);
-
-    //     bool exists = false;
-    //     for(int j = 0; j < paths.size(); j++) {
-    //         if(paths[j] == g[i]) {
-    //             exists = true;
-    //             break;
-    //         }
-    //     }
-    //     if(!exists) {
-    //         paths.emplace_back(g[i]);
-    //     }
-    // }
-    
-    // sort(sources.begin(), sources.end());
-    // sources.erase(unique(sources.begin(), sources.end()), sources.end());
-
-    // sort(targets.begin(), targets.end());
-    // targets.erase(unique(targets.begin(), targets.end()), targets.end());
-
-    // stats.noIn = sources.size();
-    // stats.noPaths = paths.size();
-    // stats.noOut = targets.size();
-
-    // return stats;
 }
 
 /**
@@ -166,30 +117,6 @@ std::vector<std::pair<uint32_t, uint32_t>>  SimpleEvaluator::join(
         }
     }
     
-
-    // int leftk = 0;
-    // int rightk = 0;
-    // int next;
-
-    // // Join left and right in join vertex
-    // while(leftk != left.size() && rightk != right.size()){
-    //     if(left[leftk].second == right[rightk].first) {
-    //         next = rightk;
-            
-    //         while(next != right.size() && left[leftk].second == right[next].first) {
-    //             join.emplace_back(
-    //                 std::make_pair(
-    //                     left[leftk].first, 
-    //                     right[next].second));
-    //             next++;
-    //         }
-    //         leftk++;
-    //     } else if(left[leftk].second < right[rightk].first) {
-    //         leftk++;
-    //     } else {
-    //         rightk++;
-    //     }
-    // }
     // Remove the duplicates keep unique values
     std::sort(join.begin(),join.end());
     join.erase(unique(join.begin(), join.end()), join.end());
